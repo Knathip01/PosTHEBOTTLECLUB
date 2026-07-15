@@ -116,8 +116,8 @@ export default function SettingsPage() {
     try {
       // Create a temporary client that doesn't persist auth session
       const tempSupabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key',
         {
           auth: {
             persistSession: false,

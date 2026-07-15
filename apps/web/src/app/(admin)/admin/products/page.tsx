@@ -9,7 +9,7 @@ import {
   Upload, Image as ImageIcon, Camera, Tag
 } from 'lucide-react'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co'
 
 export default function ProductsPage() {
   const supabase = createClient()
