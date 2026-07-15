@@ -1,0 +1,707 @@
+// This is your Prisma schema file
+// POS System - SQLite Compatible Schema with TypeScript Enums
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator client_custom {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ==========================================
+// ENUMS (Prisma maps these to TEXT in SQLite, but maintains TypeScript typing)
+// ==========================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum RoleType {
+  SUPER_ADMIN
+  OWNER
+  MANAGER
+  CASHIER
+  STOCK_STAFF
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  ON_HOLD
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  QR_CODE
+  CREDIT_CARD
+  DEBIT_CARD
+  MIXED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIAL_REFUND
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  RETURN_IN
+  RETURN_OUT
+  ADJUSTMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  DAMAGE
+  OPENING
+}
+
+enum PromotionType {
+  PERCENTAGE_DISCOUNT
+  FIXED_DISCOUNT
+  BUY_X_GET_Y
+  FREE_ITEM
+  MIN_PURCHASE_DISCOUNT
+}
+
+enum PromotionStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  SCHEDULED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  VIEW
+  EXPORT
+  APPROVE
+  REJECT
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum ReturnReason {
+  DEFECTIVE
+  WRONG_ITEM
+  CUSTOMER_CHANGED_MIND
+  EXPIRED
+  DAMAGED_DELIVERY
+  OTHER
+}
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+}
+
+// ==========================================
+// USERS & AUTH
+// ==========================================
+
+model User {
+  id              String     @id @default(cuid())
+  username        String     @unique
+  email           String     @unique
+  password        String
+  firstName       String
+  lastName        String
+  phone           String?
+  avatar          String?
+  status          UserStatus @default(ACTIVE)
+  roleId          String
+  branchId        String?
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  failedAttempts  Int        @default(0)
+  lockedUntil     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  role            Role            @relation(fields: [roleId], references: [id])
+  branch          Branch?         @relation(fields: [branchId], references: [id])
+  refreshTokens   RefreshToken[]
+  loginAttempts   LoginAttempt[]
+  orders          Order[]         @relation("CashierOrders")
+  returns         Return[]        @relation("StaffReturns")
+  stockMovements  StockMovement[] @relation("StaffMovements")
+  auditLogs       AuditLog[]
+  shifts          Shift[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        RoleType @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  module      String
+  action      String
+  createdAt   DateTime @default(now())
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  userId     String
+  expiresAt  DateTime
+  isRevoked  Boolean  @default(false)
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  userId     String?
+  username   String
+  ipAddress  String
+  userAgent  String?
+  success    Boolean
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("login_attempts")
+}
+
+// ==========================================
+// BRANCHES
+// ==========================================
+
+model Branch {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  address     String?
+  phone       String?
+  isActive    Boolean  @default(true)
+  isMain      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  inventory   ProductInventory[]
+  orders      Order[]
+  shifts      Shift[]
+  stockMovements StockMovement[]
+
+  @@map("branches")
+}
+
+// ==========================================
+// PRODUCTS & CATEGORIES
+// ==========================================
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?
+  color       String?
+  parentId    String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  description     String?
+  sku             String        @unique
+  barcode         String?       @unique
+  categoryId      String
+  supplierId      String?
+  image           String?
+  
+  price           Decimal
+  costPrice       Decimal
+  comparePrice    Decimal?
+
+  taxable         Boolean       @default(true)
+  taxRate         Decimal?
+
+  trackInventory  Boolean       @default(true)
+  allowNegative   Boolean       @default(false)
+  lowStockAlert   Int           @default(10)
+  
+  hasExpiry       Boolean       @default(false)
+  
+  status          ProductStatus @default(ACTIVE)
+  isService       Boolean       @default(false)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  category        Category      @relation(fields: [categoryId], references: [id])
+  supplier        Supplier?     @relation(fields: [supplierId], references: [id])
+  inventory       ProductInventory[]
+  orderItems      OrderItem[]
+  stockMovements  StockMovement[]
+  returnItems     ReturnItem[]
+  promotionItems  PromotionItem[]
+
+  @@map("products")
+}
+
+model ProductInventory {
+  id            String   @id @default(cuid())
+  productId     String
+  branchId      String
+  quantity      Int      @default(0)
+  reservedQty   Int      @default(0)
+  expiryDate    DateTime?
+  updatedAt     DateTime @updatedAt
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branch        Branch   @relation(fields: [branchId], references: [id])
+
+  @@unique([productId, branchId])
+  @@map("product_inventory")
+}
+
+// ==========================================
+// SUPPLIERS
+// ==========================================
+
+model Supplier {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?
+  taxId       String?
+  notes       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+  stockMovements StockMovement[]
+
+  @@map("suppliers")
+}
+
+// ==========================================
+// CUSTOMERS & LOYALTY
+// ==========================================
+
+model Customer {
+  id              String   @id @default(cuid())
+  code            String   @unique @default(cuid())
+  firstName       String
+  lastName        String?
+  email           String?  @unique
+  phone           String?  @unique
+  address         String?
+  birthday        DateTime?
+  gender          String?
+  notes           String?
+  loyaltyPoints   Int      @default(0)
+  totalSpent      Decimal  @default(0)
+  totalOrders     Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  orders          Order[]
+  loyaltyHistory  LoyaltyPoint[]
+  usedCoupons     CouponUsage[]
+
+  @@map("customers")
+}
+
+model LoyaltyPoint {
+  id          String   @id @default(cuid())
+  customerId  String
+  orderId     String?
+  points      Int
+  type        String
+  description String?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  customer    Customer @relation(fields: [customerId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+
+  @@map("loyalty_points")
+}
+
+// ==========================================
+// ORDERS & PAYMENTS
+// ==========================================
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  branchId        String
+  cashierId       String
+  customerId      String?
+  shiftId         String?
+  
+  status          OrderStatus @default(PROCESSING)
+  
+  subtotal        Decimal
+  discountAmount  Decimal     @default(0)
+  taxAmount       Decimal     @default(0)
+  totalAmount     Decimal
+  
+  pointsEarned    Int         @default(0)
+  pointsRedeemed  Int         @default(0)
+  
+  promotionId     String?
+  couponCode      String?
+  
+  notes           String?
+  receiptPrinted  Boolean     @default(false)
+  receiptEmail    String?
+  
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  branch          Branch      @relation(fields: [branchId], references: [id])
+  cashier         User        @relation("CashierOrders", fields: [cashierId], references: [id])
+  customer        Customer?   @relation(fields: [customerId], references: [id])
+  shift           Shift?      @relation(fields: [shiftId], references: [id])
+  promotion       Promotion?  @relation(fields: [promotionId], references: [id])
+  
+  items           OrderItem[]
+  payments        Payment[]
+  returns         Return[]
+  loyaltyPoints   LoyaltyPoint[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productId   String
+  
+  productName String
+  sku         String
+  barcode     String?
+  
+  quantity    Int
+  unitPrice   Decimal
+  costPrice   Decimal
+  discount    Decimal  @default(0)
+  taxRate     Decimal  @default(0)
+  taxAmount   Decimal  @default(0)
+  totalAmount Decimal
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amount        Decimal
+  tendered      Decimal?
+  change        Decimal?
+  reference     String?
+  notes         String?
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  order         Order         @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+// ==========================================
+// RETURNS
+// ==========================================
+
+model Return {
+  id            String       @id @default(cuid())
+  returnNumber  String       @unique
+  orderId       String
+  staffId       String
+  reason        ReturnReason
+  notes         String?
+  totalAmount   Decimal
+  refundMethod  PaymentMethod
+  refundStatus  PaymentStatus @default(PENDING)
+  approvedBy    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  order         Order        @relation(fields: [orderId], references: [id])
+  staff         User         @relation("StaffReturns", fields: [staffId], references: [id])
+  items         ReturnItem[]
+
+  @@map("returns")
+}
+
+model ReturnItem {
+  id          String   @id @default(cuid())
+  returnId    String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal
+  totalAmount Decimal
+
+  return      Return   @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("return_items")
+}
+
+// ==========================================
+// STOCK MOVEMENTS
+// ==========================================
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  productId     String
+  branchId      String
+  staffId       String
+  supplierId    String?
+  orderId       String?
+  
+  type          StockMovementType
+  quantity      Int
+  quantityBefore Int
+  quantityAfter Int
+  
+  unitCost      Decimal?
+  totalCost     Decimal?
+  
+  reference     String?
+  notes         String?
+  expiryDate    DateTime?
+  
+  createdAt     DateTime          @default(now())
+
+  product       Product           @relation(fields: [productId], references: [id])
+  branch        Branch            @relation(fields: [branchId], references: [id])
+  staff         User              @relation("StaffMovements", fields: [staffId], references: [id])
+  supplier      Supplier?         @relation(fields: [supplierId], references: [id])
+
+  @@map("stock_movements")
+}
+
+// ==========================================
+// PROMOTIONS & COUPONS
+// ==========================================
+
+model Promotion {
+  id            String          @id @default(cuid())
+  name          String
+  description   String?
+  type          PromotionType
+  status        PromotionStatus @default(ACTIVE)
+  
+  discountValue  Decimal
+  minPurchase    Decimal?
+  maxDiscount    Decimal?
+  
+  startDate      DateTime
+  endDate        DateTime?
+  usageLimit     Int?
+  usageCount     Int            @default(0)
+  
+  applyToAll     Boolean        @default(true)
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  orders         Order[]
+  items          PromotionItem[]
+  coupons        Coupon[]
+
+  @@map("promotions")
+}
+
+model PromotionItem {
+  id          String    @id @default(cuid())
+  promotionId String
+  productId   String
+
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@map("promotion_items")
+}
+
+model Coupon {
+  id           String          @id @default(cuid())
+  code         String          @unique
+  promotionId  String?
+  description  String?
+  discountType String
+  discountValue Decimal
+  minPurchase  Decimal?
+  maxDiscount  Decimal?
+  usageLimit   Int?
+  usageCount   Int             @default(0)
+  perCustomer  Int             @default(1)
+  startDate    DateTime?
+  endDate      DateTime?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+
+  promotion    Promotion?      @relation(fields: [promotionId], references: [id])
+  usages       CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id         String   @id @default(cuid())
+  couponId   String
+  customerId String
+  orderId    String?
+  usedAt     DateTime @default(now())
+
+  coupon     Coupon   @relation(fields: [couponId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@map("coupon_usages")
+}
+
+// ==========================================
+// SHIFTS
+// ==========================================
+
+model Shift {
+  id              String      @id @default(cuid())
+  branchId        String
+  userId          String
+  status          ShiftStatus @default(OPEN)
+  openingCash     Decimal
+  closingCash     Decimal?
+  expectedCash    Decimal?
+  cashDifference  Decimal?
+  totalSales      Decimal     @default(0)
+  totalOrders     Int         @default(0)
+  notes           String?
+  openedAt        DateTime    @default(now())
+  closedAt        DateTime?
+
+  branch          Branch      @relation(fields: [branchId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  orders          Order[]
+
+  @@map("shifts")
+}
+
+// ==========================================
+// SETTINGS
+// ==========================================
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  group       String   @default("general")
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+// ==========================================
+// AUDIT LOGS
+// ==========================================
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  action      AuditAction
+  module      String
+  entityId    String?
+  entityType  String?
+  description String
+  before      String?
+  after       String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
