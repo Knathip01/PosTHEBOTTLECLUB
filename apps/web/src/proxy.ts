@@ -30,6 +30,12 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // Skip middleware for static files in public folder
+  const isStaticFile = /\.(?:png|jpg|jpeg|gif|svg|webp|ico|json|txt)$/i.test(pathname)
+  if (isStaticFile) {
+    return supabaseResponse
+  }
+
   // Public routes
   if (pathname.startsWith('/login') || pathname.startsWith('/auth') || pathname.startsWith('/menu')) {
     if (user && (pathname.startsWith('/login') || pathname.startsWith('/auth'))) {
