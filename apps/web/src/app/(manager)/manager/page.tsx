@@ -8,7 +8,7 @@ import {
   TrendingUp, ShoppingBag, Users, Package, AlertTriangle, Wine,
   ArrowUpRight, RefreshCw, BarChart3, Tag, Warehouse, Sparkles, Check, X,
   Search, Edit3, Loader2, Key, ClipboardList, Clock, Image as ImageIcon,
-  CheckCircle2, Eye, MessageSquare
+  CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight
 } from 'lucide-react'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip
@@ -16,7 +16,7 @@ import {
 
 export default function ManagerDashboard() {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'stock' | 'discounts' | 'reports' | 'shop_reports'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'stock' | 'discounts' | 'reports' | 'shop_reports' | 'payments'>('overview')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -57,6 +57,10 @@ export default function ManagerDashboard() {
   const [receiptItems, setReceiptItems] = useState<any[]>([])
   const [loadingReceiptItems, setLoadingReceiptItems] = useState(false)
 
+  // Stock Adjustments
+  const [stockAdjustments, setStockAdjustments] = useState<any[]>([])
+  const [selectedAdjustment, setSelectedAdjustment] = useState<any | null>(null)
+
   // Shop Reports from Cashier
   const [shopReports, setShopReports] = useState<any[]>([])
   const [selectedReport, setSelectedReport] = useState<any | null>(null)
@@ -67,6 +71,13 @@ export default function ManagerDashboard() {
   // Stock receipts date filters
   const [stockDateFrom, setStockDateFrom] = useState('')
   const [stockDateTo, setStockDateTo] = useState('')
+
+  // Payment Verification Tab
+  const [paymentsSales, setPaymentsSales] = useState<any[]>([])
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
+  const [selectedPaymentSale, setSelectedPaymentSale] = useState<any | null>(null)
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<'pending' | 'paid' | 'all'>('all')
+  const [paymentSourceFilter, setPaymentSourceFilter] = useState<'all' | 'pos' | 'menu'>('all')
 
   const loadData = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true)
@@ -173,8 +184,30 @@ export default function ManagerDashboard() {
       const { data: receipts } = await receiptsQuery
       setStockReceipts(receipts || [])
 
+      // Fetch Stock Adjustments
+      let adjustmentsQuery = supabase
+        .from('inventory_movements')
+        .select('*, products(name, sku), profiles!created_by(full_name)')
+        .eq('movement_type', 'adjust')
+        .order('created_at', { ascending: false })
+
+      if (stockDateFrom) {
+        adjustmentsQuery = adjustmentsQuery.gte('created_at', `${stockDateFrom}T00:00:00`)
+      }
+      if (stockDateTo) {
+        adjustmentsQuery = adjustmentsQuery.lte('created_at', `${stockDateTo}T23:59:59`)
+      } else if (!stockDateFrom) {
+        adjustmentsQuery = adjustmentsQuery.limit(10)
+      }
+
+      const { data: adjustments } = await adjustmentsQuery
+      setStockAdjustments(adjustments || [])
+
       // Fetch Shop Reports
       await loadShopReports()
+
+      // Fetch Payment Verification Sales
+      await loadPayments()
 
     } catch (err) {
       console.error('Error loading manager dashboard data:', err)
@@ -217,7 +250,7 @@ export default function ManagerDashboard() {
     try {
       let query = supabase
         .from('shop_reports')
-        .select('*, profiles!reported_by(full_name)')
+        .select('*, profiles!reported_by(full_name, role)')
         .order('created_at', { ascending: false })
 
       if (reportDateFrom) {
@@ -236,6 +269,125 @@ export default function ManagerDashboard() {
       console.error('Error loading shop reports:', err)
     } finally {
       setShopReportsLoading(false)
+    }
+  }
+
+  const loadPayments = async () => {
+    setPaymentsLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          profiles!cashier_id(full_name),
+          sale_items(
+            *,
+            products(
+              category_id,
+              categories(name)
+            )
+          )
+        `)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setPaymentsSales(data || [])
+    } catch (err) {
+      console.error('Error loading payments:', err)
+    } finally {
+      setPaymentsLoading(false)
+    }
+  }
+
+  const handleApprovePayment = async (sale: any) => {
+    if (!confirm(`ยืนยันอนุมัติการชำระเงินและหักสต๊อกสินค้า\nยอดชำระ: ${sale.total_amount} บาท?`)) return
+    setPaymentsLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('ไม่พบข้อมูลผู้ใช้เข้าสู่ระบบ')
+
+      // 1. Deduct Stock for items in sale
+      for (const item of sale.sale_items || []) {
+        // Fetch current product stock
+        const { data: prod, error: prodGetErr } = await supabase
+          .from('products')
+          .select('stock, name')
+          .eq('id', item.product_id)
+          .single()
+        if (prodGetErr) throw new Error(`ไม่พบสินค้า ${item.product_name}: ${prodGetErr.message}`)
+
+        const newStock = Math.max(0, (prod.stock || 0) - item.quantity)
+
+        // Update product stock
+        const { error: prodErr } = await supabase
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', item.product_id)
+        if (prodErr) throw new Error(`ไม่สามารถหักสต๊อกสินค้า ${item.product_name} ได้: ${prodErr.message}`)
+
+        // Create inventory movement
+        const { error: moveErr } = await supabase
+          .from('inventory_movements')
+          .insert({
+            product_id: item.product_id,
+            movement_type: 'out',
+            quantity: -item.quantity,
+            quantity_before: prod.stock,
+            quantity_after: newStock,
+            reference_type: 'sale',
+            reference_id: sale.id,
+            note: `ยืนยันการขายผ่าน QR/Menu โต๊ะ ${sale.table_no || 'หน้าร้าน'}`,
+            created_by: user.id
+          })
+        if (moveErr) throw new Error(`ไม่สามารถบันทึกสต๊อกสำหรับ ${item.product_name} ได้: ${moveErr.message}`)
+      }
+
+      // 2. Create entry in payments table
+      const { error: payErr } = await supabase.from('payments').insert({
+        sale_id: sale.id,
+        payment_method: sale.payment_method || 'qr',
+        amount: sale.total_amount,
+        reference_no: null
+      })
+      if (payErr) throw new Error(`ไม่สามารถเพิ่มรายการชำระเงินได้: ${payErr.message}`)
+
+      // 3. Update sale status to 'paid'
+      const { error: saleErr } = await supabase
+        .from('sales')
+        .update({
+          status: 'paid',
+          cashier_id: user.id
+        })
+        .eq('id', sale.id)
+      if (saleErr) throw new Error(`ไม่สามารถปรับปรุงสถานะการขายได้: ${saleErr.message}`)
+
+      alert('อนุมัติการชำระเงินและทำการตัดสต๊อกสินค้าเรียบร้อยแล้ว!')
+      await loadPayments()
+      
+      // Update selectedPaymentSale detail if open
+      setSelectedPaymentSale((prev: any) => prev?.id === sale.id ? { ...prev, status: 'paid' } : prev)
+    } catch (err: any) {
+      alert('เกิดข้อผิดพลาดในการอนุมัติชำระเงิน: ' + err.message)
+    } finally {
+      setPaymentsLoading(false)
+    }
+  }
+
+  const handleCancelPayment = async (saleId: string) => {
+    if (!confirm('ต้องการยกเลิกคำขอสั่งซื้อ/ชำระเงินรายการนี้?')) return
+    setPaymentsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('sales')
+        .update({ status: 'cancelled' })
+        .eq('id', saleId)
+      if (error) throw error
+      alert('ยกเลิกรายการสั่งซื้อเรียบร้อย')
+      await loadPayments()
+      setSelectedPaymentSale(null)
+    } catch (err: any) {
+      alert('ไม่สามารถยกเลิกรายการได้: ' + err.message)
+    } finally {
+      setPaymentsLoading(false)
     }
   }
 
@@ -409,6 +561,92 @@ export default function ManagerDashboard() {
     return matchCat && matchSearch
   })
 
+  const renderReportCard = (title: string, list: any[], titleColor: string, gradient: string, maxHeight: number = 600) => {
+    const pendingCount = list.filter(r => r.status === 'pending').length
+    return (
+      <div className="glass-card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ClipboardList size={16} color="white" />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>{title}</h3>
+              <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>
+                {pendingCount} รายการรอตรวจสอบ
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {shopReportsLoading && list.length === 0 ? (
+          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+            <Loader2 size={24} style={{ color: titleColor, animation: 'spin 1s linear infinite', margin: '0 auto 12px', display: 'block' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>กำลังโหลดรายงาน...</p>
+          </div>
+        ) : list.length === 0 ? (
+          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <ClipboardList size={20} style={{ color: 'var(--text-muted)' }} />
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: 0 }}>ไม่มีรายการรายงานในขณะนี้</p>
+          </div>
+        ) : (
+          <div style={{ overflowY: 'auto', maxHeight: maxHeight }}>
+            {list.map(report => (
+              <div
+                key={report.id}
+                onClick={() => setSelectedReport(report)}
+                style={{
+                  padding: '14px 20px',
+                  borderBottom: '1px solid var(--border-color)',
+                  cursor: 'pointer',
+                  background: selectedReport?.id === report.id
+                    ? 'rgba(56,189,248,0.06)'
+                    : report.status === 'pending' ? 'rgba(56,189,248,0.02)' : 'transparent',
+                  borderLeft: selectedReport?.id === report.id ? '3px solid #38bdf8'
+                    : report.status === 'pending' ? `3px solid ${titleColor}` : '3px solid transparent',
+                  transition: 'background 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20,
+                        background: report.status === 'pending' ? 'rgba(56,189,248,0.15)' : 'rgba(34,197,94,0.12)',
+                        color: report.status === 'pending' ? '#38bdf8' : '#4ade80',
+                        border: `1px solid ${report.status === 'pending' ? 'rgba(56,189,248,0.3)' : 'rgba(34,197,94,0.25)'}`,
+                        flexShrink: 0,
+                      }}>
+                        {report.status === 'pending' ? 'รอตรวจสอบ' : 'รับทราบแล้ว'}
+                      </span>
+                    </div>
+                    <h4 style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {report.title}
+                    </h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        👤 {report.profiles?.full_name || 'ไม่ทราบชื่อ'}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        🕐 {new Date(report.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {report.images?.length > 0 && (
+                        <span style={{ fontSize: 11, color: '#38bdf8' }}>📸 {report.images.length} รูป</span>
+                      )}
+                    </div>
+                  </div>
+                  <Eye size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
@@ -432,9 +670,10 @@ export default function ManagerDashboard() {
       {/* Tabs */}
       <div className="hidden md:flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'var(--border-color)', scrollbarWidth: 'none' }}>
         {[
-                { key: 'overview',      label: '📊 ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
+          { key: 'overview',      label: '📊 ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
           { key: 'products',      label: '📦 จัดการสินค้า',       icon: <Package size={14} /> },
           { key: 'stock',         label: '⚙️ ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
+          { key: 'payments',      label: '💳 ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
           { key: 'discounts',     label: '🔑 อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
           { key: 'reports',       label: '📈 รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
           { key: 'shop_reports',  label: '📋 รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
@@ -715,6 +954,25 @@ export default function ManagerDashboard() {
                   <div className="space-y-3">
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}><b>ผู้ส่ง:</b> {selectedReceipt.supplier_name || 'ไม่ระบุ'}</p>
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}><b>ราคารวม:</b> {formatCurrency(selectedReceipt.total_cost)}</p>
+                    {selectedReceipt.image_url && (
+                      <div className="mt-3">
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}><b>รูปภาพหลักฐานการรับของ:</b></p>
+                        <a href={selectedReceipt.image_url} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={selectedReceipt.image_url}
+                            alt="หลักฐานใบเสร็จคลังสินค้า"
+                            style={{
+                              width: '100%',
+                              maxHeight: '180px',
+                              objectFit: 'cover',
+                              borderRadius: '10px',
+                              border: '1px solid var(--border-color)',
+                              cursor: 'pointer'
+                            }}
+                          />
+                        </a>
+                      </div>
+                    )}
                     <div className="border-t pt-2 mt-2" style={{ borderColor: 'var(--border-color)' }}>
                       {loadingReceiptItems ? (
                         <div className="flex justify-center py-4"><Loader2 size={16} className="animate-spin text-amber-500" /></div>
@@ -739,6 +997,65 @@ export default function ManagerDashboard() {
                         </table>
                       )}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Adjustment Details Panel */}
+              {selectedAdjustment && (
+                <div className="glass-card p-5 animate-in">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-bold text-white">รายละเอียดการปรับปรุงสต๊อก</h4>
+                    <button onClick={() => setSelectedAdjustment(null)} className="text-xs p-1" style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>ปิด</button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>สินค้าที่ปรับปรุง</p>
+                      <p className="text-sm font-bold text-white">{(selectedAdjustment.products as any)?.name || '—'}</p>
+                      <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>SKU: {(selectedAdjustment.products as any)?.sku || '—'}</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 bg-black/25 p-3 rounded-xl border border-white/5 text-center">
+                      <div>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>สต๊อกก่อนปรับ</p>
+                        <p className="text-sm font-bold text-white">{selectedAdjustment.quantity_before} ชิ้น</p>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <span style={{ color: selectedAdjustment.quantity > 0 ? '#10b981' : '#f43f5e', fontWeight: 'bold' }}>
+                          {selectedAdjustment.quantity > 0 ? `+${selectedAdjustment.quantity}` : selectedAdjustment.quantity} ชิ้น
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>สต๊อกหลังปรับ</p>
+                        <p className="text-sm font-bold text-white">{selectedAdjustment.quantity_after} ชิ้น</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}><b>ผู้บันทึก:</b> {(selectedAdjustment.profiles as any)?.full_name || 'ไม่ระบุ'}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}><b>เหตุผลประกอบ:</b> {selectedAdjustment.note || '—'}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-secondary)' }}><b>วันเวลาที่บันทึก:</b> {new Date(selectedAdjustment.created_at).toLocaleString('th-TH')}</p>
+                    </div>
+
+                    {selectedAdjustment.image_url && (
+                      <div className="border-t pt-3" style={{ borderColor: 'var(--border-color)' }}>
+                        <p className="text-xs mb-1.5 font-semibold text-white">รูปภาพหลักฐานแนบ:</p>
+                        <a href={selectedAdjustment.image_url} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={selectedAdjustment.image_url}
+                            alt="หลักฐานสินค้าเสียหาย"
+                            style={{
+                              width: '100%',
+                              maxHeight: '220px',
+                              objectFit: 'cover',
+                              borderRadius: '10px',
+                              border: '1px solid var(--border-color)',
+                              cursor: 'pointer'
+                            }}
+                          />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -822,14 +1139,22 @@ export default function ManagerDashboard() {
                   <tbody>
                     {stockReceipts.map(rec => (
                       <tr key={rec.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td className="p-3 font-mono text-sm font-bold text-white">#{rec.receipt_no}</td>
+                        <td className="p-3 font-mono text-sm font-bold text-white">
+                          <div className="flex items-center gap-1.5">
+                            #{rec.receipt_no}
+                            {rec.image_url && <ImageIcon size={14} style={{ color: '#fbbf24', opacity: 0.8 }} title="มีภาพหลักฐานประกอบ" />}
+                          </div>
+                        </td>
                         <td className="p-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{rec.supplier_name || '—'}</td>
                         <td className="p-3 text-sm font-bold" style={{ color: 'var(--gold-400)' }}>{formatCurrency(rec.total_cost)}</td>
                         <td className="p-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{(rec.profiles as any)?.full_name || 'ไม่ระบุ'}</td>
                         <td className="p-3 text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(rec.created_at).toLocaleString('th-TH')}</td>
                         <td className="p-3 text-right">
                           <button
-                            onClick={() => loadReceiptDetails(rec)}
+                            onClick={() => {
+                              setSelectedAdjustment(null)
+                              loadReceiptDetails(rec)
+                            }}
                             className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border"
                             style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'white', cursor: 'pointer' }}
                           >
@@ -838,6 +1163,73 @@ export default function ManagerDashboard() {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* New Stock Adjustments Table */}
+          <div className="glass-card p-5 mt-6">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 className="text-sm font-bold text-white font-display flex items-center gap-2" style={{ margin: 0 }}>
+                <Edit3 size={16} style={{ color: '#a78bfa' }} />
+                รายงานการปรับปรุงสต๊อกสินค้า (คีย์โดยพนักงานคลังสินค้า)
+              </h3>
+            </div>
+            {stockAdjustments.length === 0 ? (
+              <p className="text-xs py-6 text-center" style={{ color: 'var(--text-muted)' }}>ยังไม่มีข้อมูลการปรับปรุงยอดสต๊อกในระบบ</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)' }}>
+                      {['สินค้า', 'จำนวนที่ปรับปรุง', 'สต๊อกก่อนหน้านี้', 'สต๊อกหลังปรับ', 'เหตุผลการปรับปรุง', 'พนักงานผู้บันทึก', 'วันเวลาที่บันทึก', ''].map(h => (
+                        <th key={h} className="p-3 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stockAdjustments.map(adj => {
+                      const isPositive = adj.quantity > 0
+                      return (
+                        <tr key={adj.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td className="p-3">
+                            <p className="text-sm font-bold text-white">{(adj.products as any)?.name || '—'}</p>
+                            <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>SKU: {(adj.products as any)?.sku || '—'}</p>
+                          </td>
+                          <td className="p-3 text-sm font-bold" style={{ color: isPositive ? '#10b981' : '#f43f5e' }}>
+                            {isPositive ? `+${adj.quantity}` : adj.quantity} ชิ้น
+                          </td>
+                          <td className="p-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{adj.quantity_before} ชิ้น</td>
+                          <td className="p-3 text-sm font-bold text-white">{adj.quantity_after} ชิ้น</td>
+                          <td className="p-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: 'var(--text-secondary)' }}>{adj.note || '—'}</span>
+                              {adj.image_url && (
+                                <a href={adj.image_url} target="_blank" rel="noopener noreferrer" className="flex items-center" title="ดูรูปภาพหลักฐานการปรับปรุงสต๊อก">
+                                  <ImageIcon size={14} style={{ color: '#fbbf24', cursor: 'pointer' }} />
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{(adj.profiles as any)?.full_name || 'ไม่ระบุ'}</td>
+                          <td className="p-3 text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(adj.created_at).toLocaleString('th-TH')}</td>
+                          <td className="p-3 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedReceipt(null)
+                                setSelectedAdjustment(adj)
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border"
+                              style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'white', cursor: 'pointer' }}
+                            >
+                              ดูข้อมูล
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1016,246 +1408,442 @@ export default function ManagerDashboard() {
           </div>
         </div>
       )}
-      {/* SHOP REPORTS TAB */}
-      {activeTab === 'shop_reports' && (
-        <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-2 gap-5" : "grid grid-cols-1 gap-5"}>
-          {/* Reports list */}
-          <div className={selectedReport ? "glass-card hidden lg:block" : "glass-card"} style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg,#0c4a6e,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ClipboardList size={16} color="white" />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>รายงานความเรียบร้อยจาก Cashier</h3>
-                  <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>
-                    {shopReports.filter(r => r.status === 'pending').length} รายการรอตรวจสอบ
-                  </p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                {/* Start Date */}
-                <input
-                  type="date"
-                  value={reportDateFrom}
-                  onChange={e => setReportDateFrom(e.target.value)}
-                  className="wine-input"
-                  style={{
-                    fontSize: 12,
-                    padding: '6px 10px',
-                    borderRadius: 10,
-                    background: 'rgba(0,0,0,0.2)',
-                    border: '1px solid var(--border-color)',
-                    color: 'white',
-                    outline: 'none'
-                  }}
-                />
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ถึง</span>
-                {/* End Date */}
-                <input
-                  type="date"
-                  value={reportDateTo}
-                  onChange={e => setReportDateTo(e.target.value)}
-                  className="wine-input"
-                  style={{
-                    fontSize: 12,
-                    padding: '6px 10px',
-                    borderRadius: 10,
-                    background: 'rgba(0,0,0,0.2)',
-                    border: '1px solid var(--border-color)',
-                    color: 'white',
-                    outline: 'none'
-                  }}
-                />
-                {(reportDateFrom || reportDateTo) && (
-                  <button
-                    onClick={() => { setReportDateFrom(''); setReportDateTo('') }}
-                    style={{
-                      fontSize: 12,
-                      padding: '6px 12px',
-                      borderRadius: 10,
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid var(--border-color)',
-                      color: 'var(--text-secondary)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  >
-                    ล้างตัวกรอง
-                  </button>
-                )}
-              </div>
-            </div>
+      {/* PAYMENTS VERIFICATION TAB */}
+      {activeTab === 'payments' && (() => {
+        const parseSlipUrl = (noteStr?: string) => {
+          if (!noteStr) return null
+          const match = noteStr.match(/SLIP:(https?:\/\/\S+)/)
+          return match ? match[1] : null
+        }
+        const getCleanNote = (noteStr?: string) => {
+          if (!noteStr) return ''
+          return noteStr.split('| SLIP:')[0].split('SLIP:')[0].trim()
+        }
 
-            {shopReportsLoading && shopReports.length === 0 ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                <Loader2 size={28} style={{ color: '#38bdf8', animation: 'spin 1s linear infinite', margin: '0 auto 12px', display: 'block' }} />
-                <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>กำลังโหลดรายงาน...</p>
-              </div>
-            ) : shopReports.length === 0 ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(56,189,248,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-                  <ClipboardList size={24} style={{ color: '#38bdf8' }} />
+        const filteredPayments = paymentsSales.filter(sale => {
+          // Status filter
+          if (paymentStatusFilter !== 'all' && sale.status !== paymentStatusFilter) return false
+          
+          // Source filter
+          const isMenuOrder = !!(sale.table_no || (sale.note && (sale.note.includes('QR Code') || sale.note.includes('สั่งจาก QR Code'))) || !sale.cashier_id)
+          if (paymentSourceFilter === 'pos' && isMenuOrder) return false
+          if (paymentSourceFilter === 'menu' && !isMenuOrder) return false
+          
+          return true
+        })
+
+        return (
+          <div className={selectedPaymentSale ? "grid grid-cols-1 lg:grid-cols-3 gap-5" : "grid grid-cols-1 gap-5"}>
+            {/* Left list panel */}
+            <div className={selectedPaymentSale ? "lg:col-span-1 glass-card" : "glass-card"} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Header & Filters */}
+              <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg, #a855f7, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CreditCard size={16} color="white" />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>ตรวจสอบการชำระเงิน</h3>
+                    <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>
+                      คำสั่งซื้อจาก QR Code โต๊ะอาหาร และเครื่อง POS หน้าร้าน
+                    </p>
+                  </div>
                 </div>
-                <h4 style={{ color: 'white', fontWeight: 700, margin: '0 0 6px' }}>ยังไม่มีรายงานจากพนักงาน</h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>เมื่อ Cashier ส่งรายงานความเรียบร้อย จะปรากฏที่นี่</p>
-              </div>
-            ) : (
-              <div style={{ overflowY: 'auto', maxHeight: 600 }}>
-                {shopReports.map(report => (
-                  <div
-                    key={report.id}
-                    onClick={() => setSelectedReport(report)}
-                    style={{
-                      padding: '16px 20px',
-                      borderBottom: '1px solid var(--border-color)',
-                      cursor: 'pointer',
-                      background: selectedReport?.id === report.id
-                        ? 'rgba(56,189,248,0.06)'
-                        : report.status === 'pending' ? 'rgba(56,189,248,0.02)' : 'transparent',
-                      borderLeft: selectedReport?.id === report.id ? '3px solid #38bdf8'
-                        : report.status === 'pending' ? '3px solid rgba(56,189,248,0.3)' : '3px solid transparent',
-                      transition: 'background 0.15s',
-                    }}
+
+                {/* Filters */}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {/* Status Filter */}
+                  <select
+                    value={paymentStatusFilter}
+                    onChange={e => setPaymentStatusFilter(e.target.value as any)}
+                    className="wine-input"
+                    style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'white', outline: 'none' }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          {/* Status badge */}
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                            background: report.status === 'pending' ? 'rgba(56,189,248,0.15)' : 'rgba(34,197,94,0.12)',
-                            color: report.status === 'pending' ? '#38bdf8' : '#4ade80',
-                            border: `1px solid ${report.status === 'pending' ? 'rgba(56,189,248,0.3)' : 'rgba(34,197,94,0.25)'}`,
-                            flexShrink: 0,
-                          }}>
-                            {report.status === 'pending' ? '🔵 รอตรวจสอบ' : '✅ รับทราบแล้ว'}
-                          </span>
-                        </div>
-                        <h4 style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {report.title}
-                        </h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                            👤 {report.profiles?.full_name || 'ไม่ทราบชื่อ'}
-                          </span>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                            🕐 {new Date(report.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {report.images?.length > 0 && (
-                            <span style={{ fontSize: 11, color: '#38bdf8' }}>📸 {report.images.length} รูป</span>
-                          )}
+                    <option value="all">สถานะทั้งหมด</option>
+                    <option value="pending">รออนุมัติชำระเงิน</option>
+                    <option value="paid">ชำระเงินเสร็จแล้ว</option>
+                  </select>
+
+                  {/* Source Filter */}
+                  <select
+                    value={paymentSourceFilter}
+                    onChange={e => setPaymentSourceFilter(e.target.value as any)}
+                    className="wine-input"
+                    style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'white', outline: 'none' }}
+                  >
+                    <option value="all">ทุกช่องทาง</option>
+                    <option value="menu">สั่งจากโต๊ะ (QR Code)</option>
+                    <option value="pos">สั่งจากหน้าร้าน (POS)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* List body */}
+              {paymentsLoading && filteredPayments.length === 0 ? (
+                <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+                  <Loader2 size={28} className="animate-spin" style={{ color: '#a855f7', margin: '0 auto 12px', display: 'block' }} />
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>กำลังโหลดประวัติการชำระเงิน...</p>
+                </div>
+              ) : filteredPayments.length === 0 ? (
+                <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(168,85,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                    <CreditCard size={24} style={{ color: '#a855f7' }} />
+                  </div>
+                  <h4 style={{ color: 'white', fontWeight: 700, margin: '0 0 6px' }}>ไม่พบรายการสั่งซื้อ</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>ไม่มีข้อมูลการชำระเงินที่ตรงตามเงื่อนไขในขณะนี้</p>
+                </div>
+              ) : (
+                <div style={{ overflowY: 'auto', maxHeight: selectedPaymentSale ? 450 : 600 }}>
+                  {filteredPayments.map(sale => {
+                    const isMenuOrder = !!(sale.table_no || (sale.note && (sale.note.includes('QR Code') || sale.note.includes('สั่งจาก QR Code'))) || !sale.cashier_id)
+                    const slipUrl = parseSlipUrl(sale.note)
+                    return (
+                      <div
+                        key={sale.id}
+                        onClick={() => setSelectedPaymentSale(sale)}
+                        style={{
+                          padding: '16px 20px',
+                          borderBottom: '1px solid var(--border-color)',
+                          cursor: 'pointer',
+                          background: selectedPaymentSale?.id === sale.id
+                            ? 'rgba(168,85,247,0.06)'
+                            : sale.status === 'pending' ? 'rgba(245,158,11,0.03)' : 'transparent',
+                          borderLeft: selectedPaymentSale?.id === sale.id ? '3px solid #a855f7'
+                            : sale.status === 'pending' ? '3px solid #f59e0b' : '3px solid transparent',
+                          transition: 'background 0.15s',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                              {/* Source badge */}
+                              <span style={{
+                                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                                background: isMenuOrder ? 'rgba(56,189,248,0.12)' : 'rgba(167,139,250,0.12)',
+                                color: isMenuOrder ? '#38bdf8' : '#a78bfa',
+                                border: `1px solid ${isMenuOrder ? 'rgba(56,189,248,0.2)' : 'rgba(167,139,250,0.2)'}`
+                              }}>
+                                {isMenuOrder ? `โต๊ะ ${sale.table_no || '1-10'}` : 'หน้าร้าน (POS)'}
+                              </span>
+
+                              {/* Status badge */}
+                              <span style={{
+                                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                                background: sale.status === 'pending' ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.12)',
+                                color: sale.status === 'pending' ? '#f59e0b' : '#4ade80',
+                                border: `1px solid ${sale.status === 'pending' ? 'rgba(245,158,11,0.25)' : 'rgba(34,197,94,0.25)'}`
+                              }}>
+                                {sale.status === 'pending' ? '🔵 รออนุมัติ' : '✅ ชำระแล้ว'}
+                              </span>
+
+                              {slipUrl && (
+                                <span style={{ fontSize: 10, color: '#38bdf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  📸 สลิปโอนเงิน
+                                </span>
+                              )}
+                            </div>
+
+                            <h4 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: 'white' }}>
+                              ยอดชำระ: {formatCurrency(sale.total_amount)}
+                            </h4>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: 11 }}>
+                              <span>เลขที่: {sale.receipt_no}</span>
+                              <span>•</span>
+                              <span>
+                                🕐 {new Date(sale.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 4 }} />
                         </div>
                       </div>
-                      <Eye size={15} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right detail panel */}
+            {selectedPaymentSale && (() => {
+              const isMenuOrder = !!(selectedPaymentSale.table_no || (selectedPaymentSale.note && (selectedPaymentSale.note.includes('QR Code') || selectedPaymentSale.note.includes('สั่งจาก QR Code'))) || !selectedPaymentSale.cashier_id)
+              const slipUrl = parseSlipUrl(selectedPaymentSale.note)
+              const cleanNote = getCleanNote(selectedPaymentSale.note)
+
+              return (
+                <div className="lg:col-span-2 glass-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  {/* Header */}
+                  <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <ClipboardList size={16} style={{ color: '#a855f7' }} />
+                      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>รายละเอียดบิล & การชำระเงิน</h3>
                     </div>
+                    <button
+                      onClick={() => setSelectedPaymentSale(null)}
+                      style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
-                ))}
+
+                  {/* Detail Body */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    
+                    {/* Status & Approve actions */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20,
+                        background: selectedPaymentSale.status === 'pending' ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.12)',
+                        color: selectedPaymentSale.status === 'pending' ? '#f59e0b' : '#4ade80',
+                        border: `1px solid ${selectedPaymentSale.status === 'pending' ? 'rgba(245,158,11,0.3)' : 'rgba(34,197,94,0.25)'}`
+                      }}>
+                        {selectedPaymentSale.status === 'pending' ? '🔵 รอตรวจสอบชำระเงิน' : '✅ ชำระเงินเสร็จสมบูรณ์'}
+                      </span>
+
+                      {selectedPaymentSale.status === 'pending' && (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            onClick={() => handleApprovePayment(selectedPaymentSale)}
+                            disabled={paymentsLoading}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #16a34a, #22c55e)', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34,197,94,0.25)' }}
+                          >
+                            <CheckCircle2 size={14} /> อนุมัติชำระเงิน
+                          </button>
+                          <button
+                            onClick={() => handleCancelPayment(selectedPaymentSale.id)}
+                            disabled={paymentsLoading}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            ยกเลิกออเดอร์
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Source / Receipt Header */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
+                      <div style={{ padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>ช่องทางที่สั่งซื้อ</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'white' }}>
+                          {isMenuOrder ? `โต๊ะอาหาร: โต๊ะ ${selectedPaymentSale.table_no || '1-10'}` : 'พนักงานหน้าร้าน (POS)'}
+                        </p>
+                      </div>
+                      <div style={{ padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>หมายเลขคิว/บิล</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'white' }}>{selectedPaymentSale.receipt_no}</p>
+                      </div>
+                      <div style={{ padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>วิธีชำระเงิน</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase' }}>
+                          {selectedPaymentSale.payment_method || 'qr code'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Items table */}
+                    <div>
+                      <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>รายการสินค้าในบิล</p>
+                      <div style={{ border: '1px solid var(--border-color)', borderRadius: 12, overflow: 'hidden' }}>
+                        {selectedPaymentSale.sale_items?.map((item: any, idx: number) => (
+                          <div key={idx} style={{ padding: '10px 14px', borderBottom: idx === selectedPaymentSale.sale_items.length - 1 ? 'none' : '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, background: 'rgba(0,0,0,0.1)' }}>
+                            <div>
+                              <span style={{ fontWeight: 700, color: 'white' }}>{item.product_name}</span>
+                              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                                {item.unit_price} x {item.quantity}
+                              </div>
+                            </div>
+                            <span style={{ fontWeight: 700, color: 'white' }}>{formatCurrency(item.line_total)}</span>
+                          </div>
+                        ))}
+                        
+                        {/* Summary totals */}
+                        <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                            <span>รวมราคา (Subtotal)</span>
+                            <span>{formatCurrency(selectedPaymentSale.subtotal)}</span>
+                          </div>
+                          {selectedPaymentSale.discount_amount > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                              <span>ส่วนลด (Discount)</span>
+                              <span>-{formatCurrency(selectedPaymentSale.discount_amount)}</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 800, color: 'white', marginTop: 4 }}>
+                            <span>ยอดรวมสุทธิ (Total)</span>
+                            <span style={{ color: '#a855f7' }}>{formatCurrency(selectedPaymentSale.total_amount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Note if any */}
+                    {cleanNote && (
+                      <div>
+                        <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>หมายเหตุ</p>
+                        <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', fontSize: 12, color: 'var(--text-secondary)' }}>
+                          {cleanNote}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Slip Image Preview */}
+                    {slipUrl && (
+                      <div>
+                        <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                          📸 หลักฐานการโอนเงิน (สลิปลูกค้า)
+                        </p>
+                        <div
+                          onClick={() => window.open(slipUrl, '_blank')}
+                          style={{
+                            border: '1px solid var(--border-color)', borderRadius: 14,
+                            overflow: 'hidden', cursor: 'zoom-in', maxWidth: '320px',
+                            background: '#000', transition: 'transform 0.15s ease',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                          <img
+                            src={slipUrl}
+                            alt="payment-slip"
+                            style={{ width: '100%', height: 'auto', display: 'block' }}
+                          />
+                        </div>
+                        <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>* คลิกที่รูปเพื่อเปิดดูรูปสลิปขนาดเต็มในแท็บใหม่</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        )
+      })()}
+
+      {/* SHOP REPORTS TAB */}
+      {activeTab === 'shop_reports' && (() => {
+        const cashierReports = shopReports.filter(r => (r.profiles as any)?.role === 'cashier' || (!(r.profiles as any)?.role && (r.profiles as any)?.role !== 'bar' && (r.profiles as any)?.role !== 'kitchen'))
+        const barReports = shopReports.filter(r => (r.profiles as any)?.role === 'bar')
+        const kitchenReports = shopReports.filter(r => (r.profiles as any)?.role === 'kitchen')
+        return (
+          <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-3 gap-5" : "grid grid-cols-1 lg:grid-cols-3 gap-5"}>
+            {/* If selectedReport is set, we stack them in Column 1 (lg:col-span-1) */}
+            {selectedReport ? (
+              <div className="lg:col-span-1 space-y-5 hidden lg:block">
+                {renderReportCard("รายงานความเรียบร้อยจาก Cashier", cashierReports, "#38bdf8", "linear-gradient(135deg,#0c4a6e,#38bdf8)", 200)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Bar", barReports, "#f59e0b", "linear-gradient(135deg,#78350f,#f59e0b)", 200)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Kitchen", kitchenReports, "#10b981", "linear-gradient(135deg,#064e3b,#10b981)", 200)}
+              </div>
+            ) : (
+              <>
+                {renderReportCard("รายงานความเรียบร้อยจาก Cashier", cashierReports, "#38bdf8", "linear-gradient(135deg,#0c4a6e,#38bdf8)", 600)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Bar", barReports, "#f59e0b", "linear-gradient(135deg,#78350f,#f59e0b)", 600)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Kitchen", kitchenReports, "#10b981", "linear-gradient(135deg,#064e3b,#10b981)", 600)}
+              </>
+            )}
+
+            {/* Report detail panel (takes remaining space) */}
+            {selectedReport && (
+              <div className="lg:col-span-2" style={{ display: 'flex' }}>
+                <div className="glass-card w-full" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  {/* Detail header */}
+                  <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <MessageSquare size={16} style={{ color: '#38bdf8' }} />
+                      <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>รายละเอียดรายงาน</h3>
+                    </div>
+                    <button
+                      onClick={() => setSelectedReport(null)}
+                      style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    ><X size={14} /></button>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Status + Acknowledge */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20,
+                        background: selectedReport.status === 'pending' ? 'rgba(56,189,248,0.15)' : 'rgba(34,197,94,0.12)',
+                        color: selectedReport.status === 'pending' ? '#38bdf8' : '#4ade80',
+                        border: `1px solid ${selectedReport.status === 'pending' ? 'rgba(56,189,248,0.3)' : 'rgba(34,197,94,0.25)'}`,
+                      }}>
+                        {selectedReport.status === 'pending' ? '🔵 รอตรวจสอบ' : '✅ รับทราบแล้ว'}
+                      </span>
+                      {selectedReport.status === 'pending' && (
+                        <button
+                          onClick={() => handleAcknowledgeReport(selectedReport.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #166534, #22c55e)', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34,197,94,0.25)' }}
+                        >
+                          <CheckCircle2 size={14} /> รับทราบรายงาน
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(56,189,248,0.06)', border: '1px solid rgba(56,189,248,0.2)' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 11, color: '#7dd3fc', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>หัวข้อ</p>
+                      <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'white' }}>{selectedReport.title}</p>
+                    </div>
+
+                    {/* Reporter info */}
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>ส่งโดย</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'white' }}>{selectedReport.profiles?.full_name || 'ไม่ทราบชื่อ'}</p>
+                      </div>
+                      <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
+                        <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>เวลาที่ส่ง</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'white' }}>
+                          {new Date(selectedReport.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Note */}
+                    {selectedReport.note && (
+                      <div>
+                        <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>รายละเอียด</p>
+                        <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
+                          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{selectedReport.note}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Images */}
+                    {selectedReport.images?.length > 0 && (
+                      <div>
+                        <p style={{ margin: '0 0 10px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          📸 รูปภาพประกอบ ({selectedReport.images.length} รูป)
+                        </p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+                          {selectedReport.images.map((img: string, idx: number) => (
+                            <div
+                              key={idx}
+                              onClick={() => window.open(img, '_blank')}
+                              style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1', border: '1px solid var(--border-color)', cursor: 'zoom-in', position: 'relative' }}
+                            >
+                              <img
+                                src={img}
+                                alt={`report-img-${idx + 1}`}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s ease' }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                              />
+                              <div style={{ position: 'absolute', bottom: 4, right: 4, background: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: '2px 5px', fontSize: 9, color: 'white', fontWeight: 600 }}>
+                                {idx + 1}/{selectedReport.images.length}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Report detail panel */}
-          {selectedReport && (
-            <div className="glass-card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {/* Detail header */}
-              <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <MessageSquare size={16} style={{ color: '#38bdf8' }} />
-                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white' }}>รายละเอียดรายงาน</h3>
-                </div>
-                <button
-                  onClick={() => setSelectedReport(null)}
-                  style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}
-                ><X size={14} /></button>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* Status + Acknowledge */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <span style={{
-                    fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20,
-                    background: selectedReport.status === 'pending' ? 'rgba(56,189,248,0.15)' : 'rgba(34,197,94,0.12)',
-                    color: selectedReport.status === 'pending' ? '#38bdf8' : '#4ade80',
-                    border: `1px solid ${selectedReport.status === 'pending' ? 'rgba(56,189,248,0.3)' : 'rgba(34,197,94,0.25)'}`,
-                  }}>
-                    {selectedReport.status === 'pending' ? '🔵 รอตรวจสอบ' : '✅ รับทราบแล้ว'}
-                  </span>
-                  {selectedReport.status === 'pending' && (
-                    <button
-                      onClick={() => handleAcknowledgeReport(selectedReport.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #166534, #22c55e)', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(34,197,94,0.25)' }}
-                    >
-                      <CheckCircle2 size={14} /> รับทราบรายงาน
-                    </button>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(56,189,248,0.06)', border: '1px solid rgba(56,189,248,0.2)' }}>
-                  <p style={{ margin: '0 0 4px', fontSize: 11, color: '#7dd3fc', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>หัวข้อ</p>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'white' }}>{selectedReport.title}</p>
-                </div>
-
-                {/* Reporter info */}
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
-                    <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>ส่งโดย</p>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'white' }}>{selectedReport.profiles?.full_name || 'ไม่ทราบชื่อ'}</p>
-                  </div>
-                  <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
-                    <p style={{ margin: '0 0 3px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>เวลาที่ส่ง</p>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'white' }}>
-                      {new Date(selectedReport.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Note */}
-                {selectedReport.note && (
-                  <div>
-                    <p style={{ margin: '0 0 8px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>รายละเอียด</p>
-                    <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)' }}>
-                      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{selectedReport.note}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Images */}
-                {selectedReport.images?.length > 0 && (
-                  <div>
-                    <p style={{ margin: '0 0 10px', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      📸 รูปภาพประกอบ ({selectedReport.images.length} รูป)
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
-                      {selectedReport.images.map((img: string, idx: number) => (
-                        <div
-                          key={idx}
-                          onClick={() => window.open(img, '_blank')}
-                          style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1', border: '1px solid var(--border-color)', cursor: 'zoom-in', position: 'relative' }}
-                        >
-                          <img
-                            src={img}
-                            alt={`report-img-${idx + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s ease' }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                          />
-                          <div style={{ position: 'absolute', bottom: 4, right: 4, background: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: '2px 5px', fontSize: 9, color: 'white', fontWeight: 600 }}>
-                            {idx + 1}/{selectedReport.images.length}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+        )
+      })()}
       </div>
 
       {/* Mobile Bottom Tab Bar for Manager Console */}
@@ -1274,6 +1862,7 @@ export default function ManagerDashboard() {
           { key: 'overview',      label: 'ยอดขาย',     icon: <TrendingUp size={18} /> },
           { key: 'products',      label: 'สินค้า',       icon: <Package size={18} /> },
           { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={18} /> },
+          { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={18} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
           { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={18} />, badge: discountRequests.length || null },
           { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={18} /> },
           { key: 'shop_reports',  label: 'รายงานร้าน',    icon: <ClipboardList size={18} />, badge: shopReports.filter(r => r.status === 'pending').length || null },

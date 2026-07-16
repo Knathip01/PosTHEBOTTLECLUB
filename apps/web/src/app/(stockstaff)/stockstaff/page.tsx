@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product, Category } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import {
   TrendingUp, Download, Package, AlertTriangle, RefreshCw,
-  Search, Edit3, Loader2, Warehouse, FileText, Plus, Trash2, CheckCircle2
+  Search, Edit3, Loader2, Warehouse, FileText, Plus, Trash2, CheckCircle2,
+  X, Image as ImageIcon
 } from 'lucide-react'
 
 export default function StockStaffDashboard() {
@@ -25,9 +26,89 @@ export default function StockStaffDashboard() {
   // Receive Stock Form
   const [recvSupplier, setRecvSupplier] = useState('')
   const [recvNote, setRecvNote] = useState('')
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+
   const [recvItems, setRecvItems] = useState<{ productId: string; qty: string; cost: string }[]>([
     { productId: '', qty: '', cost: '' }
   ])
+
+  const startCamera = async () => {
+    try {
+      setSelectedPhoto(null)
+      setPhotoPreview(null)
+      setIsCameraActive(true)
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }, // Back camera
+        audio: false
+      })
+      
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        // Wait for metadata to load then play
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.error("Error playing video:", e))
+        }
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err)
+      alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\nกรุณาเลือกไฟล์รูปภาพแทน")
+      setIsCameraActive(false)
+    }
+  }
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }, [])
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth || 640
+      canvas.height = video.videoHeight || 480
+      
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `receipt_${Date.now()}.jpg`, { type: 'image/jpeg' })
+            setSelectedPhoto(file)
+            setPhotoPreview(URL.createObjectURL(file))
+            stopCamera()
+          }
+        }, 'image/jpeg', 0.85)
+      }
+    }
+  }
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    stopCamera()
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedPhoto(file)
+      setPhotoPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const clearPhoto = () => {
+    stopCamera()
+    setSelectedPhoto(null)
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview)
+      setPhotoPreview(null)
+    }
+  }
 
   // Adjust Stock Form
   const [adjustProductId, setAdjustProductId] = useState('')
@@ -57,6 +138,11 @@ export default function StockStaffDashboard() {
 
   useEffect(() => {
     loadData(true)
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
   }, [loadData])
 
   // Helper: Generate Receipt Number
@@ -97,6 +183,22 @@ export default function StockStaffDashboard() {
       if (!user) throw new Error('ไม่พบข้อมูลผู้ใช้ล็อกอิน')
 
       const receiptNo = generateReceiptNo()
+
+      // Upload photo if selected
+      let imageUrl = null
+      if (selectedPhoto) {
+        const fileExt = selectedPhoto.name.split('.').pop()
+        const fileName = `receipts/${receiptNo}_${Date.now()}.${fileExt}`
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('slips')
+          .upload(fileName, selectedPhoto)
+        if (uploadErr) throw uploadErr
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('slips')
+          .getPublicUrl(fileName)
+        imageUrl = publicUrl
+      }
       
       // Calculate total cost
       const totalCost = validItems.reduce((sum, item) => sum + (parseInt(item.qty) * parseFloat(item.cost)), 0)
@@ -109,7 +211,8 @@ export default function StockStaffDashboard() {
           supplier_name: recvSupplier.trim() || null,
           total_cost: totalCost,
           received_by: user.id,
-          note: recvNote.trim() || null
+          note: recvNote.trim() || null,
+          image_url: imageUrl
         })
         .select()
         .single()
@@ -166,6 +269,7 @@ export default function StockStaffDashboard() {
       // Reset form
       setRecvSupplier('')
       setRecvNote('')
+      clearPhoto()
       setRecvItems([{ productId: '', qty: '', cost: '' }])
       
       // Reload stock data
@@ -201,6 +305,22 @@ export default function StockStaffDashboard() {
 
       const newStock = Math.max(0, prod.stock + qtyVal)
 
+      // Upload photo if selected
+      let imageUrl = null
+      if (selectedPhoto) {
+        const fileExt = selectedPhoto.name.split('.').pop()
+        const fileName = `adjustments/adj_${Date.now()}_${adjustProductId}.${fileExt}`
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('slips')
+          .upload(fileName, selectedPhoto)
+        if (uploadErr) throw uploadErr
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('slips')
+          .getPublicUrl(fileName)
+        imageUrl = publicUrl
+      }
+
       // Update product stock
       const { error: prodErr } = await supabase
         .from('products')
@@ -219,7 +339,8 @@ export default function StockStaffDashboard() {
           quantity_after: newStock,
           reference_type: 'adjustment',
           note: adjustReason.trim(),
-          created_by: user.id
+          created_by: user.id,
+          image_url: imageUrl
         })
       if (moveErr) throw moveErr
 
@@ -227,6 +348,7 @@ export default function StockStaffDashboard() {
       setAdjustProductId('')
       setAdjustQty('')
       setAdjustReason('ปรับปรุงสต๊อกสินค้าเสียหาย')
+      clearPhoto()
       await loadData(false)
     } catch (err: any) {
       alert('ไม่สามารถทำการปรับปรุงสต๊อกได้: ' + err.message)
@@ -260,15 +382,6 @@ export default function StockStaffDashboard() {
           <h1 className="font-display text-2xl font-bold text-white">แผงควบคุมระบบพนักงานคลังสินค้า</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ระบบรับของนำเข้า ปรับระดับคลังสินค้า และสแกนตรวจสอบระดับสต๊อก</p>
         </div>
-
-        <button
-          onClick={() => loadData(false)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-          <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-          {refreshing ? 'กำลังรีเฟรช...' : 'รีเฟรชข้อมูล'}
-        </button>
       </div>
 
       {/* Tabs */}
@@ -280,7 +393,10 @@ export default function StockStaffDashboard() {
         ].map(tab => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => {
+              clearPhoto()
+              setActiveTab(tab.key as any)
+            }}
             className="flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all relative shrink-0"
             style={{
               background: 'none',
@@ -326,6 +442,105 @@ export default function StockStaffDashboard() {
                   className="wine-input text-sm w-full"
                 />
               </div>
+            </div>
+
+            {/* Camera Photo Upload & Live Viewfinder */}
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
+              <span className="block text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                📸 ถ่ายรูปใบเสร็จ / รูปสินค้าหลักฐานนำเข้า (หลักฐานการรับสินค้า)
+              </span>
+
+              {isCameraActive ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 bg-black">
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      muted
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/* Viewfinder crosshairs decoration */}
+                    <div style={{
+                      position: 'absolute', inset: '20px',
+                      border: '1px dashed rgba(255,255,255,0.15)',
+                      pointerEvents: 'none', borderRadius: '8px'
+                    }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="pos-btn-gradient-blue"
+                      style={{
+                        padding: '10px 24px', borderRadius: 14,
+                        fontSize: 13, fontWeight: 700, border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      กดถ่ายรูป 📸
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold border"
+                      style={{
+                        background: 'transparent', borderColor: 'var(--border-color)',
+                        color: 'var(--text-secondary)', cursor: 'pointer'
+                      }}
+                    >
+                      ปิดกล้อง
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                  <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
+                    {/* Direct Camera Button */}
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="flex-1 flex items-center justify-center gap-2 py-4 px-3 rounded-xl border border-dashed transition-all"
+                      style={{
+                        background: 'rgba(251,191,36,0.05)',
+                        borderColor: 'rgba(251,191,36,0.3)',
+                        color: '#fbbf24', cursor: 'pointer', fontSize: 13, fontWeight: 700
+                      }}
+                    >
+                      <ImageIcon size={16} />
+                      <span>เปิดกล้องถ่ายรูปทันที 📷</span>
+                    </button>
+
+                    {/* Standard File Upload */}
+                    <div className="flex-1 flex flex-col justify-center">
+                      <label className="block text-[10px] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                        หรือเลือกไฟล์รูปภาพจากคลังรูปภาพ
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="wine-input text-xs w-full cursor-pointer"
+                        style={{ padding: '8px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Photo Preview */}
+                  {photoPreview && (
+                    <div className="relative w-36 h-24 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                      <img src={photoPreview} alt="Receipt Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={clearPhoto}
+                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                        style={{ border: 'none', cursor: 'pointer', lineHeight: 0 }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Receipt Items list */}
@@ -474,6 +689,101 @@ export default function StockStaffDashboard() {
                 required
                 className="wine-input text-sm w-full"
               />
+            </div>
+
+            {/* Camera Photo Upload & Live Viewfinder */}
+            <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
+              <span className="block text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                📸 ถ่ายรูปภาพหลักฐานการปรับสต๊อกสินค้า (สินค้าเสียหาย/มีตำหนิ)
+              </span>
+
+              {isCameraActive ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 bg-black">
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      muted
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{
+                      position: 'absolute', inset: '20px',
+                      border: '1px dashed rgba(255,255,255,0.15)',
+                      pointerEvents: 'none', borderRadius: '8px'
+                    }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="pos-btn-gradient-blue"
+                      style={{
+                        padding: '10px 24px', borderRadius: 14,
+                        fontSize: 13, fontWeight: 700, border: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      กดถ่ายรูป 📸
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold border"
+                      style={{
+                        background: 'transparent', borderColor: 'var(--border-color)',
+                        color: 'var(--text-secondary)', cursor: 'pointer'
+                      }}
+                    >
+                      ปิดกล้อง
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                  <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="flex-1 flex items-center justify-center gap-2 py-4 px-3 rounded-xl border border-dashed transition-all"
+                      style={{
+                        background: 'rgba(251,191,36,0.05)',
+                        borderColor: 'rgba(251,191,36,0.3)',
+                        color: '#fbbf24', cursor: 'pointer', fontSize: 13, fontWeight: 700
+                      }}
+                    >
+                      <ImageIcon size={16} />
+                      <span>เปิดกล้องถ่ายรูปทันที 📷</span>
+                    </button>
+
+                    <div className="flex-1 flex flex-col justify-center">
+                      <label className="block text-[10px] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                        หรือเลือกไฟล์รูปภาพจากคลังรูปภาพ
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="wine-input text-xs w-full cursor-pointer"
+                        style={{ padding: '8px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {photoPreview && (
+                    <div className="relative w-36 h-24 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                      <img src={photoPreview} alt="Receipt Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={clearPhoto}
+                        className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                        style={{ border: 'none', cursor: 'pointer', lineHeight: 0 }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <button

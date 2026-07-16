@@ -8,7 +8,7 @@ import {
   Clock, CheckCircle2, Loader2, RefreshCw,
   Wine, ChevronDown, ChevronRight, Check, Undo,
   Search, CalendarRange, Banknote, CreditCard, QrCode,
-  X, Camera, Send, ClipboardList
+  X, Camera, Send, ClipboardList, Image as ImageIcon
 } from 'lucide-react'
 
 function classifyCategory(catName?: string): 'kitchen' | 'bar' {
@@ -103,6 +103,64 @@ export default function CashierQueuePage() {
   const [reportLoading, setReportLoading] = useState(false)
   const [reportSuccess, setReportSuccess] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Camera Live Viewfinder
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+
+  const startCamera = async () => {
+    try {
+      setIsCameraActive(true)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.error("Error playing video:", e))
+        }
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err)
+      alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\nกรุณาใช้การอัปโหลดไฟล์แทน")
+      setIsCameraActive(false)
+    }
+  }
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }, [])
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth || 640
+      canvas.height = video.videoHeight || 480
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+        setReportImages(prev => [...prev, dataUrl].slice(0, 5))
+        stopCamera()
+      }
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
 
   // Filters for History Tab
   const [searchReceipt, setSearchReceipt] = useState('')
@@ -206,6 +264,7 @@ export default function CashierQueuePage() {
   }, [loadPaidQueue, activeTab])
 
   const handleTabChange = (tab: 'queue' | 'history' | 'report') => {
+    stopCamera()
     setActiveTab(tab)
     setExpandedId(null)
     // Clear search states when changing tabs
@@ -339,6 +398,7 @@ export default function CashierQueuePage() {
         setReportTitle('')
         setReportNote('')
         setReportImages([])
+        stopCamera()
         setReportSuccess(false)
         setActiveTab('queue') // Auto navigate back to queue
       }, 1800)
@@ -963,33 +1023,111 @@ export default function CashierQueuePage() {
                   />
                 </div>
 
-                {/* Image Upload */}
+                {/* Image Upload & Live Viewfinder */}
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: 10 }}>
                     รูปภาพประกอบ ({reportImages.length}/5)
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(82px, 1fr))', gap: 12 }}>
-                    {reportImages.map((img, idx) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '1', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <img src={img} alt={`rpt-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                        <button
-                          onClick={() => setReportImages(prev => prev.filter((_, i) => i !== idx))}
-                          style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-                        >×</button>
+
+                  {isCameraActive ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                      <div style={{
+                        position: 'relative', width: '100%', aspectRatio: '4/3',
+                        background: '#000', borderRadius: '14px', overflow: 'hidden',
+                        border: '1px solid rgba(255,255,255,0.1)'
+                      }}>
+                        <video
+                          ref={videoRef}
+                          playsInline
+                          muted
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <div style={{
+                          position: 'absolute', inset: '16px',
+                          border: '1px dashed rgba(255,255,255,0.15)',
+                          pointerEvents: 'none', borderRadius: '8px'
+                        }} />
                       </div>
-                    ))}
-                    {reportImages.length < 5 && (
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        style={{ aspectRatio: '1', borderRadius: '14px', border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.2s ease' }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.4)'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                      >
-                        <Camera size={20} />
-                        <span style={{ fontSize: '10px', fontWeight: 700 }}>เพิ่มรูปภาพ</span>
-                      </button>
-                    )}
-                  </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={capturePhoto}
+                          style={{
+                            padding: '10px 20px', borderRadius: '12px', border: 'none',
+                            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white',
+                            fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          กดถ่ายภาพ 📸
+                        </button>
+                        <button
+                          type="button"
+                          onClick={stopCamera}
+                          style={{
+                            padding: '10px 20px', borderRadius: '12px',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#9aa3b2', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(82px, 1fr))', gap: 12 }}>
+                      {reportImages.map((img, idx) => (
+                        <div key={idx} style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '1', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <img src={img} alt={`rpt-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          <button
+                            type="button"
+                            onClick={() => setReportImages(prev => prev.filter((_, i) => i !== idx))}
+                            style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
+                          >×</button>
+                        </div>
+                      ))}
+                      
+                      {/* Open camera button */}
+                      {reportImages.length < 5 && (
+                        <button
+                          type="button"
+                          onClick={startCamera}
+                          style={{
+                            aspectRatio: '1', borderRadius: '14px',
+                            border: '2px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.03)',
+                            color: '#38bdf8', display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = '#0ea5e9'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.4)'}
+                        >
+                          <Camera size={20} />
+                          <span style={{ fontSize: '10px', fontWeight: 700 }}>เปิดกล้อง 📷</span>
+                        </button>
+                      )}
+
+                      {/* Upload file button */}
+                      {reportImages.length < 5 && (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          style={{
+                            aspectRatio: '1', borderRadius: '14px',
+                            border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)',
+                            color: 'var(--text-muted)', display: 'flex', flexDirection: 'column',
+                            alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
+                        >
+                          <ImageIcon size={20} />
+                          <span style={{ fontSize: '10px', fontWeight: 700 }}>เลือกรูป</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <input
                     ref={fileInputRef}
                     type="file"

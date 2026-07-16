@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Sale } from '@/lib/types'
-import { Clock, Wine, Play, CheckCircle, RefreshCw, LogOut, ArrowRight, Loader2 } from 'lucide-react'
+import { Clock, Wine, Play, CheckCircle, RefreshCw, LogOut, ArrowRight, Loader2, ClipboardList, Camera, Trash2, X, Image as ImageIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 // Helper to classify category name to Kitchen vs Bar
@@ -79,6 +79,119 @@ export default function BarDisplayPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ full_name: string; role: string } | null>(null)
+
+  // Shop Report Modal
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportTitle, setReportTitle] = useState('')
+  const [reportNote, setReportNote] = useState('')
+  const [reportImages, setReportImages] = useState<string[]>([]) // Array of Base64 strings
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportSuccess, setReportSuccess] = useState(false)
+
+  // Camera Live Viewfinder
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const videoRef = React.useRef<HTMLVideoElement | null>(null)
+  const streamRef = React.useRef<MediaStream | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+
+  const startCamera = async () => {
+    try {
+      setIsCameraActive(true)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.error("Error playing video:", e))
+        }
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err)
+      alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\nกรุณาใช้การอัปโหลดรูปภาพแทน")
+      setIsCameraActive(false)
+    }
+  }
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }, [])
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth || 640
+      canvas.height = video.videoHeight || 480
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+        setReportImages(prev => [...prev, dataUrl].slice(0, 5))
+        stopCamera()
+      }
+    }
+  }
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    stopCamera()
+    const files = Array.from(e.target.files || [])
+    const remaining = 5 - reportImages.length
+    files.slice(0, remaining).forEach(file => {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const result = ev.target?.result as string
+        if (result) setReportImages(prev => [...prev, result])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeReportImage = (idx: number) => {
+    setReportImages(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const handleSubmitReport = async () => {
+    if (!reportTitle.trim()) return
+    setReportLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error } = await supabase.from('shop_reports').insert({
+        title: reportTitle.trim(),
+        note: reportNote.trim() || null,
+        images: reportImages.length > 0 ? reportImages : null,
+        reported_by: user?.id || null,
+        status: 'pending',
+      })
+      if (error) throw error
+      setReportSuccess(true)
+      setTimeout(() => {
+        setReportTitle('')
+        setReportNote('')
+        setReportImages([])
+        setReportSuccess(false)
+        setShowReportModal(false)
+      }, 1500)
+    } catch (err: any) {
+      alert('ส่งรายงานไม่สำเร็จ: ' + err.message)
+    } finally {
+      setReportLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
 
   const handleLogout = async () => {
     if (confirm('ยืนยันออกจากระบบ?')) {
@@ -212,6 +325,29 @@ export default function BarDisplayPage() {
         {/* Right: User + Logout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {refreshing && <RefreshCw size={14} className="animate-spin" style={{ color: '#9aa3b2' }} />}
+          
+          {/* Send Report Button */}
+          <button
+            onClick={() => {
+              setReportTitle('รายงานความเรียบร้อยบาร์เครื่องดื่ม')
+              setReportNote('')
+              setReportImages([])
+              setShowReportModal(true)
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)',
+              borderRadius: 20, padding: '6px 14px',
+              color: '#38bdf8', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              transition: 'all 150ms ease'
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(56,189,248,0.18)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(56,189,248,0.08)' }}
+          >
+            <ClipboardList size={14} />
+            ส่งรายงานบาร์
+          </button>
+
           {/* User pill */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
@@ -395,6 +531,219 @@ export default function BarDisplayPage() {
           </div>
         )}
       </main>
+
+      {/* Shop Report Modal Popup */}
+      {showReportModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+        }}>
+          <div style={{
+            background: '#161920', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '24px', width: '100%', maxWidth: '500px',
+            padding: '24px', position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            maxHeight: '90dvh', overflowY: 'auto'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ClipboardList size={18} style={{ color: '#38bdf8' }} />
+                ส่งรายงานความเรียบร้อยหน้าร้าน (บาร์)
+              </h3>
+              <button
+                onClick={() => { stopCamera(); setShowReportModal(false) }}
+                style={{ background: 'none', border: 'none', color: '#9aa3b2', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {reportSuccess ? (
+              <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#4ade80' }}>
+                  <CheckCircle size={32} />
+                </div>
+                <h4 style={{ margin: '0 0 8px', color: 'white', fontWeight: 800, fontSize: 16 }}>ส่งรายงานความเรียบร้อยสำเร็จ!</h4>
+                <p style={{ margin: 0, color: '#9aa3b2', fontSize: 12 }}>ข้อมูลรายงานถูกส่งไปยังผู้จัดการร้านเรียบร้อยแล้ว</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Title Input */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9aa3b2', marginBottom: 6 }}>หัวข้อรายงาน</label>
+                  <input
+                    type="text"
+                    placeholder="เช่น ความเรียบร้อยบาร์ก่อนเปิดร้าน, ขวดแตกเสียหาย"
+                    value={reportTitle}
+                    onChange={e => setReportTitle(e.target.value)}
+                    required
+                    style={{
+                      width: '100%', padding: '12px 16px', borderRadius: '12px',
+                      background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.08)',
+                      color: 'white', fontSize: 13, outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Notes Input */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9aa3b2', marginBottom: 6 }}>รายละเอียดเพิ่มเติม (Memo / Notes)</label>
+                  <textarea
+                    placeholder="ระบุรายละเอียดเพิ่มเติม เช่น ตรวจนับสต็อกเรียบร้อยแล้ว, แก้วสะอาดพร้อมใช้งาน หรือรายงานปัญหา"
+                    value={reportNote}
+                    onChange={e => setReportNote(e.target.value)}
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '12px 16px', borderRadius: '12px',
+                      background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.08)',
+                      color: 'white', fontSize: 13, outline: 'none', resize: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Camera / Image Upload Section */}
+                <div style={{ background: 'rgba(0,0,0,0.15)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9aa3b2', marginBottom: 10 }}>
+                    📸 แนบภาพหลักฐานความเรียบร้อย (สูงสุด 5 รูป)
+                  </label>
+
+                  {isCameraActive ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        position: 'relative', width: '100%', aspectRatio: '4/3',
+                        background: '#000', borderRadius: '12px', overflow: 'hidden',
+                        border: '1px solid rgba(255,255,255,0.1)'
+                      }}>
+                        <video
+                          ref={videoRef}
+                          playsInline
+                          muted
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <div style={{
+                          position: 'absolute', inset: '16px',
+                          border: '1px dashed rgba(255,255,255,0.15)',
+                          pointerEvents: 'none', borderRadius: '8px'
+                        }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={capturePhoto}
+                          style={{
+                            padding: '10px 20px', borderRadius: '12px', border: 'none',
+                            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white',
+                            fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          กดถ่ายภาพ 📸
+                        </button>
+                        <button
+                          type="button"
+                          onClick={stopCamera}
+                          style={{
+                            padding: '10px 20px', borderRadius: '12px',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#9aa3b2', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {/* Display captured images */}
+                        {reportImages.map((img, idx) => (
+                          <div key={idx} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <img src={img} alt="captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() => removeReportImage(idx)}
+                              style={{
+                                position: 'absolute', top: 2, right: 2,
+                                background: '#ef4444', border: 'none', color: 'white',
+                                borderRadius: '50%', width: 18, height: 18,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', padding: 0
+                              }}
+                            >
+                              <X size={10} />
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Open camera button */}
+                        {reportImages.length < 5 && (
+                          <button
+                            type="button"
+                            onClick={startCamera}
+                            style={{
+                              width: '70px', height: '70px', borderRadius: '10px',
+                              border: '1px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.03)',
+                              color: '#38bdf8', display: 'flex', flexDirection: 'column',
+                              alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer'
+                            }}
+                          >
+                            <Camera size={18} />
+                            <span style={{ fontSize: 9, fontWeight: 700 }}>เปิดกล้อง</span>
+                          </button>
+                        )}
+
+                        {/* Upload file button */}
+                        {reportImages.length < 5 && (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{
+                              width: '70px', height: '70px', borderRadius: '10px',
+                              border: '1px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)',
+                              color: '#9aa3b2', display: 'flex', flexDirection: 'column',
+                              alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer'
+                            }}
+                          >
+                            <ImageIcon size={18} />
+                            <span style={{ fontSize: 9, fontWeight: 700 }}>เลือกรูป</span>
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageFileChange}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit action */}
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    onClick={handleSubmitReport}
+                    disabled={!reportTitle.trim() || reportLoading}
+                    style={{
+                      width: '100%', padding: '14px', borderRadius: '16px', border: 'none',
+                      background: reportTitle.trim() && !reportLoading ? 'linear-gradient(135deg, #0ea5e9, #0284c7)' : 'rgba(255,255,255,0.03)',
+                      color: reportTitle.trim() && !reportLoading ? 'white' : '#5c6475',
+                      fontSize: 14, fontWeight: 800,
+                      cursor: reportTitle.trim() && !reportLoading ? 'pointer' : 'not-allowed',
+                      boxShadow: reportTitle.trim() && !reportLoading ? '0 8px 24px rgba(14,165,233,0.3)' : 'none',
+                      transition: 'all 200ms ease'
+                    }}
+                  >
+                    {reportLoading ? 'กำลังส่งข้อมูล...' : 'ส่งรายงานความเรียบร้อย'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

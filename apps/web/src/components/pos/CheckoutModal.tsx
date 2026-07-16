@@ -9,7 +9,8 @@ import generatePayload from 'promptpay-qr'
 import {
   X, Banknote, QrCode, ArrowLeftRight,
   CheckCircle2, Loader2, Printer, ChevronRight,
-  Sparkles, Hash, RefreshCw, AlertTriangle, Copy, Check
+  Sparkles, Hash, RefreshCw, AlertTriangle, Copy, Check,
+  Camera, Image as ImageIcon, Clock
 } from 'lucide-react'
 
 // PromptPay config
@@ -68,10 +69,83 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
   const [referenceNo, setReferenceNo] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [receipt, setReceipt] = useState<{ receipt_no: string; total: number; change: number } | null>(null)
+  const [receipt, setReceipt] = useState<{ receipt_no: string; total: number; change: number; isPending?: boolean } | null>(null)
   const [qrTimer, setQrTimer] = useState(300)
   const [qrExpired, setQrExpired] = useState(false)
   const [qrKey, setQrKey] = useState(0) // force re-generate QR
+
+  // Camera & Slip Upload
+  const [slipImage, setSlipImage] = useState<string | null>(null) // base64 JPEG
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const startCamera = async () => {
+    try {
+      setIsCameraActive(true)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.error("Error playing video:", e))
+        }
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err)
+      alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\nกรุณาใช้การอัปโหลดรูปภาพแทน")
+      setIsCameraActive(false)
+    }
+  }
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth || 640
+      canvas.height = video.videoHeight || 480
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+        setSlipImage(dataUrl)
+        stopCamera()
+      }
+    }
+  }
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    stopCamera()
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = ev => {
+        const result = ev.target?.result as string
+        if (result) setSlipImage(result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
   const qrIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const total = cart.getTotal()
@@ -132,13 +206,41 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       const discountAmount = cart.discount_amount
       const totalAmount = cart.getTotal()
 
+      // 1. Upload Slip if cashier captured/selected one
+      let uploadedSlipUrl = null
+      if (slipImage) {
+        const base64ToBlob = (b64: string, mime: string = 'image/jpeg') => {
+          const byteString = atob(b64.split(',')[1])
+          const ab = new ArrayBuffer(byteString.length)
+          const ia = new Uint8Array(ab)
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i)
+          }
+          return new Blob([ab], { type: mime })
+        }
+        const blob = base64ToBlob(slipImage)
+        const fileName = `slip_${Date.now()}.jpg`
+        const { error: uploadErr } = await supabase.storage.from('slips').upload(fileName, blob)
+        if (uploadErr) throw uploadErr
+        const { data: { publicUrl } } = supabase.storage.from('slips').getPublicUrl(fileName)
+        uploadedSlipUrl = publicUrl
+      }
+
+      // 2. Format note string with slip url
+      const slipNoteSuffix = uploadedSlipUrl ? ` | SLIP:${uploadedSlipUrl}` : ''
+      const cleanNote = cart.note || ''
+      const finalNote = cleanNote ? `${cleanNote}${slipNoteSuffix}` : (uploadedSlipUrl ? `SLIP:${uploadedSlipUrl}` : null)
+
+      const isPending = paymentMethod === 'qr' || paymentMethod === 'transfer'
+
+      // 3. Insert sale
       const { data: sale, error: saleError } = await supabase
         .from('sales')
         .insert({
           receipt_no: receiptNo,
           customer_id: cart.customer?.id || null,
           cashier_id: user.id,
-          status: 'paid',
+          status: isPending ? 'pending' : 'paid',
           subtotal,
           discount_amount: discountAmount,
           discount_note: cart.discount_note || null,
@@ -148,13 +250,14 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
           payment_method: paymentMethod,
           cash_received: paymentMethod === 'cash' ? cashAmount : null,
           change_amount: paymentMethod === 'cash' ? change : 0,
-          note: cart.note || null,
+          note: finalNote,
           points_earned: Math.floor(totalAmount / 100)
         })
         .select().single()
 
       if (saleError) throw new Error(saleError.message)
 
+      // 4. Insert items
       const saleItems = cart.items.map(item => ({
         sale_id: sale.id,
         product_id: item.product.id,
@@ -169,45 +272,50 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       const { error: itemsError } = await supabase.from('sale_items').insert(saleItems)
       if (itemsError) throw new Error(itemsError.message)
 
-      const { error: payError } = await supabase.from('payments').insert({
-        sale_id: sale.id,
-        payment_method: paymentMethod,
-        amount: totalAmount,
-        reference_no: referenceNo || null
-      })
-      if (payError) throw new Error(payError.message)
-
-      for (const item of cart.items) {
-        const newStock = Math.max(0, item.product.stock - item.quantity)
-        const { error: prodErr } = await supabase.from('products')
-          .update({ stock: newStock }).eq('id', item.product.id)
-        if (prodErr) throw new Error(`ไม่สามารถหักสต๊อกได้: ${prodErr.message}`)
-
-        const { error: moveErr } = await supabase.from('inventory_movements').insert({
-          product_id: item.product.id,
-          movement_type: 'out',
-          quantity: -item.quantity,
-          quantity_before: item.product.stock,
-          quantity_after: newStock,
-          reference_type: 'sale',
-          reference_id: sale.id,
-          note: `ขาย: ${receiptNo}`,
-          created_by: user.id
+      // 5. If paid (cash), run stock deduction and payments inserts
+      if (!isPending) {
+        const { error: payError } = await supabase.from('payments').insert({
+          sale_id: sale.id,
+          payment_method: paymentMethod,
+          amount: totalAmount,
+          reference_no: referenceNo || null
         })
-        if (moveErr) throw new Error(`ไม่สามารถบันทึกสต๊อกได้: ${moveErr.message}`)
+        if (payError) throw new Error(payError.message)
+
+        for (const item of cart.items) {
+          const newStock = Math.max(0, item.product.stock - item.quantity)
+          const { error: prodErr } = await supabase.from('products')
+            .update({ stock: newStock }).eq('id', item.product.id)
+          if (prodErr) throw new Error(`ไม่สามารถหักสต๊อกได้: ${prodErr.message}`)
+
+          const { error: moveErr } = await supabase.from('inventory_movements').insert({
+            product_id: item.product.id,
+            movement_type: 'out',
+            quantity: -item.quantity,
+            quantity_before: item.product.stock,
+            quantity_after: newStock,
+            reference_type: 'sale',
+            reference_id: sale.id,
+            note: `ขาย: ${receiptNo}`,
+            created_by: user.id
+          })
+          if (moveErr) throw new Error(`ไม่สามารถบันทึกสต๊อกได้: ${moveErr.message}`)
+        }
+
+        if (cart.customer) {
+          const pointsEarned = Math.floor(totalAmount / 100)
+          const { error: custErr } = await supabase.from('customers')
+            .update({
+              points: cart.customer.points + pointsEarned,
+              total_spent: cart.customer.total_spent + totalAmount
+            }).eq('id', cart.customer.id)
+          if (custErr) throw new Error(`ไม่สามารถอัปเดตคะแนนได้: ${custErr.message}`)
+        }
       }
 
-      if (cart.customer) {
-        const pointsEarned = Math.floor(totalAmount / 100)
-        const { error: custErr } = await supabase.from('customers')
-          .update({
-            points: cart.customer.points + pointsEarned,
-            total_spent: cart.customer.total_spent + totalAmount
-          }).eq('id', cart.customer.id)
-        if (custErr) throw new Error(`ไม่สามารถอัปเดตคะแนนได้: ${custErr.message}`)
-      }
-
-      setReceipt({ receipt_no: receiptNo, total: totalAmount, change })
+      // 6. Set receipt state to trigger checkout success screen
+      setReceipt({ receipt_no: receiptNo, total: totalAmount, change, isPending })
+      cart.clearCart()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่')
     } finally {
@@ -291,6 +399,8 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
      SUCCESS SCREEN
   ══════════════════════════════════ */
   if (receipt) {
+    const isPending = receipt.isPending
+
     return (
       <div style={overlayStyle}>
         <div style={{
@@ -300,18 +410,22 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
           overflow: 'hidden',
           animation: 'slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1)',
         }}>
-          <div style={{ height: 5, background: 'linear-gradient(90deg,#16a34a,#22c55e,#4ade80)' }} />
+          <div style={{ height: 5, background: isPending ? 'linear-gradient(90deg,#d97706,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#16a34a,#22c55e,#4ade80)' }} />
           <div style={{ padding: '32px 28px 28px', textAlign: 'center' }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%', margin: '0 auto 18px',
-              background: 'linear-gradient(135deg,#16a34a,#22c55e)',
-              boxShadow: '0 0 0 16px rgba(34,197,94,0.08),0 0 40px rgba(34,197,94,0.35)',
+              background: isPending ? 'linear-gradient(135deg,#d97706,#f59e0b)' : 'linear-gradient(135deg,#16a34a,#22c55e)',
+              boxShadow: isPending 
+                ? '0 0 0 16px rgba(245,158,11,0.08),0 0 40px rgba(245,158,11,0.35)' 
+                : '0 0 0 16px rgba(34,197,94,0.08),0 0 40px rgba(34,197,94,0.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both',
             }}>
-              <CheckCircle2 size={38} color="white" />
+              {isPending ? <Clock size={38} color="white" /> : <CheckCircle2 size={38} color="white" />}
             </div>
-            <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: 'white' }}>ชำระเงินสำเร็จ!</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: 'white' }}>
+              {isPending ? 'สั่งซื้อแล้ว (รออนุมัติ)!' : 'ชำระเงินสำเร็จ!'}
+            </h2>
             <p style={{ margin: '0 0 22px', fontSize: 13, color: 'var(--text-muted)' }}>#{receipt.receipt_no}</p>
 
             <div style={{
@@ -320,6 +434,12 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             }}>
               <SummaryRow label="วิธีชำระ" value={currentMethod.label} />
               <SummaryRow label="ยอดชำระ" value={formatCurrency(receipt.total)} bold />
+              {isPending && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 13 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>สถานะ</span>
+                  <span style={{ color: '#f59e0b', fontWeight: 700 }}>รอตรวจสอบ & อนุมัติ</span>
+                </div>
+              )}
               {paymentMethod === 'cash' && (
                 <>
                   <SummaryRow label="รับเงิน" value={formatCurrency(cashAmount)} />
@@ -337,24 +457,40 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               {cart.customer && (
                 <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 10, background: 'rgba(242,198,92,0.08)', border: '1px solid rgba(242,198,92,0.2)' }}>
                   <span style={{ fontSize: 12, color: 'var(--gold-400)' }}>
-                    ✨ {cart.customer.full_name} ได้รับ {Math.floor(receipt.total / 100)} แต้ม
+                    ✨ {cart.customer.full_name} {isPending ? 'จะได้รับ' : 'ได้รับ'} {Math.floor(receipt.total / 100)} แต้ม
                   </span>
                 </div>
               )}
+              {isPending && (
+                <p style={{ margin: '10px 0 0', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 10 }}>
+                  * บิลจะส่งเข้าครัว/สต๊อกจะตัด เมื่อได้รับการอนุมัติชำระเงินจากผู้จัดการ
+                </p>
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <button onClick={handlePrintReceipt} style={ghostBtnStyle}>
-                <Printer size={15} /> พิมพ์ใบเสร็จ
-              </button>
+            {isPending ? (
               <button onClick={onSuccess} style={{
                 ...ghostBtnStyle,
-                background: 'linear-gradient(135deg,#166534,#22c55e)',
+                background: 'linear-gradient(135deg,#d97706,#f59e0b)',
                 borderColor: 'transparent', color: 'white', fontWeight: 700,
+                width: '100%'
               }}>
-                <Sparkles size={15} /> บิลใหม่
+                <Sparkles size={15} /> บิลใหม่ / รับคิวถัดไป
               </button>
-            </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button onClick={handlePrintReceipt} style={ghostBtnStyle}>
+                  <Printer size={15} /> พิมพ์ใบเสร็จ
+                </button>
+                <button onClick={onSuccess} style={{
+                  ...ghostBtnStyle,
+                  background: 'linear-gradient(135deg,#166534,#22c55e)',
+                  borderColor: 'transparent', color: 'white', fontWeight: 700,
+                }}>
+                  <Sparkles size={15} /> บิลใหม่
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <style>{globalStyles}</style>
@@ -761,6 +897,123 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                     style={{ ...inputStyle, paddingLeft: 40 }}
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Camera / Slip Capture for QR and Transfer methods */}
+            {(paymentMethod === 'qr' || paymentMethod === 'transfer') && (
+              <div style={{
+                marginTop: 16, background: 'rgba(255,255,255,0.02)',
+                border: '1px solid var(--border-color)', borderRadius: 18,
+                padding: 16
+              }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                  📸 ถ่ายภาพสลิปจากลูกค้า (โอนเงิน / สแกน QR)
+                </label>
+
+                {isCameraActive ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      position: 'relative', width: '100%', aspectRatio: '4/3',
+                      background: '#000', borderRadius: 14, overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,0.08)'
+                    }}>
+                      <video
+                        ref={videoRef}
+                        playsInline
+                        muted
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{
+                        position: 'absolute', inset: '16px',
+                        border: '1px dashed rgba(255,255,255,0.15)',
+                        pointerEvents: 'none', borderRadius: 8
+                      }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button
+                        type="button"
+                        onClick={capturePhoto}
+                        style={{
+                          padding: '10px 20px', borderRadius: 12, border: 'none',
+                          background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white',
+                          fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                        }}
+                      >
+                        กดถ่ายภาพ 📸
+                      </button>
+                      <button
+                        type="button"
+                        onClick={stopCamera}
+                        style={{
+                          padding: '10px 20px', borderRadius: 12,
+                          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#9aa3b2', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                        }}
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {slipImage ? (
+                      <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                        <img src={slipImage} alt="captured slip" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button
+                          type="button"
+                          onClick={() => setSlipImage(null)}
+                          style={{
+                            position: 'absolute', top: 4, right: 4,
+                            background: '#ef4444', border: 'none', color: 'white',
+                            borderRadius: '50%', width: 20, height: 20,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', padding: 0
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={startCamera}
+                          style={{
+                            height: '50px', padding: '0 16px', borderRadius: '12px',
+                            border: '1px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.03)',
+                            color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                            fontSize: 13, fontWeight: 700
+                          }}
+                        >
+                          <Camera size={18} />
+                          <span>ถ่ายรูปสลิป</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          style={{
+                            height: '50px', padding: '0 16px', borderRadius: '12px',
+                            border: '1px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)',
+                            color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                            fontSize: 13, fontWeight: 700
+                          }}
+                        >
+                          <ImageIcon size={18} />
+                          <span>เลือกรูปสลิป</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  style={{ display: 'none' }}
+                />
               </div>
             )}
 
