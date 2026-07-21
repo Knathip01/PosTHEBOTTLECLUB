@@ -11,81 +11,62 @@ import {
   X, Camera, Send, ClipboardList, Image as ImageIcon
 } from 'lucide-react'
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function classifyCategory(catName?: string): 'kitchen' | 'bar' {
   if (!catName) return 'kitchen'
   const name = catName.toLowerCase()
   const barKeywords = ['wine', 'beer', 'drink', 'beverage', 'bar', 'ไวน์', 'เบียร์', 'เครื่องดื่ม', 'rosé', 'sparkling', 'champagne', 'dessert']
-  const isBar = barKeywords.some(kw => name.includes(kw))
-  return isBar ? 'bar' : 'kitchen'
+  return barKeywords.some(kw => name.includes(kw)) ? 'bar' : 'kitchen'
 }
 
 const parseNote = (noteStr?: string | null) => {
   const res = { cleanNote: noteStr || '', slipUrl: '', isServed: false, kitchen: 'pending', bar: 'pending' }
   if (!noteStr) return res
   let cleanNote = noteStr
-  
-  if (cleanNote.includes(' | SERVED')) {
-    res.isServed = true
-    cleanNote = cleanNote.replace(' | SERVED', '')
-  } else if (cleanNote === 'SERVED') {
-    res.isServed = true
-    cleanNote = ''
-  }
-
+  if (cleanNote.includes(' | SERVED')) { res.isServed = true; cleanNote = cleanNote.replace(' | SERVED', '') }
+  else if (cleanNote === 'SERVED') { res.isServed = true; cleanNote = '' }
   const parts = cleanNote.split(' | SLIP:')
-  if (parts.length > 1) {
-    cleanNote = parts[0].trim()
-    res.slipUrl = parts[1].trim()
-  } else if (cleanNote.startsWith('SLIP:')) {
-    res.slipUrl = cleanNote.replace('SLIP:', '').trim()
-    cleanNote = ''
-  }
-
-  const kitchenMatch = cleanNote.match(/\[KITCHEN:(\w+)\]/)
-  const barMatch = cleanNote.match(/\[BAR:(\w+)\]/)
-  if (kitchenMatch) {
-    res.kitchen = kitchenMatch[1]
-    cleanNote = cleanNote.replace(/\[KITCHEN:\w+\]/g, '').trim()
-  }
-  if (barMatch) {
-    res.bar = barMatch[1]
-    cleanNote = cleanNote.replace(/\[BAR:\w+\]/g, '').trim()
-  }
-
+  if (parts.length > 1) { cleanNote = parts[0].trim(); res.slipUrl = parts[1].trim() }
+  else if (cleanNote.startsWith('SLIP:')) { res.slipUrl = cleanNote.replace('SLIP:', '').trim(); cleanNote = '' }
+  const km = cleanNote.match(/\[KITCHEN:(\w+)\]/)
+  const bm = cleanNote.match(/\[BAR:(\w+)\]/)
+  if (km) { res.kitchen = km[1]; cleanNote = cleanNote.replace(/\[KITCHEN:\w+\]/g, '').trim() }
+  if (bm) { res.bar = bm[1]; cleanNote = cleanNote.replace(/\[BAR:\w+\]/g, '').trim() }
   res.cleanNote = cleanNote
   return res
 }
 
 function StatusBadge({ status, note }: { status: string; note?: string | null }) {
   const isServed = parseNote(note).isServed
-  const config = {
-    paid: isServed 
-      ? { label: 'เสร็จสิ้น', bg: 'rgba(56,189,248,0.15)', color: '#38bdf8', border: 'rgba(56,189,248,0.3)' }
-      : { label: 'ชำระแล้ว', bg: 'rgba(34,197,94,0.15)',  color: '#22c55e', border: 'rgba(34,197,94,0.3)' },
-    pending:   { label: 'รอชำระ',   bg: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'rgba(245,158,11,0.3)' },
-    refunded:  { label: 'คืนสินค้า', bg: 'rgba(168,85,247,0.15)', color: '#c084fc', border: 'rgba(168,85,247,0.3)' },
-    cancelled: { label: 'ยกเลิก',   bg: 'rgba(239,68,68,0.15)',  color: '#ef4444', border: 'rgba(239,68,68,0.3)' },
-    hold:      { label: 'พัก',      bg: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: 'rgba(59,130,246,0.3)' },
+  const config: Record<string, { label: string; color: string; bg: string }> = {
+    paid:      isServed ? { label: 'เสร็จสิ้น', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' }
+                        : { label: 'ชำระแล้ว',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+    pending:   { label: 'รอชำระ',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+    refunded:  { label: 'คืนสินค้า', color: '#c084fc', bg: 'rgba(192,132,252,0.12)' },
+    cancelled: { label: 'ยกเลิก',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
   }
-  const c = (config as any)[status] || config.paid
+  const c = config[status] || config.paid
   return (
-    <span className="text-xs font-semibold px-2.5 py-1 rounded-full border"
-      style={{ background: c.bg, color: c.color, borderColor: c.border }}>
+    <span style={{ fontSize: 11, fontWeight: 700, color: c.color, background: c.bg, padding: '3px 9px', borderRadius: 999 }}>
       {c.label}
     </span>
   )
 }
 
 function PaymentIcon({ method }: { method: string }) {
-  const icons: Record<string, React.ReactNode> = {
-    cash:     <Banknote size={14} />,
-    transfer: <CreditCard size={14} />,
-    qr:       <QrCode size={14} />,
-    card:     <CreditCard size={14} />,
+  const map: Record<string, React.ReactNode> = {
+    cash: <Banknote size={13} />, transfer: <CreditCard size={13} />,
+    qr: <QrCode size={13} />, card: <CreditCard size={13} />,
   }
-  return <span style={{ color: 'var(--text-muted)' }}>{icons[method] || icons.cash}</span>
+  return <span style={{ color: '#6b7280' }}>{map[method] || map.cash}</span>
 }
 
+function PrepDot({ status }: { status: string }) {
+  const c = status === 'ready' ? '#22c55e' : status === 'preparing' ? '#fbbf24' : '#4b5563'
+  return <span style={{ width: 7, height: 7, borderRadius: '50%', background: c, display: 'inline-block', boxShadow: status !== 'pending' ? `0 0 6px ${c}` : 'none', flexShrink: 0 }} />
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CashierQueuePage() {
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState<'queue' | 'history' | 'report'>('queue')
@@ -96,288 +77,125 @@ export default function CashierQueuePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  // Shop Report Tab
+  // Report
   const [reportTitle, setReportTitle] = useState('')
   const [reportNote, setReportNote] = useState('')
   const [reportImages, setReportImages] = useState<string[]>([])
   const [reportLoading, setReportLoading] = useState(false)
   const [reportSuccess, setReportSuccess] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Camera Live Viewfinder
   const [isCameraActive, setIsCameraActive] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
-  const startCamera = async () => {
-    try {
-      setIsCameraActive(true)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(e => console.error("Error playing video:", e))
-        }
-      }
-    } catch (err: any) {
-      console.error("Camera access error:", err)
-      alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\nกรุณาใช้การอัปโหลดไฟล์แทน")
-      setIsCameraActive(false)
-    }
-  }
-
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
-      streamRef.current = null
-    }
-    setIsCameraActive(false)
-  }, [])
-
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const video = videoRef.current
-      const canvas = document.createElement('canvas')
-      canvas.width = video.videoWidth || 640
-      canvas.height = video.videoHeight || 480
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
-        setReportImages(prev => [...prev, dataUrl].slice(0, 5))
-        stopCamera()
-      }
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
-      }
-    }
-  }, [])
-
-  // Filters for History Tab
+  // History filters
   const [searchReceipt, setSearchReceipt] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
-  const loadPaidQueue = useCallback(async (tab: 'queue' | 'history', isInitial = false) => {
-    if (isInitial) setLoading(true)
-    else setRefreshing(true)
-    setErrorMsg(null)
-    
-    try {
-      let query = supabase
-        .from('sales')
-        .select(`
-          *,
-          sale_items (
-            *,
-            products (
-              category_id,
-              categories (
-                name
-              )
-            )
-          )
-        `)
+  // Camera helpers
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+    setIsCameraActive(false)
+  }, [])
 
-      // FIFO for queue, LIFO for history
+  useEffect(() => () => { streamRef.current?.getTracks().forEach(t => t.stop()) }, [])
+
+  const startCamera = async () => {
+    try {
+      setIsCameraActive(true)
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => videoRef.current?.play().catch(console.error)
+      }
+    } catch (err: any) {
+      alert('ไม่สามารถเปิดกล้องได้: ' + err.message)
+      setIsCameraActive(false)
+    }
+  }
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return
+    const v = videoRef.current
+    const c = document.createElement('canvas')
+    c.width = v.videoWidth || 640; c.height = v.videoHeight || 480
+    c.getContext('2d')?.drawImage(v, 0, 0, c.width, c.height)
+    setReportImages(p => [...p, c.toDataURL('image/jpeg', 0.85)].slice(0, 5))
+    stopCamera()
+  }
+
+  // Data loading
+  const loadPaidQueue = useCallback(async (tab: 'queue' | 'history', isInitial = false) => {
+    if (isInitial) setLoading(true); else setRefreshing(true)
+    setErrorMsg(null)
+    try {
+      let query = supabase.from('sales').select('*, sale_items(*, products(category_id, categories(name)))')
       if (tab === 'queue') {
         query = query.in('status', ['paid', 'pending']).order('created_at', { ascending: true })
       } else {
-        query = query.eq('status', 'paid').order('created_at', { ascending: false })
+        query = (query as any).eq('status', 'paid').order('created_at', { ascending: false })
+        if (searchReceipt) query = (query as any).ilike('receipt_no', `%${searchReceipt}%`)
+        if (dateFrom) query = (query as any).gte('created_at', `${dateFrom}T00:00:00`)
+        if (dateTo) query = (query as any).lte('created_at', `${dateTo}T23:59:59`)
+        query = (query as any).limit(50)
       }
-
-      // Apply search filters if in history tab
-      if (tab === 'history') {
-        if (searchReceipt) {
-          query = query.ilike('receipt_no', `%${searchReceipt}%`)
-        }
-        if (dateFrom) {
-          query = query.gte('created_at', `${dateFrom}T00:00:00`)
-        }
-        if (dateTo) {
-          query = query.lte('created_at', `${dateTo}T23:59:59`)
-        }
-        query = query.limit(50) // limit to latest 50 completed orders
-      }
-
       const { data: rawSales, error } = await query
       if (error) throw error
-
-      let salesData = rawSales || []
-      
-      // Filter based on served status
-      salesData = salesData.filter(sale => {
-        const { isServed } = parseNote(sale.note)
+      let salesData = (rawSales || []).filter((s: any) => {
+        const { isServed } = parseNote(s.note)
         return tab === 'queue' ? !isServed : isServed
       })
-
-      // Fallback manual join for customers
-      const customerIds = [...new Set(salesData.map(s => s.customer_id).filter(Boolean))]
+      const customerIds = [...new Set(salesData.map((s: any) => s.customer_id).filter(Boolean))]
       if (customerIds.length > 0) {
-        const { data: customersData } = await supabase
-          .from('customers')
-          .select('id, full_name, phone')
-          .in('id', customerIds)
-        if (customersData) {
-          salesData = salesData.map(sale => ({
-            ...sale,
-            customers: customersData.find(c => c.id === sale.customer_id) || null
-          }))
-        }
+        const { data: cd } = await supabase.from('customers').select('id, full_name, phone').in('id', customerIds)
+        if (cd) salesData = salesData.map((s: any) => ({ ...s, customers: cd.find((c: any) => c.id === s.customer_id) || null }))
       }
-
       setSales(salesData as Sale[])
     } catch (err: any) {
-      console.error('Error loading paid queue:', err)
-      setErrorMsg(err?.message || JSON.stringify(err) || 'เกิดข้อผิดพลาดในการดึงข้อมูล')
+      setErrorMsg(err?.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล')
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false); setRefreshing(false)
     }
   }, [supabase, searchReceipt, dateFrom, dateTo])
 
   useEffect(() => {
-    if (activeTab !== 'report') {
-      loadPaidQueue(activeTab, true)
-    }
-    
-    // Auto-polling every 10 seconds for active queue only
-    let interval: NodeJS.Timeout | null = null
-    if (activeTab === 'queue') {
-      interval = setInterval(() => {
-        loadPaidQueue('queue', false)
-      }, 10000)
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval)
-    }
+    if (activeTab !== 'report') loadPaidQueue(activeTab, true)
+    let t: NodeJS.Timeout | null = null
+    if (activeTab === 'queue') t = setInterval(() => loadPaidQueue('queue', false), 10000)
+    return () => { if (t) clearInterval(t) }
   }, [loadPaidQueue, activeTab])
 
   const handleTabChange = (tab: 'queue' | 'history' | 'report') => {
-    stopCamera()
-    setActiveTab(tab)
-    setExpandedId(null)
-    // Clear search states when changing tabs
-    setSearchReceipt('')
-    setDateFrom('')
-    setDateTo('')
-    // Load fresh data
-    if (tab !== 'report') {
-      setTimeout(() => {
-        loadPaidQueue(tab, true)
-      }, 50)
-    }
+    stopCamera(); setActiveTab(tab); setExpandedId(null)
+    setSearchReceipt(''); setDateFrom(''); setDateTo('')
+    if (tab !== 'report') setTimeout(() => loadPaidQueue(tab, true), 50)
   }
 
   const handleMarkServed = async (saleId: string) => {
     if (!confirm('ยืนยันส่งโต๊ะลูกค้าและเสร็จสิ้นรายการ?')) return
     setUpdatingId(saleId)
     try {
-      const { data: currentSale } = await supabase
-        .from('sales')
-        .select('note')
-        .eq('id', saleId)
-        .single()
-
-      const currentNote = currentSale?.note || ''
-      const newNote = currentNote ? `${currentNote} | SERVED` : 'SERVED'
-
-      const { error } = await supabase
-        .from('sales')
-        .update({ note: newNote })
-        .eq('id', saleId)
-
-      if (error) throw error
-
-      await loadPaidQueue(activeTab === 'report' ? 'queue' : activeTab, false)
-    } catch (err) {
-      console.error('Error updating sale status:', err)
-    } finally {
-      setUpdatingId(null)
-    }
+      const { data: cur } = await supabase.from('sales').select('note').eq('id', saleId).single()
+      const note = cur?.note || ''
+      await supabase.from('sales').update({ note: note ? `${note} | SERVED` : 'SERVED' }).eq('id', saleId)
+      await loadPaidQueue('queue', false)
+    } catch (err) { console.error(err) }
+    finally { setUpdatingId(null) }
   }
 
   const handleUndoServed = async (saleId: string) => {
-    if (!confirm('ต้องการดึงรายการนี้กลับมาที่คิวค้างเตรียมใช่หรือไม่?')) return
+    if (!confirm('ต้องการดึงรายการนี้กลับมาที่คิวค้างเตรียม?')) return
     setUpdatingId(saleId)
     try {
-      const { data: currentSale } = await supabase
-        .from('sales')
-        .select('note')
-        .eq('id', saleId)
-        .single()
-
-      const currentNote = currentSale?.note || ''
-      const newNote = currentNote.replace(' | SERVED', '').replace('SERVED', '').trim()
-
-      const { error } = await supabase
-        .from('sales')
-        .update({ note: newNote || null })
-        .eq('id', saleId)
-
-      if (error) throw error
-
-      await loadPaidQueue(activeTab === 'report' ? 'history' : activeTab, false)
-    } catch (err) {
-      console.error('Error undoing sale status:', err)
-    } finally {
-      setUpdatingId(null)
-    }
-  }
-
-  const handleClearFilters = () => {
-    setSearchReceipt('')
-    setDateFrom('')
-    setDateTo('')
-    // Trigger reload with blank filter values
-    setTimeout(() => {
-      setLoading(true)
-      supabase
-        .from('sales')
-        .select('*, sale_items(*)')
-        .eq('status', 'paid')
-        .order('created_at', { ascending: false })
-        .then(({ data: rawSales }) => {
-          let salesData = rawSales || []
-          salesData = salesData.filter(sale => parseNote(sale.note).isServed)
-          setSales(salesData as Sale[])
-          setLoading(false)
-        })
-    }, 50)
-  }
-
-  const timeSince = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'เพิ่งจ่ายเงิน'
-    if (mins < 60) return `${mins} นาทีที่แล้ว`
-    return `${Math.floor(mins / 60)} ชั่วโมงที่แล้ว`
-  }
-
-  /* ── Shop Report Handlers ── */
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    const remaining = 5 - reportImages.length
-    files.slice(0, remaining).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = ev => {
-        const result = ev.target?.result as string
-        if (result) setReportImages(prev => [...prev, result])
-      }
-      reader.readAsDataURL(file)
-    })
-    // reset input so same file can be re-selected
-    if (fileInputRef.current) fileInputRef.current.value = ''
+      const { data: cur } = await supabase.from('sales').select('note').eq('id', saleId).single()
+      const newNote = (cur?.note || '').replace(' | SERVED', '').replace('SERVED', '').trim()
+      await supabase.from('sales').update({ note: newNote || null }).eq('id', saleId)
+      await loadPaidQueue('history', false)
+    } catch (err) { console.error(err) }
+    finally { setUpdatingId(null) }
   }
 
   const handleSubmitReport = async () => {
@@ -386,791 +204,493 @@ export default function CashierQueuePage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const { error } = await supabase.from('shop_reports').insert({
-        title: reportTitle.trim(),
-        note: reportNote.trim() || null,
+        title: reportTitle.trim(), note: reportNote.trim() || null,
         images: reportImages.length > 0 ? reportImages : null,
-        reported_by: user?.id || null,
-        status: 'pending',
+        reported_by: user?.id || null, status: 'pending'
       })
       if (error) throw error
       setReportSuccess(true)
       setTimeout(() => {
-        setReportTitle('')
-        setReportNote('')
-        setReportImages([])
-        stopCamera()
-        setReportSuccess(false)
-        setActiveTab('queue') // Auto navigate back to queue
+        setReportTitle(''); setReportNote(''); setReportImages([])
+        stopCamera(); setReportSuccess(false); setActiveTab('queue')
       }, 1800)
     } catch (err: any) {
       alert('ส่งรายงานไม่สำเร็จ: ' + err.message)
-    } finally {
-      setReportLoading(false)
-    }
+    } finally { setReportLoading(false) }
   }
 
+  const timeSince = (d: string) => {
+    const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000)
+    if (m < 1) return 'เพิ่งจ่าย'
+    if (m < 60) return `${m} นาที`
+    return `${Math.floor(m / 60)} ชม.`
+  }
+
+  const queueCount = activeTab === 'queue' ? sales.length : 0
+
   return (
-    <div className="animate-in" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <h1 className="font-display text-2xl font-bold text-white mb-1">คิวเตรียมสินค้า &amp; ส่งเสิร์ฟ</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-            {activeTab === 'queue'
-              ? (loading ? 'กำลังโหลด...' : `มีออเดอร์ค้างเตรียมทั้งหมด ${sales.length} รายการ`)
-              : activeTab === 'history' ? `ประวัติทำสำเร็จ ${sales.length} รายการ` : 'ส่งรายงานความเรียบร้อยของร้าน'}
-          </p>
-        </div>
-      </div>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        .cashier-bottom-nav { display: flex !important; }
+        @media (min-width: 768px) { .cashier-bottom-nav { display: none !important; } }
+        .cashier-top-tabs { display: flex !important; }
+        @media (max-width: 767px) { .cashier-top-tabs { display: none !important; } }
+        .history-table { display: table !important; }
+        @media (max-width: 640px) { .history-table { display: none !important; } .history-cards { display: flex !important; } }
+        .history-cards { display: none; }
+        @keyframes fadeSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes spinAnim { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      `}</style>
 
-
-      {/* Tab Selectors (iOS Segmented Control) */}
-      <div style={{
-        display: 'inline-flex',
-        padding: '3px',
-        background: 'rgba(255, 255, 255, 0.03)',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        marginBottom: '28px',
-        gap: '4px',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)',
-        maxWidth: '100%',
-        overflowX: 'auto',
-        scrollbarWidth: 'none'
+      {/* ── Sticky Header ── */}
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 40, flexShrink: 0,
+        background: 'rgba(10,12,18,0.96)', borderBottom: '1px solid rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(20px)', padding: '0 16px', height: 56,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12
       }}>
-        <button
-          onClick={() => handleTabChange('queue')}
-          style={{
-            padding: '10px 20px',
-            fontSize: '13px',
-            fontWeight: 700,
-            borderRadius: '13px',
-            background: activeTab === 'queue' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-            color: activeTab === 'queue' ? '#fff' : 'var(--text-secondary)',
-            border: activeTab === 'queue' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
-            boxShadow: activeTab === 'queue' ? '0 4px 12px rgba(0,0,0,0.18)' : 'none',
-            cursor: 'pointer',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          📥 คิวเตรียมสินค้า
-        </button>
-        <button
-          onClick={() => handleTabChange('history')}
-          style={{
-            padding: '10px 20px',
-            fontSize: '13px',
-            fontWeight: 700,
-            borderRadius: '13px',
-            background: activeTab === 'history' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-            color: activeTab === 'history' ? '#fff' : 'var(--text-secondary)',
-            border: activeTab === 'history' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
-            boxShadow: activeTab === 'history' ? '0 4px 12px rgba(0,0,0,0.18)' : 'none',
-            cursor: 'pointer',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          ✅ ประวัติทำสินค้าสำเร็จ
-        </button>
-        <button
-          onClick={() => handleTabChange('report')}
-          style={{
-            padding: '10px 20px',
-            fontSize: '13px',
-            fontWeight: 700,
-            borderRadius: '13px',
-            background: activeTab === 'report' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-            color: activeTab === 'report' ? '#fff' : 'var(--text-secondary)',
-            border: activeTab === 'report' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
-            boxShadow: activeTab === 'report' ? '0 4px 12px rgba(0,0,0,0.18)' : 'none',
-            cursor: 'pointer',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          📋 รายงานความเรียบร้อย
-        </button>
-      </div>
-
-      {/* Filters (ONLY for History tab) */}
-      {activeTab === 'history' && (
-        <div className="glass-card p-4 mb-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Receipt search */}
-            <div className="flex items-center gap-2" style={{ flex: '1 1 200px', minWidth: 180 }}>
-              <Search size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="ค้นหาเลขบิล..."
-                value={searchReceipt}
-                onChange={e => setSearchReceipt(e.target.value)}
-                className="wine-input w-full"
-                style={{ fontSize: '13px' }}
-              />
-            </div>
-
-            {/* Date range */}
-            <div className="flex items-center gap-2" style={{ flex: '1 1 200px' }}>
-              <CalendarRange size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                className="wine-input" style={{ fontSize: '13px', flex: 1 }} />
-              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>ถึง</span>
-              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                className="wine-input" style={{ fontSize: '13px', flex: 1 }} />
-            </div>
-
-            <button onClick={() => loadPaidQueue('history', true)} className="btn-wine flex items-center gap-2 shrink-0">
-              <Search size={14} /> ค้นหา
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8', flexShrink: 0 }}>
+            <CheckCircle2 size={17} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Cashier Queue 💳
+            </h1>
+            <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>
+              {activeTab === 'queue' ? `${sales.length} ออเดอร์รอเตรียม` : activeTab === 'history' ? 'ประวัติออเดอร์' : 'ส่งรายงาน'}
+            </p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#6b7280' }} />}
+          {/* Desktop tabs */}
+          <div className="cashier-top-tabs" style={{ gap: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4 }}>
+            {([['queue', '📥 คิวเตรียม'], ['history', '✅ ประวัติ'], ['report', '📋 รายงาน']] as const).map(([tab, label]) => (
+              <button key={tab} onClick={() => handleTabChange(tab)} style={{
+                padding: '6px 14px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700,
+                background: activeTab === tab ? 'rgba(255,255,255,0.1)' : 'transparent',
+                color: activeTab === tab ? '#fff' : '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap',
+                transition: 'all 150ms'
+              }}>{label}</button>
+            ))}
+          </div>
+          {activeTab !== 'report' && (
+            <button onClick={() => loadPaidQueue(activeTab as any, false)} style={{
+              width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.04)', color: '#6b7280', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <RefreshCw size={13} />
             </button>
-            <button
-              onClick={handleClearFilters}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors shrink-0"
-              style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
+          )}
+        </div>
+      </header>
+
+      {/* ── Main Content ── */}
+      <main style={{ flex: 1, overflowY: 'auto', padding: 'clamp(12px, 3vw, 20px)' }}>
+
+        {/* Error */}
+        {errorMsg && (
+          <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', marginBottom: 14, fontSize: 13 }}>
+            ⚠️ {errorMsg}
+          </div>
+        )}
+
+        {/* History filter bar */}
+        {activeTab === 'history' && (
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 14, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 160px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px' }}>
+              <Search size={13} style={{ color: '#6b7280', flexShrink: 0 }} />
+              <input value={searchReceipt} onChange={e => setSearchReceipt(e.target.value)} placeholder="เลขบิล..." style={{ flex: 1, background: 'none', border: 'none', color: 'white', fontSize: 13, outline: 'none', minWidth: 0 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 200px' }}>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ flex: 1, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 12, outline: 'none', minWidth: 0 }} />
+              <span style={{ color: '#6b7280', fontSize: 11, flexShrink: 0 }}>—</span>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ flex: 1, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 12, outline: 'none', minWidth: 0 }} />
+            </div>
+            <button onClick={() => loadPaidQueue('history', true)} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              ค้นหา
+            </button>
+            <button onClick={() => { setSearchReceipt(''); setDateFrom(''); setDateTo(''); loadPaidQueue('history', true) }} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#6b7280', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               ล้าง
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {errorMsg && (
-        <div style={{ padding: '16px 20px', borderRadius: 12, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20 }}>⚠️</span>
-          <div>
-            <p style={{ fontWeight: 600, fontSize: 14 }}>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-            <p style={{ fontSize: 12, opacity: 0.85, fontFamily: 'monospace' }}>{errorMsg}</p>
+        {/* Loading */}
+        {loading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50dvh', gap: 14 }}>
+            <Loader2 size={32} className="animate-spin" style={{ color: '#38bdf8' }} />
+            <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>กำลังโหลดข้อมูล...</p>
           </div>
-        </div>
-      )}
 
-      {/* Main Content Area */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-32">
-          <Loader2 size={40} className="animate-spin mb-4" style={{ color: 'var(--wine-400)' }} />
-          <p style={{ color: 'var(--text-secondary)' }}>กำลังโหลดข้อมูล...</p>
-        </div>
-      ) : sales.length === 0 ? (
-        <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
-            style={{ background: activeTab === 'queue' ? 'rgba(56,189,248,0.1)' : 'rgba(34,197,94,0.1)' }}>
-            <CheckCircle2 size={36} style={{ color: activeTab === 'queue' ? '#38bdf8' : '#22c55e' }} />
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2">
-            {activeTab === 'queue' ? 'ไม่มีออเดอร์ค้างเตรียม' : 'ไม่พบประวัติสินค้าสำเร็จ'}
-          </h3>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {activeTab === 'queue' 
-              ? 'ออเดอร์ที่ชำระเงินเรียบร้อยจากหน้าแอดมินหรือระบบสแกนจะปรากฏที่นี่' 
-              : 'ออเดอร์ที่จัดเตรียมและส่งเสิร์ฟเรียบร้อยจะแสดงเป็นตารางประวัติที่นี่'}
-          </p>
-        </div>
-      ) : activeTab === 'queue' ? (
-        /* ACTIVE QUEUE: Grid of Cards */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
-          {sales.map((sale, index) => {
-            const { kitchen: kStatus, bar: bStatus, cleanNote } = parseNote(sale.note)
-            const hasKitchen = sale.sale_items?.some(item => classifyCategory((item as any).products?.categories?.name) === 'kitchen')
-            const hasBar = sale.sale_items?.some(item => classifyCategory((item as any).products?.categories?.name) === 'bar')
-            
-            // Order is fully ready if all required stations are ready
-            const isOrderReady = (!hasKitchen || kStatus === 'ready') && (!hasBar || bStatus === 'ready')
+        /* ── QUEUE TAB ── */
+        ) : activeTab === 'queue' ? (
+          sales.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50dvh', gap: 16 }}>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(56,189,248,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle2 size={32} style={{ color: '#38bdf8', opacity: 0.5 }} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#4b5563', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>ไม่มีออเดอร์ค้างเตรียม</p>
+                <p style={{ color: '#374151', fontSize: 13, margin: 0 }}>ออเดอร์ที่ชำระแล้วจะปรากฏที่นี่</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: 14 }}>
+              {sales.map(sale => {
+                const { kitchen: kSt, bar: bSt, cleanNote } = parseNote(sale.note)
+                const hasKitchen = sale.sale_items?.some(i => classifyCategory((i as any).products?.categories?.name) === 'kitchen')
+                const hasBar = sale.sale_items?.some(i => classifyCategory((i as any).products?.categories?.name) === 'bar')
+                const isReady = (!hasKitchen || kSt === 'ready') && (!hasBar || bSt === 'ready')
+                const mins = Math.floor((Date.now() - new Date(sale.created_at).getTime()) / 60000)
+                const isUrgent = mins >= 20 && !isReady
 
-            return (
-              <div key={sale.id} className="card-hover flex flex-col"
-                style={{
-                  background: 'rgba(26, 31, 46, 0.45)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)',
-                  border: isOrderReady ? '1px solid rgba(34, 197, 94, 0.35)' : '1px solid rgba(255, 255, 255, 0.07)',
-                  borderRadius: '24px',
-                  boxShadow: isOrderReady ? '0 12px 30px rgba(34, 197, 94, 0.12)' : '0 12px 40px rgba(0,0,0,0.25)',
-                  minHeight: '260px',
-                  overflow: 'hidden',
-                  animation: 'fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
-                  transition: 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease'
-                }}>
-                
-                {/* Card Header */}
-                <div style={{
-                  padding: '18px 20px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                  background: isOrderReady ? 'rgba(34, 197, 94, 0.04)' : 'rgba(255,255,255,0.015)'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '4px 10px',
-                        background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(242,198,92,0.2))',
-                        color: '#fcd34d',
-                        border: '1px solid rgba(242,198,92,0.25)',
-                        borderRadius: '10px',
-                        fontWeight: 700,
-                        fontSize: '12px'
-                      }}>
-                        🍷 โต๊ะ {sale.table_no || 'หน้าร้าน'}
-                      </span>
-                      {isOrderReady && (
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          padding: '4px 10px',
-                          background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(74,222,128,0.25))',
-                          color: '#4ade80',
-                          border: '1px solid rgba(34,197,94,0.3)',
-                          borderRadius: '10px',
-                          fontWeight: 700,
-                          fontSize: '11px',
-                          boxShadow: '0 0 12px rgba(34,197,94,0.2)'
-                        }}>
-                          🌟 พร้อมเสิร์ฟ
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted)', fontSize: '11px', fontWeight: 500 }}>
-                      <Clock size={12} />
-                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>{timeSince(sale.created_at)}</span>
-                    </div>
-                  </div>
-                  <h3 style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', margin: '0 0 4px' }}>#{sale.receipt_no}</h3>
-                  {sale.customers && (
-                    <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>👤 {sale.customers.full_name}</p>
-                  )}
-                </div>
-
-                {/* Prep status indicators */}
-                {(hasKitchen || hasBar) && (
-                  <div style={{
-                    display: 'flex',
-                    gap: 8,
-                    padding: '10px 20px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                    background: 'rgba(255,255,255,0.005)'
+                return (
+                  <div key={sale.id} style={{
+                    background: 'rgba(18,22,32,0.9)', borderRadius: 18, overflow: 'hidden',
+                    border: `1px solid ${isReady ? 'rgba(34,197,94,0.35)' : isUrgent ? 'rgba(239,68,68,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                    boxShadow: isReady ? '0 8px 24px rgba(34,197,94,0.1)' : 'none',
+                    display: 'flex', flexDirection: 'column', animation: 'fadeSlide 0.3s ease'
                   }}>
-                    {hasKitchen && (
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                        fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '10px',
-                        background: kStatus === 'ready' ? 'rgba(34,197,94,0.1)' : kStatus === 'preparing' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)',
-                        color: kStatus === 'ready' ? '#4ade80' : kStatus === 'preparing' ? '#60a5fa' : 'var(--text-muted)',
-                        border: `1px solid ${kStatus === 'ready' ? 'rgba(34,197,94,0.2)' : kStatus === 'preparing' ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)'}`
-                      }}>
-                        <span style={{
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: kStatus === 'ready' ? '#22c55e' : kStatus === 'preparing' ? '#3b82f6' : 'rgba(255,255,255,0.2)',
-                          display: 'inline-block',
-                          boxShadow: kStatus === 'ready' ? '0 0 8px #22c55e' : kStatus === 'preparing' ? '0 0 8px #3b82f6' : 'none',
-                          animation: kStatus === 'preparing' ? 'reportSpin 1.5s linear infinite' : 'none'
-                        }} />
-                        ครัว: {kStatus === 'ready' ? 'เสร็จแล้ว' : kStatus === 'preparing' ? 'กำลังทำ...' : 'รอทำ'}
-                      </span>
-                    )}
-                    {hasBar && (
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                        fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '10px',
-                        background: bStatus === 'ready' ? 'rgba(34,197,94,0.1)' : bStatus === 'preparing' ? 'rgba(216,169,60,0.1)' : 'rgba(255,255,255,0.03)',
-                        color: bStatus === 'ready' ? '#4ade80' : bStatus === 'preparing' ? '#f2c65c' : 'var(--text-muted)',
-                        border: `1px solid ${bStatus === 'ready' ? 'rgba(34,197,94,0.2)' : bStatus === 'preparing' ? 'rgba(216,169,60,0.2)' : 'rgba(255,255,255,0.05)'}`
-                      }}>
-                        <span style={{
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: bStatus === 'ready' ? '#22c55e' : bStatus === 'preparing' ? '#fbbf24' : 'rgba(255,255,255,0.2)',
-                          display: 'inline-block',
-                          boxShadow: bStatus === 'ready' ? '0 0 8px #22c55e' : bStatus === 'preparing' ? '0 0 8px #fbbf24' : 'none'
-                        }} />
-                        บาร์: {bStatus === 'ready' ? 'เสร็จแล้ว' : bStatus === 'preparing' ? 'กำลังทำ...' : 'รอทำ'}
-                      </span>
-                    )}
-                  </div>
-                )}
+                    {/* Ready / Urgent stripe */}
+                    {isReady && <div style={{ height: 3, background: 'linear-gradient(90deg,#16a34a,#4ade80)' }} />}
+                    {isUrgent && !isReady && <div style={{ height: 3, background: 'linear-gradient(90deg,#ef4444,#f97316)' }} />}
 
-                {/* Items List */}
-                <div style={{ padding: '18px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <p style={{ margin: '0 0 10px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>รายการเตรียม</p>
-                  <div className="space-y-2" style={{ flex: 1 }}>
-                    {(sale.sale_items || []).map(item => (
-                      <div key={item.id} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '10px 14px', borderRadius: '12px',
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.03)'
-                      }}>
-                        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(139,26,44,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Wine size={13} style={{ color: 'var(--wine-300)' }} />
-                          </div>
-                          <div>
-                            <p style={{ margin: 0, fontSize: '13px', color: 'white', fontWeight: 600 }}>{item.product_name}</p>
-                            {item.sku && <p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>SKU: {item.sku}</p>}
-                          </div>
+                    {/* Header */}
+                    <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: isReady ? 'rgba(34,197,94,0.04)' : 'rgba(255,255,255,0.015)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{
+                            fontSize: 15, fontWeight: 900,
+                            color: isUrgent && !isReady ? '#ef4444' : '#f1f3f7'
+                          }}>
+                            {sale.table_no ? `🍽️ โต๊ะ ${sale.table_no}` : '🛍️ หน้าร้าน'}
+                          </span>
+                          {isReady && (
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '2px 8px', borderRadius: 999 }}>
+                              🌟 พร้อมเสิร์ฟ
+                            </span>
+                          )}
+                          {sale.status === 'pending' && (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '2px 7px', borderRadius: 4 }}>รอชำระ</span>
+                          )}
                         </div>
-                        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--gold-400)' }}>× {item.quantity}</span>
+                        <p style={{ margin: '3px 0 0', fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>#{sale.receipt_no}</p>
                       </div>
-                    ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent && !isReady ? '#ef4444' : '#6b7280' }}>
+                          <Clock size={11} /><span>{timeSince(sale.created_at)}</span>
+                        </div>
+                        {(sale.customers as any)?.full_name && (
+                          <span style={{ fontSize: 10, color: '#6b7280' }}>👤 {(sale.customers as any).full_name}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Station status */}
+                    {(hasKitchen || hasBar) && (
+                      <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {hasKitchen && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', color: kSt === 'ready' ? '#4ade80' : kSt === 'preparing' ? '#fb923c' : '#6b7280' }}>
+                            <PrepDot status={kSt} />
+                            ครัว: {kSt === 'ready' ? 'เสร็จ' : kSt === 'preparing' ? 'กำลังทำ' : 'รอทำ'}
+                          </span>
+                        )}
+                        {hasBar && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', color: bSt === 'ready' ? '#4ade80' : bSt === 'preparing' ? '#f2c65c' : '#6b7280' }}>
+                            <PrepDot status={bSt} />
+                            บาร์: {bSt === 'ready' ? 'เสร็จ' : bSt === 'preparing' ? 'กำลังชง' : 'รอชง'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Items */}
+                    <div style={{ padding: '10px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {(sale.sale_items || []).map(item => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                            <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(139,26,44,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Wine size={12} style={{ color: '#b02238' }} />
+                            </div>
+                            <p style={{ margin: 0, fontSize: 13, color: 'white', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 900, color: '#fcd34d', flexShrink: 0, marginLeft: 8 }}>×{item.quantity}</span>
+                        </div>
+                      ))}
+                      {cleanNote && (
+                        <div style={{ padding: '7px 10px', borderRadius: 10, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', fontSize: 12, color: '#f59e0b' }}>
+                          📝 {cleanNote}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action */}
+                    <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.08)' }}>
+                      <button
+                        onClick={() => handleMarkServed(sale.id)}
+                        disabled={updatingId === sale.id}
+                        style={{
+                          width: '100%', padding: '13px', borderRadius: 12, border: 'none',
+                          background: 'linear-gradient(135deg,#059669,#10b981)',
+                          color: 'white', fontSize: 14, fontWeight: 800, cursor: updatingId === sale.id ? 'not-allowed' : 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          opacity: updatingId === sale.id ? 0.7 : 1,
+                          boxShadow: '0 4px 16px rgba(16,185,129,0.3)', transition: 'all 150ms'
+                        }}
+                      >
+                        {updatingId === sale.id ? <><Loader2 size={15} className="animate-spin" /> กำลังส่ง...</> : <><Check size={15} /> ทำรายการสำเร็จ (ส่งโต๊ะ)</>}
+                      </button>
+                    </div>
                   </div>
-                  {cleanNote && (
-                    <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}>
-                      <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>📝 โน้ต: {cleanNote}</p>
+                )
+              })}
+            </div>
+          )
+
+        /* ── HISTORY TAB ── */
+        ) : activeTab === 'history' ? (
+          sales.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40dvh', gap: 12 }}>
+              <CheckCircle2 size={40} style={{ color: '#22c55e', opacity: 0.3 }} />
+              <p style={{ color: '#4b5563', fontSize: 15, margin: 0 }}>ไม่พบประวัติออเดอร์</p>
+            </div>
+          ) : (<>
+            {/* Desktop Table */}
+            <div className="history-table" style={{ background: 'rgba(18,22,32,0.9)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+                      {['', 'เลขบิล', 'วันที่', 'ลูกค้า', 'รายการ', 'ยอดรวม', 'ชำระ', 'สถานะ', ''].map((h, i) => (
+                        <th key={i} style={{ textAlign: 'left', padding: '12px 14px', fontSize: 11, fontWeight: 700, color: '#6b7280', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sales.map(sale => {
+                      const isExp = expandedId === sale.id
+                      return (
+                        <React.Fragment key={sale.id}>
+                          <tr onClick={() => setExpandedId(isExp ? null : sale.id)} style={{ borderBottom: isExp ? 'none' : '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', background: isExp ? 'rgba(56,189,248,0.04)' : 'transparent', transition: 'background 150ms' }}>
+                            <td style={{ padding: '12px 14px', width: 32 }}>{isExp ? <ChevronDown size={14} style={{ color: '#38bdf8' }} /> : <ChevronRight size={14} style={{ color: '#4b5563' }} />}</td>
+                            <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#b02238', whiteSpace: 'nowrap' }}>{sale.receipt_no}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 11, color: '#6b7280', whiteSpace: 'nowrap' }}>{formatDate(sale.created_at)}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 12, color: '#9ca3af' }}>{(sale.customers as any)?.full_name || '—'}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 12, textAlign: 'center', color: '#9ca3af' }}>{(sale.sale_items || []).length}</td>
+                            <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 800, color: '#fcd34d', whiteSpace: 'nowrap' }}>{formatCurrency(sale.total_amount)}</td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <PaymentIcon method={sale.payment_method} />
+                                <span style={{ fontSize: 11, color: '#6b7280' }}>{sale.payment_method === 'cash' ? 'เงินสด' : sale.payment_method === 'transfer' ? 'โอน' : sale.payment_method === 'qr' ? 'QR' : 'บัตร'}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '12px 14px' }}><StatusBadge status={sale.status} note={sale.note} /></td>
+                            <td style={{ padding: '12px 14px' }} onClick={e => e.stopPropagation()}>
+                              <button onClick={() => handleUndoServed(sale.id)} disabled={updatingId === sale.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                {updatingId === sale.id ? <Loader2 size={11} className="animate-spin" /> : <Undo size={11} />} ดึงกลับ
+                              </button>
+                            </td>
+                          </tr>
+                          {isExp && (
+                            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <td colSpan={9} style={{ padding: '0 16px 16px 48px' }}>
+                                <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead><tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                                      {['สินค้า', 'ราคา/ชิ้น', 'จำนวน', 'ส่วนลด', 'รวม'].map(h => (
+                                        <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 10, fontWeight: 700, color: '#6b7280' }}>{h}</th>
+                                      ))}
+                                    </tr></thead>
+                                    <tbody>
+                                      {(sale.sale_items || []).map(item => (
+                                        <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'white' }}>{item.product_name}</td>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, color: '#9ca3af' }}>{formatCurrency(item.unit_price)}</td>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'white' }}>{item.quantity}</td>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, color: item.discount_amount > 0 ? '#ef4444' : '#6b7280' }}>{item.discount_amount > 0 ? `-${formatCurrency(item.discount_amount)}` : '—'}</td>
+                                          <td style={{ padding: '8px 12px', fontSize: 12, fontWeight: 700, color: '#fcd34d' }}>{formatCurrency(item.line_total)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                  <div style={{ padding: '12px 14px', display: 'flex', justifyContent: 'flex-end' }}>
+                                    <div style={{ fontSize: 12, color: '#9ca3af' }}>
+                                      <span>ยอดสุทธิ: </span>
+                                      <span style={{ fontSize: 14, fontWeight: 800, color: '#fcd34d' }}>{formatCurrency(sale.total_amount)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile Cards (history) */}
+            <div className="history-cards" style={{ flexDirection: 'column', gap: 10 }}>
+              {sales.map(sale => (
+                <div key={sale.id} style={{ background: 'rgba(18,22,32,0.9)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                  <div onClick={() => setExpandedId(expandedId === sale.id ? null : sale.id)} style={{ padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#b02238', fontFamily: 'monospace' }}>{sale.receipt_no}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: '#6b7280' }}>{formatDate(sale.created_at)}</span>
+                        <StatusBadge status={sale.status} note={sale.note} />
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#fcd34d' }}>{formatCurrency(sale.total_amount)}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end', marginTop: 4 }}>
+                        <PaymentIcon method={sale.payment_method} />
+                        <span style={{ fontSize: 10, color: '#6b7280' }}>{sale.payment_method === 'cash' ? 'เงินสด' : sale.payment_method === 'transfer' ? 'โอน' : 'QR'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {expandedId === sale.id && (
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {(sale.sale_items || []).map(item => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                          <span style={{ color: '#d1d5db' }}>{item.product_name} ×{item.quantity}</span>
+                          <span style={{ color: '#fcd34d', fontWeight: 700 }}>{formatCurrency(item.line_total)}</span>
+                        </div>
+                      ))}
+                      <button onClick={() => handleUndoServed(sale.id)} disabled={updatingId === sale.id} style={{ marginTop: 8, padding: '9px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#9ca3af', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        {updatingId === sale.id ? <Loader2 size={13} className="animate-spin" /> : <Undo size={13} />} ดึงกลับคิว
+                      </button>
                     </div>
                   )}
                 </div>
-
-                {/* Card Footer Button */}
-                <div style={{
-                  padding: '14px 20px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                  background: 'rgba(0,0,0,0.12)'
-                }}>
-                  <button
-                    onClick={() => handleMarkServed(sale.id)}
-                    disabled={updatingId === sale.id}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      boxShadow: '0 6px 20px rgba(16,185,129,0.3)',
-                      color: 'white',
-                      border: 'none',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      cursor: updatingId === sale.id ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={e => { if (updatingId !== sale.id) e.currentTarget.style.opacity = '0.95' }}
-                    onMouseLeave={e => { if (updatingId !== sale.id) e.currentTarget.style.opacity = '1' }}
-                  >
-                    {updatingId === sale.id ? (
-                      <>
-                        <Loader2 size={15} style={{ animation: 'reportSpin 1s linear infinite' }} />
-                        กำลังส่งออเดอร์...
-                      </>
-                    ) : (
-                      <>
-                        <Check size={15} />
-                        ทำรายการสำเร็จ (ส่งโต๊ะ)
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : activeTab === 'history' ? (
-        /* HISTORY TAB: Table Layout (matches POS history page style) */
-        <div className="glass-card overflow-hidden">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)' }}>
-                  {['', 'เลขบิล', 'วันที่', 'ลูกค้า', 'รายการ', 'ยอดรวม', 'วิธีชำระ', 'สถานะ', ''].map((h, i) => (
-                    <th key={i} className="text-left p-3.5 text-xs font-semibold"
-                      style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map(sale => {
-                  const isExpanded = expandedId === sale.id
-                  const items = sale.sale_items || []
-
-                  return (
-                    <React.Fragment key={sale.id}>
-                      {/* Parent Row */}
-                      <tr
-                        onClick={() => setExpandedId(isExpanded ? null : sale.id)}
-                        style={{
-                          borderBottom: isExpanded ? 'none' : '1px solid var(--border-color)',
-                          cursor: 'pointer',
-                          background: isExpanded ? 'rgba(139,26,44,0.06)' : 'transparent',
-                          transition: 'background 0.15s'
-                        }}
-                        onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-                        onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = 'transparent' }}
-                      >
-                        <td className="p-3.5 text-center">
-                          {isExpanded
-                            ? <ChevronDown size={14} style={{ color: 'var(--wine-300)' }} />
-                            : <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />}
-                        </td>
-                        <td className="p-3.5">
-                          <span className="font-mono text-sm font-semibold" style={{ color: 'var(--wine-300)' }}>
-                            {sale.receipt_no}
-                          </span>
-                        </td>
-                        <td className="p-3.5 text-xs" style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                          {formatDate(sale.created_at)}
-                        </td>
-                        <td className="p-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          {(sale.customers as any)?.full_name || '—'}
-                        </td>
-                        <td className="p-3.5 text-sm text-center" style={{ color: 'var(--text-secondary)' }}>
-                          {items.length}
-                        </td>
-                        <td className="p-3.5 text-sm font-bold" style={{ color: 'var(--gold-400)' }}>
-                          {formatCurrency(sale.total_amount)}
-                        </td>
-                        <td className="p-3.5">
-                          <div className="flex items-center gap-1.5">
-                            <PaymentIcon method={sale.payment_method} />
-                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                              {sale.payment_method === 'cash' ? 'เงินสด' :
-                               sale.payment_method === 'transfer' ? 'โอน' :
-                               sale.payment_method === 'qr' ? 'QR' :
-                               sale.payment_method === 'card' ? 'บัตร' : 'ผสม'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="p-3.5">
-                          <StatusBadge status={sale.status} note={sale.note} />
-                        </td>
-                        <td className="p-3.5" onClick={e => e.stopPropagation()}>
-                          <button
-                            onClick={() => handleUndoServed(sale.id)}
-                            disabled={updatingId === sale.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                            style={{
-                              background: 'var(--bg-secondary)',
-                              color: 'var(--text-secondary)',
-                              border: '1px solid var(--border-color)',
-                              cursor: updatingId === sale.id ? 'not-allowed' : 'pointer'
-                            }}
-                          >
-                            {updatingId === sale.id ? (
-                              <Loader2 size={12} className="animate-spin" />
-                            ) : (
-                              <Undo size={12} />
-                            )}
-                            ดึงกลับคิว
-                          </button>
-                        </td>
-                      </tr>
-
-                      {/* Expanded Sub-Table */}
-                      {isExpanded && (
-                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                          <td colSpan={9} style={{ padding: '0 20px 20px 60px' }}>
-                            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                  <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
-                                    {['สินค้า', 'SKU', 'ราคา/ชิ้น', 'จำนวน', 'ส่วนลด', 'รวม'].map(h => (
-                                      <th key={h} className="text-left p-2.5 text-xs font-semibold"
-                                        style={{ color: 'var(--text-muted)' }}>{h}</th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {items.map(item => (
-                                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                                      <td className="p-2.5 text-sm text-white">{item.product_name}</td>
-                                      <td className="p-2.5 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{item.sku || '—'}</td>
-                                      <td className="p-2.5 text-sm" style={{ color: 'var(--text-secondary)' }}>{formatCurrency(item.unit_price)}</td>
-                                      <td className="p-2.5 text-sm text-white">{item.quantity}</td>
-                                      <td className="p-2.5 text-sm" style={{ color: item.discount_amount > 0 ? '#ef4444' : 'var(--text-muted)' }}>
-                                        {item.discount_amount > 0 ? `-${formatCurrency(item.discount_amount)}` : '—'}
-                                      </td>
-                                      <td className="p-2.5 text-sm font-semibold" style={{ color: 'var(--gold-400)' }}>
-                                        {formatCurrency(item.line_total)}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            {/* Summary Totals */}
-                            <div className="flex justify-between items-start mt-4">
-                              <div style={{ maxWidth: '50%' }}>
-                                {sale.note && (
-                                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                                    📝 โน้ตลูกค้า: {sale.note.split(' | SLIP:')[0]}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-xs space-y-1.5" style={{ minWidth: '180px' }}>
-                                <div className="flex justify-between gap-4">
-                                  <span style={{ color: 'var(--text-muted)' }}>ก่อนหักส่วนลด</span>
-                                  <span style={{ color: 'var(--text-secondary)' }}>{formatCurrency(sale.subtotal)}</span>
-                                </div>
-                                {sale.discount_amount > 0 && (
-                                  <div className="flex justify-between gap-4">
-                                    <span style={{ color: 'var(--text-muted)' }}>ส่วนลด</span>
-                                    <span style={{ color: '#ef4444' }}>-{formatCurrency(sale.discount_amount)}</span>
-                                  </div>
-                                )}
-                                {sale.tax_amount > 0 && (
-                                  <div className="flex justify-between gap-4">
-                                    <span style={{ color: 'var(--text-muted)' }}>ภาษี</span>
-                                    <span style={{ color: 'var(--text-secondary)' }}>{formatCurrency(sale.tax_amount)}</span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between gap-4 font-bold pt-1.5" style={{ borderTop: '1px solid var(--border-color)' }}>
-                                  <span className="text-white">ยอดสุทธิ</span>
-                                  <span style={{ color: 'var(--gold-400)' }}>{formatCurrency(sale.total_amount)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        /* REPORT TAB: Inline Shop Report Form (iOS Glassmorphism layout) */
-        <div style={{
-          maxWidth: '560px',
-          margin: '0 auto',
-          background: 'rgba(26, 31, 46, 0.45)',
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
-          borderRadius: '24px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-          overflow: 'hidden',
-          animation: 'fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both'
-        }}>
-          {/* Top gradient bar */}
-          <div style={{ height: 4, background: 'linear-gradient(90deg, #0ea5e9, #38bdf8, #7dd3fc)' }} />
-
-          {/* Form Header */}
-          <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'linear-gradient(135deg, #0c4a6e, #38bdf8)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <ClipboardList size={18} color="white" />
+              ))}
             </div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'white' }}>รายงานความเรียบร้อยของร้าน</h2>
-              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>ส่งรายงานเพื่อบันทึกประวัติความเรียบร้อยเข้าสู่ระบบผู้จัดการ</p>
-            </div>
-          </div>
+          </>)
 
-          {/* Form Body */}
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {reportSuccess ? (
-              <div style={{ textAlign: 'center', padding: '30px 10px', animation: 'reportFadeIn 0.3s ease' }}>
-                <div style={{
-                  width: 60, height: 60, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 16px',
-                  boxShadow: '0 0 28px rgba(56,189,248,0.35)',
-                }}>
-                  <CheckCircle2 size={28} color="white" />
-                </div>
-                <h3 style={{ color: 'white', fontWeight: 800, fontSize: '17px', margin: '0 0 6px' }}>ส่งรายงานสำเร็จ!</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>ระบบกำลังพากลับไปหน้าหลักออเดอร์...</p>
+        /* ── REPORT TAB ── */
+        ) : (
+          <div style={{ maxWidth: 560, margin: '0 auto', background: 'rgba(18,22,32,0.9)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden', animation: 'fadeSlide 0.3s ease' }}>
+            <div style={{ height: 4, background: 'linear-gradient(90deg,#0ea5e9,#38bdf8)' }} />
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(14,165,233,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8' }}>
+                <ClipboardList size={18} />
               </div>
-            ) : (
-              <>
-                {/* Title */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: 8 }}>
-                    หัวข้อรายงาน *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="เช่น เปิดร้านเรียบร้อย / เคลียร์ขยะและทำความสะอาดแล้ว..."
-                    value={reportTitle}
-                    onChange={e => setReportTitle(e.target.value)}
-                    style={{ width: '100%', padding: '13px 16px', borderRadius: '14px', border: '1.5px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: 'white', fontSize: '14px', fontWeight: 500, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s' }}
-                    onFocus={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.5)'}
-                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                  />
+              <div>
+                <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'white' }}>รายงานความเรียบร้อย</h2>
+                <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>ส่งรายงานไปยังผู้จัดการร้าน</p>
+              </div>
+            </div>
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {reportSuccess ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: 14 }}>
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(56,189,248,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38bdf8' }}>
+                    <CheckCircle2 size={30} />
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <h3 style={{ margin: '0 0 6px', color: 'white', fontSize: 16, fontWeight: 800 }}>ส่งรายงานสำเร็จ! ✅</h3>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: 13 }}>กำลังกลับไปหน้าคิว...</p>
+                  </div>
                 </div>
-
-                {/* Note */}
+              ) : (<>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: 8 }}>
-                    รายละเอียดรายงาน
-                  </label>
-                  <textarea
-                    placeholder="ใส่โน้ตหรือรายละเอียดเพิ่มเติมเกี่ยวกับความเรียบร้อยของร้าน (ถ้ามี)..."
-                    value={reportNote}
-                    onChange={e => setReportNote(e.target.value)}
-                    rows={4}
-                    style={{ width: '100%', padding: '13px 16px', borderRadius: '14px', border: '1.5px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: 'white', fontSize: '13px', fontFamily: 'inherit', resize: 'none', outline: 'none', boxSizing: 'border-box', lineHeight: 1.6, transition: 'border-color 0.2s' }}
-                    onFocus={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.5)'}
-                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                  />
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 6 }}>หัวข้อรายงาน *</label>
+                  <input value={reportTitle} onChange={e => setReportTitle(e.target.value)} placeholder="เช่น เปิดร้านเรียบร้อย..." style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-
-                {/* Image Upload & Live Viewfinder */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)', marginBottom: 10 }}>
-                    รูปภาพประกอบ ({reportImages.length}/5)
-                  </label>
-
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 6 }}>รายละเอียดเพิ่มเติม</label>
+                  <textarea value={reportNote} onChange={e => setReportNote(e.target.value)} rows={3} placeholder="รายละเอียดเพิ่มเติม..." style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 10 }}>📸 แนบภาพ ({reportImages.length}/5)</label>
                   {isCameraActive ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                      <div style={{
-                        position: 'relative', width: '100%', aspectRatio: '4/3',
-                        background: '#000', borderRadius: '14px', overflow: 'hidden',
-                        border: '1px solid rgba(255,255,255,0.1)'
-                      }}>
-                        <video
-                          ref={videoRef}
-                          playsInline
-                          muted
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <div style={{
-                          position: 'absolute', inset: '16px',
-                          border: '1px dashed rgba(255,255,255,0.15)',
-                          pointerEvents: 'none', borderRadius: '8px'
-                        }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', background: '#000', borderRadius: 14, overflow: 'hidden' }}>
+                        <video ref={videoRef} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <button
-                          type="button"
-                          onClick={capturePhoto}
-                          style={{
-                            padding: '10px 20px', borderRadius: '12px', border: 'none',
-                            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white',
-                            fontSize: 12, fontWeight: 700, cursor: 'pointer'
-                          }}
-                        >
-                          กดถ่ายภาพ 📸
-                        </button>
-                        <button
-                          type="button"
-                          onClick={stopCamera}
-                          style={{
-                            padding: '10px 20px', borderRadius: '12px',
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                            color: '#9aa3b2', fontSize: 12, fontWeight: 700, cursor: 'pointer'
-                          }}
-                        >
-                          ยกเลิก
-                        </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={capturePhoto} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#0ea5e9,#0284c7)', color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>📸 ถ่าย</button>
+                        <button onClick={stopCamera} style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#9ca3af', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>ยกเลิก</button>
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(82px, 1fr))', gap: 12 }}>
-                      {reportImages.map((img, idx) => (
-                        <div key={idx} style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', aspectRatio: '1', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <img src={img} alt={`rpt-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          <button
-                            type="button"
-                            onClick={() => setReportImages(prev => prev.filter((_, i) => i !== idx))}
-                            style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-                          >×</button>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {reportImages.map((img, i) => (
+                        <div key={i} style={{ position: 'relative', width: 72, height: 72, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <button onClick={() => setReportImages(p => p.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: 2, right: 2, width: 20, height: 20, background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={11} /></button>
                         </div>
                       ))}
-                      
-                      {/* Open camera button */}
-                      {reportImages.length < 5 && (
-                        <button
-                          type="button"
-                          onClick={startCamera}
-                          style={{
-                            aspectRatio: '1', borderRadius: '14px',
-                            border: '2px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.03)',
-                            color: '#38bdf8', display: 'flex', flexDirection: 'column',
-                            alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = '#0ea5e9'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.4)'}
-                        >
-                          <Camera size={20} />
-                          <span style={{ fontSize: '10px', fontWeight: 700 }}>เปิดกล้อง 📷</span>
+                      {reportImages.length < 5 && (<>
+                        <button onClick={startCamera} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.04)', color: '#38bdf8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' }}>
+                          <Camera size={20} /><span style={{ fontSize: 9, fontWeight: 700 }}>กล้อง</span>
                         </button>
-                      )}
-
-                      {/* Upload file button */}
-                      {reportImages.length < 5 && (
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          style={{
-                            aspectRatio: '1', borderRadius: '14px',
-                            border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)',
-                            color: 'var(--text-muted)', display: 'flex', flexDirection: 'column',
-                            alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}
-                        >
-                          <ImageIcon size={20} />
-                          <span style={{ fontSize: '10px', fontWeight: 700 }}>เลือกรูป</span>
+                        <button onClick={() => fileInputRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.02)', color: '#6b7280', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' }}>
+                          <ImageIcon size={20} /><span style={{ fontSize: 9, fontWeight: 700 }}>อัปโหลด</span>
                         </button>
-                      )}
+                      </>)}
+                      <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={e => {
+                        Array.from(e.target.files || []).slice(0, 5 - reportImages.length).forEach(f => {
+                          const r = new FileReader(); r.onload = ev => { if (ev.target?.result) setReportImages(p => [...p, ev.target!.result as string]) }; r.readAsDataURL(f)
+                        }); if (fileInputRef.current) fileInputRef.current.value = ''
+                      }} style={{ display: 'none' }} />
                     </div>
                   )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    style={{ display: 'none' }}
-                  />
                 </div>
-
-                {/* Action button */}
-                <div style={{ marginTop: 8 }}>
-                  <button
-                    onClick={handleSubmitReport}
-                    disabled={!reportTitle.trim() || reportLoading}
-                    style={{
-                      width: '100%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      padding: '14px 20px', borderRadius: '16px', border: 'none',
-                      background: reportTitle.trim() && !reportLoading ? 'linear-gradient(135deg, #0c4a6e, #0ea5e9)' : 'rgba(255,255,255,0.03)',
-                      color: reportTitle.trim() && !reportLoading ? 'white' : 'var(--text-muted)',
-                      fontSize: '14px', fontWeight: 800,
-                      cursor: reportTitle.trim() && !reportLoading ? 'pointer' : 'not-allowed',
-                      boxShadow: reportTitle.trim() && !reportLoading ? '0 6px 20px rgba(14,165,233,0.35)' : 'none',
-                      transition: 'all 0.25s ease',
-                    }}
-                  >
-                    {reportLoading ? (
-                      <><Loader2 size={16} style={{ animation: 'reportSpin 1s linear infinite' }} /> กำลังส่งข้อมูล...</>
-                    ) : (
-                      <><Send size={15} /> ส่งรายงานความเรียบร้อย</>
-                    )}
-                  </button>
-                </div>
-              </>
-            )}
+                <button onClick={handleSubmitReport} disabled={!reportTitle.trim() || reportLoading} style={{
+                  width: '100%', padding: '14px', borderRadius: 14, border: 'none',
+                  background: reportTitle.trim() && !reportLoading ? 'linear-gradient(135deg,#0c4a6e,#0ea5e9)' : 'rgba(255,255,255,0.04)',
+                  color: reportTitle.trim() && !reportLoading ? 'white' : '#6b7280',
+                  fontSize: 14, fontWeight: 800, cursor: reportTitle.trim() && !reportLoading ? 'pointer' : 'not-allowed',
+                  boxShadow: reportTitle.trim() && !reportLoading ? '0 6px 20px rgba(14,165,233,0.3)' : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                }}>
+                  {reportLoading ? <><Loader2 size={15} className="animate-spin" /> กำลังส่ง...</> : <><Send size={14} /> ส่งรายงาน</>}
+                </button>
+              </>)}
+            </div>
           </div>
-        </div>
-      )}
-      <style>{`
-        @keyframes reportFadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes reportSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-      `}</style>
+        )}
+      </main>
+
+      {/* ── Bottom Nav (Mobile only) ── */}
+      <div className="cashier-bottom-nav" style={{
+        position: 'sticky', bottom: 0, zIndex: 30, gap: 0,
+        background: 'rgba(10,12,18,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(20px)', flexShrink: 0,
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}>
+        {([
+          ['queue',   '📥', 'คิว',       queueCount > 0 ? String(queueCount) : ''],
+          ['history', '✅', 'ประวัติ',   ''],
+          ['report',  '📋', 'รายงาน',   ''],
+        ] as const).map(([tab, emoji, label, badge]) => (
+          <button key={tab} onClick={() => handleTabChange(tab)} style={{
+            flex: 1, padding: '10px 4px 12px', border: 'none',
+            background: activeTab === tab ? 'rgba(56,189,248,0.06)' : 'transparent',
+            color: activeTab === tab ? '#38bdf8' : '#6b7280',
+            fontSize: 11, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            borderTop: `2px solid ${activeTab === tab ? '#38bdf8' : 'transparent'}`,
+            transition: 'all 150ms', position: 'relative'
+          }}>
+            <span style={{ fontSize: 20 }}>{emoji}</span>
+            <span>{label}</span>
+            {badge && (
+              <span style={{
+                position: 'absolute', top: 6, right: '25%',
+                minWidth: 16, height: 16, borderRadius: 999,
+                background: '#ef4444', color: 'white',
+                fontSize: 9, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
+              }}>{badge}</span>
+            )}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
