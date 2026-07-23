@@ -50,11 +50,12 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
   }
 
   const canAccessAdmin = profile?.role === 'super_admin' || profile?.role === 'manager'
+  const adminHref = profile?.role === 'super_admin' ? '/admin' : '/manager'
 
   const navLinks = [
     { href: '/pos', icon: ShoppingCart, label: 'ขายสินค้า' },
     { href: '/pos/history', icon: History, label: 'ประวัติ' },
-    ...(mounted && canAccessAdmin ? [{ href: '/admin', icon: LayoutDashboard, label: 'หลังบ้าน' }] : []),
+    ...(mounted && canAccessAdmin ? [{ href: adminHref, icon: LayoutDashboard, label: 'หลังบ้าน' }] : []),
   ]
 
   const isActive = (href: string) => {
@@ -228,7 +229,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           { href: '/pos', icon: ShoppingCart, label: 'ขาย' },
           { href: '/pos/history', icon: History, label: 'ประวัติ' },
           { href: '/cashier', icon: Package, label: 'เตรียมของ' },
-          ...(mounted && canAccessAdmin ? [{ href: '/manager', icon: LayoutDashboard, label: 'หลังบ้าน' }] : []),
+          ...(mounted && canAccessAdmin ? [{ href: adminHref, icon: LayoutDashboard, label: 'หลังบ้าน' }] : []),
         ].map(tab => {
           const Icon = tab.icon
           const active = isActive(tab.href)
