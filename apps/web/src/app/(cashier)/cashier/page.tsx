@@ -7,7 +7,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   Clock, CheckCircle2, Loader2, RefreshCw, Wine, ChevronDown,
   Check, Undo, Search, Banknote, CreditCard, QrCode,
-  X, Camera, Send, ClipboardList, Image as ImageIcon, AlertCircle
+  X, Camera, Send, ClipboardList, Image as ImageIcon, AlertCircle, Bell, UtensilsCrossed
 } from 'lucide-react'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,6 +38,72 @@ const PayIcon = ({ m }: { m: string }) => {
   return <span style={{color:'#9ca3af'}}>{icons[m]||icons.cash}</span>
 }
 
+// ─── Sound notification ──────────────────────────────────────────────────────────────
+function playKitchenReadySound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const now = ctx.currentTime
+    // Cheerful ding-dong: C5 -> E5 -> G5
+    const notes: [number, number][] = [[523.25, 0], [659.25, 0.18], [783.99, 0.36]]
+    notes.forEach(([freq, t]: [number, number]) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, now + t)
+      gain.gain.setValueAtTime(0.5, now + t)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.5)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(now + t); osc.stop(now + t + 0.55)
+    })
+    setTimeout(() => ctx.close(), 1200)
+  } catch (_) {}
+}
+
+// ─── Toast Component ───────────────────────────────────────────────────────────────
+interface ToastMessage { id: string; text: string; tableNo?: string | null }
+function KitchenReadyToast({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void }) {
+  if (toasts.length === 0) return null
+  return (
+    <div style={{
+      position: 'fixed', top: 70, right: 12, zIndex: 9999,
+      display: 'flex', flexDirection: 'column', gap: 8,
+      maxWidth: 320, pointerEvents: 'none'
+    }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          background: 'linear-gradient(135deg, #064e3b, #065f46)',
+          border: '1.5px solid rgba(52,211,153,0.5)',
+          borderRadius: 14, padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          boxShadow: '0 8px 32px rgba(16,185,129,0.35)',
+          animation: 'toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+          pointerEvents: 'all'
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+            background: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18
+          }}>🍳</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#ecfdf5' }}>{t.text}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 11, color: 'rgba(167,243,208,0.8)' }}>แคชเชียร์: กรุณาเสิร์ฟด่วน!</p>
+          </div>
+          <button
+            onClick={() => onDismiss(t.id)}
+            style={{ width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.1)', color: '#6ee7b7', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}
+          ><X size={11} /></button>
+        </div>
+      ))}
+      <style>{`
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateX(60px) scale(0.9); }
+          to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function CashierQueuePage() {
   const supabase = createClient()
@@ -49,6 +115,9 @@ export default function CashierQueuePage() {
   const [errorMsg, setErrorMsg] = useState<string|null>(null)
   const [expandedId, setExpandedId] = useState<string|null>(null)
   const [totalQueueCount, setTotalQueueCount] = useState(0)
+  const [readyCount, setReadyCount] = useState(0)
+  const [toasts, setToasts] = useState<ToastMessage[]>([])
+  const prevKitchenStatusRef = useRef<Record<string, string>>({})
 
   // History filters
   const [search, setSearch] = useState(''); const [dateFrom, setDateFrom] = useState(''); const [dateTo, setDateTo] = useState('')
@@ -113,6 +182,51 @@ export default function CashierQueuePage() {
       setTotalQueueCount(count)
     } catch{}
   },[supabase])
+  // ─── Realtime subscription for kitchen ready notification ───
+  useEffect(() => {
+    const channel = supabase
+      .channel('cashier-kitchen-ready')
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'sales'
+      }, (payload: any) => {
+        // Only care about paid/pending sales
+        if (!['paid', 'pending'].includes(payload.new?.status)) return
+        const newNote: string = payload.new?.note || ''
+        const oldNote: string = payload.old?.note || ''
+        const newParsed = parseNote(newNote)
+        const oldParsed = parseNote(oldNote)
+        // Detect kitchen status changed to ready
+        if (oldParsed.kitchen !== 'ready' && newParsed.kitchen === 'ready' && !newParsed.isServed) {
+          const tableNo = payload.new?.table_no
+          const receiptNo = payload.new?.receipt_no || ''
+          const toastText = tableNo
+            ? `🍳 โต๊ะ ${tableNo} อาหารพร้อมเสิร์ฟแล้ว!`
+            : `🍳 ออเดอร์ #${receiptNo.slice(-6)} พร้อมเสิร์ฟ!`
+          const newToast: ToastMessage = { id: `${payload.new.id}-${Date.now()}`, text: toastText, tableNo }
+          setToasts(prev => [...prev.slice(-3), newToast])
+          playKitchenReadySound()
+          // Auto-dismiss after 8 seconds
+          setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newToast.id)), 8000)
+          // Reload queue to reflect new state
+          loadData('queue', false)
+        }
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase])
+
+  // Track ready orders count from current sales
+  useEffect(() => {
+    const count = sales.filter(s => {
+      const { kitchen, bar, isServed } = parseNote(s.note)
+      if (isServed) return false
+      const hasK = s.sale_items?.some((i: any) => classifyCategory(i.products?.categories?.name) === 'kitchen')
+      const hasB = s.sale_items?.some((i: any) => classifyCategory(i.products?.categories?.name) === 'bar')
+      return (!hasK || kitchen === 'ready') && (!hasB || bar === 'ready')
+    }).length
+    setReadyCount(count)
+  }, [sales])
 
   useEffect(() => {
     if (tab !== 'report') loadData(tab, true)
@@ -177,6 +291,8 @@ export default function CashierQueuePage() {
 
   return (
     <>
+      {/* Kitchen Ready Toasts */}
+      <KitchenReadyToast toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
       {/* ── Global Styles ── */}
       <style>{`
         html, body { height: 100%; }
@@ -228,8 +344,20 @@ export default function CashierQueuePage() {
             </div>
           </div>
 
-          {/* Right: desktop tabs + refresh */}
+          {/* Right: desktop tabs + refresh + ready badge */}
           <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+            {/* Kitchen ready badge */}
+            {readyCount > 0 && (
+              <div style={{
+                display:'flex', alignItems:'center', gap:5,
+                background:'rgba(16,185,129,0.12)', border:'1.5px solid rgba(16,185,129,0.4)',
+                borderRadius:999, padding:'4px 10px 4px 7px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }}>
+                <span style={{fontSize:14}}>🍳</span>
+                <span style={{fontSize:11,fontWeight:800,color:'#34d399'}}>{readyCount} พร้อมเสิร์ฟ</span>
+              </div>
+            )}
             {refreshing && <RefreshCw size={13} className="animate-spin" style={{color:'#4b5563'}}/>}
             <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.04)',borderRadius:10,padding:3}}>
               {NAV_ITEMS.map(n=>(
@@ -300,6 +428,14 @@ export default function CashierQueuePage() {
                     }}>
                       {/* Status stripe */}
                       <div style={{height:3,background:ready?'linear-gradient(90deg,#16a34a,#4ade80)':urgent?'linear-gradient(90deg,#dc2626,#f97316)':'rgba(255,255,255,0.04)'}}/>
+                      {/* Pulsing top stripe for ready orders */}
+                      {ready && (
+                        <div style={{
+                          height: 3, marginTop: -3,
+                          background: 'linear-gradient(90deg,#16a34a,#4ade80)',
+                          animation: 'pulse 1.2s ease-in-out infinite'
+                        }}/>
+                      )}
 
                       {/* Card Header */}
                       <div style={{padding:'14px 14px 10px',background:ready?'rgba(34,197,94,0.03)':urgent?'rgba(239,68,68,0.03)':'transparent'}}>

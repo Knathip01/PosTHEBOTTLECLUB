@@ -8,11 +8,13 @@ import { formatCurrency } from '@/lib/utils'
 import {
   Search, ShoppingBag, Plus, Minus, Trash2,
   X, ArrowLeft, Loader2, CheckCircle2, ChevronRight,
-  Upload, Star, Key, Sparkles, Package, Shield, QrCode
+  Upload, Star, Key, Sparkles, Package, Shield, QrCode,
+  UtensilsCrossed, Wine
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 
 type Step = 'menu' | 'cart' | 'checkout' | 'success' | 'member_only'
+type MenuTab = 'food' | 'drinks'
 
 interface CartItem { product: Product; quantity: number }
 interface OrderResult {
@@ -40,6 +42,14 @@ function generatePromptPayPayload(target: string, amount: number) {
   }
   crc = crc & 0xFFFF
   return payload + ('0000' + crc.toString(16).toUpperCase()).slice(-4)
+}
+
+// ── Category classifier ──
+function isFoodCategory(catName?: string): boolean {
+  if (!catName) return false
+  const n = catName.toLowerCase()
+  const drinkKeywords = ['wine', 'beer', 'drink', 'beverage', 'bar', 'ไวน์', 'เบียร์', 'เครื่องดื่ม', 'rosé', 'sparkling', 'champagne', 'cocktail', 'mocktail', 'juice', 'soft drink', 'น้ำ']
+  return !drinkKeywords.some(k => n.includes(k))
 }
 
 export default function CustomerMenuPage() {
@@ -129,7 +139,40 @@ function CustomerMenuContent() {
       border-radius: 6px;
       border: 1px solid rgba(255,255,255,0.04);
     }
+    .menu-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+    .menu-tab-btn.active-food {
+      background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(249,115,22,0.35);
+    }
+    .menu-tab-btn.active-drinks {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.35);
+    }
+    .menu-tab-btn.inactive {
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.4);
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: slideIn 0.25s ease both; }
   `
 
   const [products, setProducts] = useState<Product[]>([])
@@ -140,6 +183,7 @@ function CustomerMenuContent() {
   const [promptPayName, setPromptPayName] = useState('บัญชีร้านค้า')
 
   const [step, setStep] = useState<Step>('menu')
+  const [menuTab, setMenuTab] = useState<MenuTab>('food')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [cart, setCart] = useState<CartItem[]>([])
@@ -186,11 +230,24 @@ function CustomerMenuContent() {
     setLoading(false)
   }
 
-  const filteredProducts = products.filter(p => {
+  // ── Derived: separate food vs drinks ──
+  const foodCategories = categories.filter(c => isFoodCategory(c.name))
+  const drinkCategories = categories.filter(c => !isFoodCategory(c.name))
+  const currentTabCategories = menuTab === 'food' ? foodCategories : drinkCategories
+
+  const activeProducts = products.filter(p => {
+    const catName = (p.categories as any)?.name || ''
+    const isFood = isFoodCategory(catName)
+    if (menuTab === 'food' && !isFood) return false
+    if (menuTab === 'drinks' && isFood) return false
     const matchCat = selectedCategory === 'all' || p.category_id === selectedCategory
     const q = searchQuery.toLowerCase()
-    return matchCat && (!q || p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q) || p.grape?.toLowerCase().includes(q))
+    return matchCat && (!q || p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q) || p.grape?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q))
   })
+
+  // Counts for tab badges
+  const foodCount = products.filter(p => isFoodCategory((p.categories as any)?.name || '')).length
+  const drinksCount = products.filter(p => !isFoodCategory((p.categories as any)?.name || '')).length
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -208,6 +265,12 @@ function CustomerMenuContent() {
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0)
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0)
   const getQty = (id: string) => cart.find(i => i.product.id === id)?.quantity || 0
+
+  const handleTabSwitch = (tab: MenuTab) => {
+    setMenuTab(tab)
+    setSelectedCategory('all')
+    setSearchQuery('')
+  }
 
   const searchMember = async () => {
     if (!memberPhone.trim()) return
@@ -237,12 +300,18 @@ function CustomerMenuContent() {
       const receiptNo = `WC${Date.now().toString().slice(-10)}`
       const totalAmount = cartTotal
       const pointsEarned = Math.floor(totalAmount / 100)
+
+      // Build note with kitchen classification
+      const hasFoodItems = cart.some(item => isFoodCategory((item.product.categories as any)?.name || ''))
+      const baseNote = tableParam ? `สั่งจาก QR Code โต๊ะ ${tableParam}` : 'สั่งจาก QR Code'
+      const kitchenNote = hasFoodItems ? `${baseNote} [KITCHEN:pending]` : baseNote
+
       const { data: sale, error: saleErr } = await supabase.from('sales').insert({
         receipt_no: receiptNo, customer_id: customer?.id || null, cashier_id: null,
         status: 'pending', subtotal: cartTotal, discount_amount: 0, tax_amount: 0,
         service_charge: 0, total_amount: totalAmount, payment_method: 'qr',
         points_earned: pointsEarned,
-        note: tableParam ? `สั่งจาก QR Code โต๊ะ ${tableParam}` : 'สั่งจาก QR Code',
+        note: kitchenNote,
         table_no: tableParam || null
       }).select().single()
       if (saleErr) throw new Error(saleErr.message)
@@ -300,6 +369,7 @@ function CustomerMenuContent() {
   // SUCCESS SCREEN
   if (step === 'success' && orderResult) {
     const qrPayload = generatePromptPayPayload(promptPayId, orderResult.total)
+    const hasFoodInOrder = cart.some(item => isFoodCategory((item.product.categories as any)?.name || ''))
     return (
       <div className="menu-gradient-bg" style={{ minHeight: '100dvh', overflowY: 'auto' }}>
         <style>{customStyles}</style>
@@ -314,7 +384,7 @@ function CustomerMenuContent() {
                 color: '#93c5fd', padding: '6px 18px', borderRadius: 999, fontSize: 13,
                 fontWeight: 800, marginBottom: 20
               }}>
-                🍾 โต๊ะ {tableParam}
+                🍽️ โต๊ะ {tableParam}
               </div>
             )}
             <div style={{
@@ -330,6 +400,21 @@ function CustomerMenuContent() {
               เลขที่คำสั่งซื้อ: <span style={{ color: '#fbbf24', fontWeight: 700 }}>#{orderResult.receipt_no}</span>
             </p>
           </div>
+
+          {/* Kitchen notice if food items */}
+          {hasFoodInOrder && (
+            <div className="glass-menu-card" style={{ padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22
+              }}>🍳</div>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, color: 'white', fontSize: 14 }}>ส่งออเดอร์ไปครัวแล้ว!</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>ห้องครัวกำลังรับรายการ — จะเสิร์ฟถึงโต๊ะโดยเร็ว</p>
+              </div>
+            </div>
+          )}
 
           {/* PromptPay QR */}
           <div className="glass-menu-card" style={{ padding: '24px 20px', marginBottom: 16, textAlign: 'center' }}>
@@ -427,15 +512,21 @@ function CustomerMenuContent() {
           <div className="glass-menu-card" style={{ padding: 20, marginBottom: 16 }}>
             <p style={{ margin: '0 0 14px', fontWeight: 700, color: 'white', fontSize: 14 }}>รายการสั่ง ({cartCount} รายการ)</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {cart.map(item => (
-                <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 14, color: 'white', fontWeight: 600 }}>{item.product.name}</p>
-                    <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{formatCurrency(item.product.price)} × {item.quantity}</p>
+              {cart.map(item => {
+                const isFood = isFoodCategory((item.product.categories as any)?.name || '')
+                return (
+                  <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>{isFood ? '🍽️' : '🍷'}</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 14, color: 'white', fontWeight: 600 }}>{item.product.name}</p>
+                        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)' }}>{formatCurrency(item.product.price)} × {item.quantity}</p>
+                      </div>
+                    </div>
+                    <span style={{ fontWeight: 700, color: 'var(--gold-400)', fontSize: 15, flexShrink: 0 }}>{formatCurrency(item.product.price * item.quantity)}</span>
                   </div>
-                  <span style={{ fontWeight: 700, color: 'var(--gold-400)', fontSize: 15, flexShrink: 0 }}>{formatCurrency(item.product.price * item.quantity)}</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <span style={{ fontWeight: 700, color: 'white', fontSize: 15 }}>ยอดรวมสุทธิ</span>
@@ -511,48 +602,52 @@ function CustomerMenuContent() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {cart.map((item, idx) => (
-                <div key={item.product.id} className="glass-menu-card animate-in" style={{
-                  animationDelay: `${idx * 40}ms`, padding: '14px 16px'
-                }}>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    {/* Thumbnail */}
-                    <div style={{
-                      width: 56, height: 56, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
-                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                      {item.product.image_url
-                        ? <img src={item.product.image_url} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: 24 }}>🍾</span>}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, color: 'white', fontWeight: 600, fontSize: 14 }}>{item.product.name}</p>
-                      <p style={{ margin: '2px 0 0', color: 'var(--gold-400)', fontWeight: 700, fontSize: 14 }}>{formatCurrency(item.product.price)}</p>
-                    </div>
-                    {/* Qty Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      <button onClick={() => updateQty(item.product.id, item.quantity - 1)} style={{
-                        width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: item.quantity === 1 ? '#f87171' : 'white', cursor: 'pointer'
+              {cart.map((item, idx) => {
+                const isFood = isFoodCategory((item.product.categories as any)?.name || '')
+                return (
+                  <div key={item.product.id} className="glass-menu-card animate-in" style={{
+                    animationDelay: `${idx * 40}ms`, padding: '14px 16px'
+                  }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      {/* Thumbnail */}
+                      <div style={{
+                        width: 56, height: 56, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
+                        background: isFood ? 'rgba(249,115,22,0.08)' : 'rgba(168,85,247,0.08)',
+                        border: `1px solid ${isFood ? 'rgba(249,115,22,0.2)' : 'rgba(168,85,247,0.2)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}>
-                        {item.quantity === 1 ? <Trash2 size={13} /> : <Minus size={13} />}
-                      </button>
-                      <span style={{ color: 'white', fontWeight: 800, minWidth: 22, textAlign: 'center', fontSize: 16 }}>{item.quantity}</span>
-                      <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="pos-btn-gradient-blue" style={{
-                        width: 32, height: 32, borderRadius: 9, border: 'none',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                      }}>
-                        <Plus size={13} />
-                      </button>
+                        {item.product.image_url
+                          ? <img src={item.product.image_url} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span style={{ fontSize: 24 }}>{isFood ? '🍽️' : '🍷'}</span>}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, color: 'white', fontWeight: 600, fontSize: 14 }}>{item.product.name}</p>
+                        <p style={{ margin: '2px 0 0', color: 'var(--gold-400)', fontWeight: 700, fontSize: 14 }}>{formatCurrency(item.product.price)}</p>
+                      </div>
+                      {/* Qty Controls */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                        <button onClick={() => updateQty(item.product.id, item.quantity - 1)} style={{
+                          width: 32, height: 32, borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: item.quantity === 1 ? '#f87171' : 'white', cursor: 'pointer'
+                        }}>
+                          {item.quantity === 1 ? <Trash2 size={13} /> : <Minus size={13} />}
+                        </button>
+                        <span style={{ color: 'white', fontWeight: 800, minWidth: 22, textAlign: 'center', fontSize: 16 }}>{item.quantity}</span>
+                        <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="pos-btn-gradient-blue" style={{
+                          width: 32, height: 32, borderRadius: 9, border: 'none',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                        }}>
+                          <Plus size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 10, marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ color: 'var(--gold-400)', fontWeight: 700, fontSize: 15 }}>{formatCurrency(item.product.price * item.quantity)}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 10, marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span style={{ color: 'var(--gold-400)', fontWeight: 700, fontSize: 15 }}>{formatCurrency(item.product.price * item.quantity)}</span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -700,6 +795,20 @@ function CustomerMenuContent() {
             position: 'absolute', inset: 0,
             background: 'linear-gradient(to top, rgba(7,8,10,0.85) 0%, rgba(7,8,10,0.2) 60%, transparent 100%)'
           }} />
+          {/* Hero text overlay */}
+          <div style={{ position: 'absolute', bottom: 12, left: 16, right: 16 }}>
+            {tableParam && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(30,64,175,0.85)', backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(59,130,246,0.4)',
+                color: 'white', padding: '5px 14px', borderRadius: 999,
+                fontSize: 13, fontWeight: 800
+              }}>
+                🍽️ โต๊ะ {tableParam}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -709,35 +818,66 @@ function CustomerMenuContent() {
         background: NAV_BG, borderBottom: '1px solid rgba(255,255,255,0.07)',
         backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)'
       }}>
-        {/* Logo and table info */}
+        {/* Logo and shop info */}
         <div style={{
           background: 'linear-gradient(180deg, rgba(30,64,175,0.18) 0%, transparent 100%)',
-          padding: '16px 16px 12px', textAlign: 'center'
+          padding: '12px 16px 8px', textAlign: 'center'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 4 }}>
-            <img src="/logo.jpg" alt="Logo" style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'cover' }} />
-            <span style={{ fontSize: 16, fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>{shopName}</span>
-            {tableParam && (
-              <span className="pos-btn-gradient-blue" style={{
-                padding: '3px 12px', borderRadius: 999, fontSize: 12, fontWeight: 800
-              }}>
-                โต๊ะ {tableParam}
-              </span>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 2 }}>
+            <img src="/logo.jpg" alt="Logo" style={{ width: 28, height: 28, borderRadius: 7, objectFit: 'cover' }} />
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>{shopName}</span>
           </div>
           <p style={{ margin: 0, fontSize: 11, color: 'var(--text-secondary)' }}>
-            {tableParam ? `เลือกรายการไวน์และอาหารเสิร์ฟตรงถึง โต๊ะ ${tableParam}` : 'สั่งสินค้าพรีเมียมง่ายๆ จากสมาร์ตโฟนของคุณ'}
+            {tableParam ? `สั่งอาหารและเครื่องดื่มตรงถึงโต๊ะ ${tableParam}` : 'สั่งสินค้าพรีเมียมง่ายๆ จากสมาร์ตโฟนของคุณ'}
           </p>
         </div>
 
+        {/* ── Food / Drinks Tab Switch ── */}
+        <div style={{ padding: '8px 14px 0', maxWidth: 480, margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 4 }}>
+            <button
+              className={`menu-tab-btn ${menuTab === 'food' ? 'active-food' : 'inactive'}`}
+              onClick={() => handleTabSwitch('food')}
+              id="menu-tab-food"
+            >
+              <UtensilsCrossed size={15} />
+              อาหาร
+              {foodCount > 0 && (
+                <span style={{
+                  background: menuTab === 'food' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                  color: menuTab === 'food' ? 'white' : 'rgba(255,255,255,0.4)',
+                  fontSize: 10, fontWeight: 900,
+                  padding: '1px 6px', borderRadius: 999, minWidth: 18
+                }}>{foodCount}</span>
+              )}
+            </button>
+            <button
+              className={`menu-tab-btn ${menuTab === 'drinks' ? 'active-drinks' : 'inactive'}`}
+              onClick={() => handleTabSwitch('drinks')}
+              id="menu-tab-drinks"
+            >
+              <Wine size={15} />
+              เครื่องดื่ม
+              {drinksCount > 0 && (
+                <span style={{
+                  background: menuTab === 'drinks' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                  color: menuTab === 'drinks' ? 'white' : 'rgba(255,255,255,0.4)',
+                  fontSize: 10, fontWeight: 900,
+                  padding: '1px 6px', borderRadius: 999, minWidth: 18
+                }}>{drinksCount}</span>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* Search */}
-        <div style={{ padding: '10px 14px 6px' }}>
+        <div style={{ padding: '8px 14px 6px' }}>
           <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto' }}>
             <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               className="premium-input"
               style={{ paddingLeft: 38, fontSize: 14 }}
-              placeholder="ค้นหาชื่อสินค้า / แบรนด์ / สายพันธุ์องุ่น..."
+              placeholder={menuTab === 'food' ? 'ค้นหาอาหาร...' : 'ค้นหาชื่อสินค้า / แบรนด์ / สายพันธุ์...'}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -753,61 +893,95 @@ function CustomerMenuContent() {
         </div>
 
         {/* Horizontal Category pills */}
-        <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '6px 14px 12px', maxWidth: 480, margin: '0 auto' }}>
-          <button
-            onClick={() => setSelectedCategory('all')}
-            style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
-              padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-              border: `1px solid ${selectedCategory === 'all' ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.06)'}`,
-              background: selectedCategory === 'all' ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' : 'rgba(255,255,255,0.04)',
-              color: selectedCategory === 'all' ? 'white' : 'var(--text-secondary)',
-              cursor: 'pointer', transition: 'all 150ms'
-            }}
-          >
-            ✨ ทั้งหมด
-          </button>
-          {categories.map(cat => {
-            const active = selectedCategory === cat.id
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                style={{
-                  flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                  border: `1px solid ${active ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.06)'}`,
-                  background: active ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' : 'rgba(255,255,255,0.04)',
-                  color: active ? 'white' : 'var(--text-secondary)',
-                  cursor: 'pointer', transition: 'all 150ms'
-                }}
-              >
-                <span>{cat.icon || '🍾'}</span> {cat.name}
-              </button>
-            )
-          })}
-        </div>
+        {currentTabCategories.length > 0 && (
+          <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '6px 14px 12px', maxWidth: 480, margin: '0 auto' }}>
+            <button
+              onClick={() => setSelectedCategory('all')}
+              style={{
+                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                border: `1px solid ${selectedCategory === 'all' ? (menuTab === 'food' ? 'rgba(249,115,22,0.4)' : 'rgba(168,85,247,0.4)') : 'rgba(255,255,255,0.06)'}`,
+                background: selectedCategory === 'all' ? (menuTab === 'food' ? 'rgba(249,115,22,0.15)' : 'rgba(168,85,247,0.15)') : 'rgba(255,255,255,0.04)',
+                color: selectedCategory === 'all' ? (menuTab === 'food' ? '#fb923c' : '#c084fc') : 'var(--text-secondary)',
+                cursor: 'pointer', transition: 'all 150ms'
+              }}
+            >
+              ✨ ทั้งหมด
+            </button>
+            {currentTabCategories.map(cat => {
+              const active = selectedCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  style={{
+                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                    border: `1px solid ${active ? (menuTab === 'food' ? 'rgba(249,115,22,0.4)' : 'rgba(168,85,247,0.4)') : 'rgba(255,255,255,0.06)'}`,
+                    background: active ? (menuTab === 'food' ? 'rgba(249,115,22,0.15)' : 'rgba(168,85,247,0.15)') : 'rgba(255,255,255,0.04)',
+                    color: active ? (menuTab === 'food' ? '#fb923c' : '#c084fc') : 'var(--text-secondary)',
+                    cursor: 'pointer', transition: 'all 150ms'
+                  }}
+                >
+                  <span>{cat.icon || (menuTab === 'food' ? '🍽️' : '🍷')}</span> {cat.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Product List ── */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '14px 14px 0' }}>
-        {filteredProducts.length === 0 ? (
+
+        {/* Section header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: 20 }}>{menuTab === 'food' ? '🍽️' : '🍷'}</span>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'white' }}>
+            {menuTab === 'food' ? 'อาหาร' : 'เครื่องดื่ม & ไวน์'}
+          </h2>
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: menuTab === 'food' ? '#fb923c' : '#c084fc',
+            background: menuTab === 'food' ? 'rgba(249,115,22,0.1)' : 'rgba(168,85,247,0.1)',
+            padding: '2px 8px', borderRadius: 999,
+            border: `1px solid ${menuTab === 'food' ? 'rgba(249,115,22,0.2)' : 'rgba(168,85,247,0.2)'}`
+          }}>
+            {activeProducts.length} รายการ
+          </span>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', paddingTop: 60 }}>
+            <Loader2 size={32} className="animate-spin" style={{ color: menuTab === 'food' ? '#f97316' : '#a855f7', margin: '0 auto' }} />
+            <p style={{ color: 'var(--text-muted)', marginTop: 12 }}>กำลังโหลด...</p>
+          </div>
+        ) : activeProducts.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 80, color: 'var(--text-muted)' }}>
-            <Package size={52} style={{ margin: '0 auto 14px', opacity: 0.15 }} />
-            <p style={{ fontSize: 15 }}>ไม่พบเครื่องดื่มในหมวดหมู่นี้</p>
+            {menuTab === 'food' ? (
+              <UtensilsCrossed size={52} style={{ margin: '0 auto 14px', opacity: 0.15 }} />
+            ) : (
+              <Package size={52} style={{ margin: '0 auto 14px', opacity: 0.15 }} />
+            )}
+            <p style={{ fontSize: 15 }}>
+              {searchQuery ? `ไม่พบ "${searchQuery}"` : menuTab === 'food' ? 'ไม่มีอาหารในขณะนี้' : 'ไม่พบเครื่องดื่มในหมวดหมู่นี้'}
+            </p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {filteredProducts.map((product, idx) => {
+            {activeProducts.map((product, idx) => {
               const qty = getQty(product.id)
+              const isFood = isFoodCategory((product.categories as any)?.name || '')
+              const accentColor = isFood ? '#f97316' : '#a855f7'
+              const accentBg = isFood ? 'rgba(249,115,22,0.08)' : 'rgba(168,85,247,0.08)'
+              const accentBorder = isFood ? 'rgba(249,115,22,0.2)' : 'rgba(168,85,247,0.2)'
               return (
                 <div
                   key={product.id}
                   className="glass-menu-card animate-in"
                   style={{
                     animationDelay: `${Math.min(idx * 20, 250)}ms`,
-                    background: qty > 0 ? 'rgba(59,130,246,0.04)' : undefined,
-                    borderColor: qty > 0 ? 'rgba(59,130,246,0.25)' : undefined,
+                    background: qty > 0 ? (isFood ? 'rgba(249,115,22,0.04)' : 'rgba(168,85,247,0.04)') : undefined,
+                    borderColor: qty > 0 ? (isFood ? 'rgba(249,115,22,0.3)' : 'rgba(168,85,247,0.3)') : undefined,
                     padding: '14px', transition: 'all 200ms'
                   }}
                 >
@@ -815,24 +989,33 @@ function CustomerMenuContent() {
                     {/* Product Image */}
                     <div style={{
                       width: 70, height: 70, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
-                      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                      background: accentBg, border: `1px solid ${accentBorder}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {product.image_url
                         ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <span style={{ fontSize: 26 }}>🍾</span>}
+                        : <span style={{ fontSize: 28 }}>{isFood ? '🍽️' : '🍷'}</span>}
                     </div>
 
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, color: 'white', fontWeight: 600, fontSize: 14, lineHeight: 1.35 }}>{product.name}</p>
 
-                      {/* Small dynamic tags */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '6px 0' }}>
-                        {product.vintage && <span className="tag-badge">{product.vintage}</span>}
-                        {product.grape && <span className="tag-badge">{product.grape}</span>}
-                        {product.country && <span className="tag-badge">{product.country}</span>}
-                        {product.alcohol_percent && <span className="tag-badge">{product.alcohol_percent}%</span>}
+                      {/* Dynamic tags */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '5px 0' }}>
+                        {isFood ? (
+                          <>
+                            {product.description && <span className="tag-badge" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.description}</span>}
+                            {(product.categories as any)?.name && <span className="tag-badge">{(product.categories as any).name}</span>}
+                          </>
+                        ) : (
+                          <>
+                            {product.vintage && <span className="tag-badge">{product.vintage}</span>}
+                            {product.grape && <span className="tag-badge">{product.grape}</span>}
+                            {product.country && <span className="tag-badge">{product.country}</span>}
+                            {product.alcohol_percent && <span className="tag-badge">{product.alcohol_percent}%</span>}
+                          </>
+                        )}
                       </div>
 
                       <p style={{ margin: 0, color: 'var(--gold-400)', fontWeight: 800, fontSize: 16 }}>{formatCurrency(product.price)}</p>
@@ -843,10 +1026,14 @@ function CustomerMenuContent() {
                       {qty === 0 ? (
                         <button
                           onClick={() => addToCart(product)}
-                          className="pos-btn-gradient-blue"
                           style={{
                             width: 38, height: 38, borderRadius: 10, border: 'none',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: isFood
+                              ? 'linear-gradient(135deg,#ea580c,#f97316)'
+                              : 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                            boxShadow: isFood ? '0 4px 14px rgba(249,115,22,0.35)' : '0 4px 14px rgba(168,85,247,0.35)',
+                            cursor: 'pointer', transition: 'all 150ms'
                           }}
                         >
                           <Plus size={18} color="white" />
@@ -861,9 +1048,13 @@ function CustomerMenuContent() {
                             <Minus size={13} />
                           </button>
                           <span style={{ color: 'white', fontWeight: 800, minWidth: 18, textAlign: 'center', fontSize: 16 }}>{qty}</span>
-                          <button onClick={() => addToCart(product)} className="pos-btn-gradient-blue" style={{
+                          <button onClick={() => addToCart(product)} style={{
                             width: 32, height: 32, borderRadius: 8, border: 'none',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: isFood
+                              ? 'linear-gradient(135deg,#ea580c,#f97316)'
+                              : 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                            cursor: 'pointer'
                           }}>
                             <Plus size={13} color="white" />
                           </button>
@@ -878,7 +1069,7 @@ function CustomerMenuContent() {
         )}
       </div>
 
-      {/* ── Floating Dynamic Island Cart Bar ── */}
+      {/* ── Floating Cart Bar ── */}
       {cartCount > 0 && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, padding: '14px 16px calc(14px + env(safe-area-inset-bottom))', background: NAV_BG, backdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <div style={{ maxWidth: 480, margin: '0 auto' }}>
@@ -893,7 +1084,7 @@ function CustomerMenuContent() {
               }}>
                 {cartCount}
               </div>
-              <span style={{ flex: 1, textAlign: 'left', fontSize: 15, fontWeight: 700, color: 'white' }}>ดูคำสั่งซื้อที่เลือก</span>
+              <span style={{ flex: 1, textAlign: 'left', fontSize: 15, fontWeight: 700, color: 'white' }}>ดูรายการที่เลือก</span>
               <span style={{ background: 'rgba(0,0,0,0.2)', padding: '5px 12px', borderRadius: 9, fontSize: 14, fontWeight: 800, color: 'var(--gold-400)', flexShrink: 0 }}>
                 {formatCurrency(cartTotal)}
               </span>

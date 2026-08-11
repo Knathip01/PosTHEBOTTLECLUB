@@ -21,8 +21,8 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      // Supabase API
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      // Supabase API (รองรับทั้ง URL เก่าและใหม่ของ supabase-js v2.x)
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.in wss://*.supabase.in https://api.supabase.com",
       // Scripts: self + inline (จำเป็นสำหรับ Next.js)
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       // Styles: self + inline (จำเป็นสำหรับ CSS-in-JS)

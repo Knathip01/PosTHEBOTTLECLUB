@@ -16,11 +16,13 @@ export default async function HomePage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role === 'stock_staff') {
-    redirect('/admin/inventory')
+  if (profile?.role === 'super_admin') {
+    redirect('/login')
+  } else if (profile?.role === 'stock_staff') {
+    redirect('/stockstaff')
   } else if (profile?.role === 'cashier') {
     redirect('/pos')
   } else {
-    redirect('/admin')
+    redirect('/manager')
   }
 }

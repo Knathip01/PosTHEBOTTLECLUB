@@ -385,6 +385,33 @@ function ReportModal({ onClose }: { onClose: () => void }) {
     </div>
   )
 }
+// ─── Voice Notification (Web Speech API) ─────────────────────────────────────
+let speechUnlocked = false
+
+async function unlockAudio(): Promise<boolean> {
+  if (!('speechSynthesis' in window)) return false
+  try {
+    const u = new SpeechSynthesisUtterance('')
+    u.volume = 0
+    window.speechSynthesis.speak(u)
+    speechUnlocked = true
+    return true
+  } catch { return false }
+}
+
+function playNewOrderSound(enabled: boolean) {
+  if (!enabled || !speechUnlocked) return
+  if (!('speechSynthesis' in window)) return
+  try {
+    window.speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance('รายการทำ wine เข้าแล้ว')
+    u.lang = 'th-TH'
+    u.rate = 0.95
+    u.pitch = 1.1
+    u.volume = 1
+    window.speechSynthesis.speak(u)
+  } catch { /* ignore */ }
+}
 
 // ─── Main Page ──────────────────────────────────────────────────────────────────
 export default function BarDisplayPage() {
@@ -397,6 +424,19 @@ export default function BarDisplayPage() {
   const [profile, setProfile] = useState<{ full_name: string; role: string } | null>(null)
   const [showReport, setShowReport] = useState(false)
   const [filter, setFilter] = useState<'all' | 'pending' | 'preparing' | 'ready'>('all')
+  const [soundEnabled, setSoundEnabled] = useState(false)
+  const prevSaleIdsRef = useRef<Set<string>>(new Set())
+  const isFirstLoadRef = useRef(true)
+  const soundEnabledRef = useRef(false)
+
+  const handleToggleSound = useCallback(async () => {
+    const next = !soundEnabledRef.current
+    if (next && !speechUnlocked) {
+      await unlockAudio()
+    }
+    soundEnabledRef.current = next
+    setSoundEnabled(next)
+  }, [])
 
   const loadOrders = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true); else setRefreshing(true)
@@ -412,6 +452,18 @@ export default function BarDisplayPage() {
         if (isServed) return false
         return sale.sale_items?.some((item: any) => classifyCategory(item.products?.categories?.name) === 'bar')
       })
+
+      // ── Detect new orders and play sound ──
+      if (!isFirstLoadRef.current) {
+        const newIds = activeSales.filter((s: any) => !prevSaleIdsRef.current.has(s.id))
+        if (newIds.length > 0) {
+          playNewOrderSound(soundEnabledRef.current)
+        }
+      } else {
+        isFirstLoadRef.current = false
+      }
+      prevSaleIdsRef.current = new Set(activeSales.map((s: any) => s.id))
+
       setSales(activeSales as Sale[])
     } catch (err) { console.error('Error:', err) }
     finally { setLoading(false); setRefreshing(false) }
@@ -422,7 +474,7 @@ export default function BarDisplayPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data: prof } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()
-      if (!prof || !['bar', 'super_admin', 'manager', 'cashier'].includes(prof.role)) {
+      if (!prof || !['bar', 'manager', 'cashier'].includes(prof.role)) {
         router.push(prof?.role === 'kitchen' ? '/kitchen' : prof?.role === 'stock_staff' ? '/stockstaff' : '/login')
         return
       }
@@ -491,6 +543,23 @@ export default function BarDisplayPage() {
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#6b7280' }} />}
+
+          {/* Sound Toggle */}
+          <button
+            onClick={handleToggleSound}
+            title={soundEnabled ? 'ปิดเสียง' : 'เปิดเสียง'}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '6px 11px', borderRadius: 20, cursor: 'pointer',
+              border: `1px solid ${soundEnabled ? 'rgba(216,169,60,0.5)' : 'rgba(255,255,255,0.1)'}`,
+              background: soundEnabled ? 'rgba(216,169,60,0.12)' : 'rgba(255,255,255,0.04)',
+              color: soundEnabled ? '#f2c65c' : '#6b7280',
+              fontSize: 13, fontWeight: 700, transition: 'all 200ms'
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{soundEnabled ? '🔔' : '🔕'}</span>
+            <span style={{ fontSize: 11 }}>{soundEnabled ? 'เสียงเปิด' : 'เสียงปิด'}</span>
+          </button>
 
           <button onClick={() => setShowReport(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',

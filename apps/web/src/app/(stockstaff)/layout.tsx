@@ -24,7 +24,7 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push('/login'); return }
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (!profile || (profile.role !== 'stock_staff' && profile.role !== 'super_admin')) {
+      if (!profile || profile.role !== 'stock_staff') {
         if (profile?.role === 'kitchen') router.push('/kitchen')
         else if (profile?.role === 'bar') router.push('/bar')
         else if (profile?.role === 'manager') router.push('/manager')

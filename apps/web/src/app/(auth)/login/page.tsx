@@ -167,9 +167,14 @@ export default function LoginPage() {
           setLoading(false)
           return
         }
+        if (profile.role === 'super_admin') {
+          await supabase.auth.signOut()
+          setError('บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานระบบนี้')
+          setLoading(false)
+          return
+        }
         if (!destination) {
           const roleRoutes: Record<string, string> = {
-            super_admin: '/admin',
             manager: '/manager',
             stock_staff: '/stockstaff',
             cashier: '/cashier',

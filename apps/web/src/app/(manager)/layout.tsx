@@ -24,7 +24,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push('/login'); return }
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (!profile || (profile.role !== 'manager' && profile.role !== 'super_admin')) {
+      if (!profile || profile.role !== 'manager') {
         if (profile?.role === 'kitchen') router.push('/kitchen')
         else if (profile?.role === 'bar') router.push('/bar')
         else if (profile?.role === 'stock_staff') router.push('/stockstaff')

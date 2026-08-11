@@ -510,33 +510,160 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* POS Product card */
 .pos-product-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+  background: rgba(18, 21, 30, 0.7);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
   overflow: hidden;
-  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  transition: border-color 250ms cubic-bezier(0.4,0,0.2,1),
+              box-shadow 250ms cubic-bezier(0.4,0,0.2,1),
+              transform 250ms cubic-bezier(0.4,0,0.2,1),
+              background 250ms;
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
   position: relative;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .pos-product-card:hover:not(:disabled) {
-  border-color: rgba(59,130,246,0.4);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5), var(--shadow-glow-blue);
-  transform: translateY(-3px);
+  border-color: rgba(59,130,246,0.45);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6),
+              0 0 0 1px rgba(59,130,246,0.2),
+              0 0 30px rgba(59,130,246,0.12);
+  transform: translateY(-4px) scale(1.01);
+  background: rgba(22,28,42,0.85);
 }
 
 .pos-product-card:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.96);
   transition-duration: 80ms;
 }
 
 .pos-product-card:disabled {
-  opacity: 0.45;
+  opacity: 0.38;
   cursor: not-allowed;
+  filter: grayscale(0.4);
 }
+
+/* Cart item row */
+.cart-item-row {
+  background: rgba(22,25,34,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 12px 13px;
+  transition: border-color 200ms, background 200ms;
+  animation: fade-in-up 280ms ease both;
+}
+.cart-item-row:hover {
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(28,32,44,0.8);
+}
+
+/* Qty control buttons */
+.qty-btn {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 160ms ease;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.qty-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); color: var(--text-primary); }
+.qty-btn.plus { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #93c5fd; }
+.qty-btn.plus:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.5); }
+
+/* Category pill */
+.cat-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 99px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: all 220ms cubic-bezier(0.4,0,0.2,1);
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+}
+.cat-pill:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.14);
+  color: var(--text-primary);
+}
+.cat-pill.cat-active {
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.35), 0 0 0 1px rgba(59,130,246,0.2);
+  transform: translateY(-1px);
+}
+
+/* Discount chip */
+.discount-chip {
+  padding: 10px 4px;
+  border-radius: 10px;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 180ms ease;
+  text-align: center;
+}
+.discount-chip:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(59,130,246,0.3);
+  color: var(--text-primary);
+}
+.discount-chip.chip-active {
+  background: linear-gradient(135deg,#1e3a8a,#2563eb);
+  border-color: rgba(59,130,246,0.5);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+/* Checkout button shine effect */
+@keyframes shine {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(350%) skewX(-20deg); }
+}
+.checkout-shine {
+  position: relative; overflow: hidden;
+}
+.checkout-shine::after {
+  content: '';
+  position: absolute; top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation: shine 2.8s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+/* POS search glow */
+.pos-search:focus {
+  border-color: rgba(59,130,246,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12), 0 0 20px rgba(59,130,246,0.08) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* Cart empty state pulse */
+@keyframes float-bag {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.15; }
+  50%       { transform: translateY(-8px) scale(1.04); opacity: 0.22; }
+}
+.bag-float { animation: float-bag 3s ease-in-out infinite; }
+
+/* Product add flash */
+@keyframes add-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+  60%  { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+.adding-flash { animation: add-flash 400ms ease-out; }
+
 
 /* Numpad */
 .numpad-btn {
