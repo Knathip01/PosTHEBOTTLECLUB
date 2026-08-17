@@ -326,10 +326,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Security note */}
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            🔒 การเชื่อมต่อนี้ได้รับการเข้ารหัสด้วย HTTPS
-          </p>
+
         </div>
       </div>
     </div>
