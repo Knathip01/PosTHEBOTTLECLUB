@@ -26,7 +26,13 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data?.user || null
+  } catch {
+    user = null
+  }
 
   const { pathname } = request.nextUrl
 

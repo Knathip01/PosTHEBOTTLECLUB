@@ -403,7 +403,7 @@ export default function CashierQueuePage() {
                   <CheckCircle2 size={36} style={{color:'#0ea5e9',opacity:0.4}}/>
                 </div>
                 <div style={{textAlign:'center'}}>
-                  <p style={{margin:'0 0 6px',fontSize:17,fontWeight:800,color:'#374151'}}>ไม่มีออเดอร์รอเตรียม 🎉</p>
+                  <p style={{margin:'0 0 6px',fontSize:17,fontWeight:800,color:'#374151'}}>ไม่มีออเดอร์รอเตรียม</p>
                   <p style={{margin:0,fontSize:13,color:'#374151'}}>ออเดอร์ที่ชำระแล้วจะปรากฏที่นี่โดยอัตโนมัติ</p>
                 </div>
               </div>
