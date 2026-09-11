@@ -206,3 +206,15 @@ export interface CartState {
   discount_note: string
   note: string
 }
+
+export interface FoodWinePairing {
+  id: string
+  title: string
+  description?: string
+  food_product_id: string
+  wine_product_id: string
+  discount_type: 'percent' | 'fixed'
+  discount_value: number
+  is_active: boolean
+  created_at: string
+}

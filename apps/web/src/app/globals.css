@@ -6,17 +6,17 @@
    ═══════════════════════════════════════════ */
 :root {
   /* Brand Colors — The Bottle Club */
-  --brand-black:   #0d0d0d;
-  --brand-beige:   #e8d5b0;
-  --brand-cobalt:  #1e40af;
-  --brand-cobalt-light: #3b82f6;
+  --brand-black:   #1A2660;
+  --brand-beige:   #EDE3C8;
+  --brand-cobalt:  #2340A8;
+  --brand-cobalt-light: #3D56C4;
 
-  /* Dark UI Palette */
-  --bg-primary:    #0a0c10;
-  --bg-secondary:  #111318;
-  --bg-card:       #161920;
-  --bg-card-hover: #1c2028;
-  --bg-elevated:   #1f2330;
+  /* Light UI Palette */
+  --bg-primary:    #EDE3C8;
+  --bg-secondary:  #E4D9BF;
+  --bg-card:       #FFFFFF;
+  --bg-card-hover: #F7F0DF;
+  --bg-elevated:   #FFFFFF;
 
   /* Wine/Teal accent kept for compatibility */
   --wine-900: #09111e;
@@ -35,35 +35,35 @@
   --gold-300: #f8dfa0;
 
   /* Borders */
-  --border-color:  #252830;
-  --border-strong: #353a45;
-  --border-glow:   rgba(59,130,246,0.35);
+  --border-color:  rgba(35,64,168,0.14);
+  --border-strong: rgba(35,64,168,0.28);
+  --border-glow:   rgba(35,64,168,0.35);
 
   /* Text */
-  --text-primary:   #f1f3f7;
-  --text-secondary: #9aa3b2;
-  --text-muted:     #5c6475;
+  --text-primary:   #1A2660;
+  --text-secondary: #4A5899;
+  --text-muted:     #8A95BC;
 
   /* Status */
   --success: #22c55e;
   --warning: #f59e0b;
   --danger:  #ef4444;
-  --info:    #3b82f6;
+  --info:    #2340A8;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  --gradient-primary: linear-gradient(135deg, #2340A8 0%, #3D56C4 100%);
   --gradient-gold:    linear-gradient(135deg, #d8a93c 0%, #f2c65c 100%);
-  --gradient-dark:    linear-gradient(180deg, #161920 0%, #0a0c10 100%);
+  --gradient-dark:    linear-gradient(180deg, #FFFFFF 0%, #F7F0DF 100%);
 
   /* Shadows */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.5);
-  --shadow-lg:  0 12px 40px rgba(0,0,0,0.6);
-  --shadow-xl:  0 24px 64px rgba(0,0,0,0.7);
-  --shadow-glow-blue: 0 0 24px rgba(59,130,246,0.25);
+  --shadow-sm:  0 1px 3px rgba(35,64,168,0.10);
+  --shadow-md:  0 4px 16px rgba(35,64,168,0.13);
+  --shadow-lg:  0 12px 40px rgba(35,64,168,0.16);
+  --shadow-xl:  0 24px 64px rgba(35,64,168,0.20);
+  --shadow-glow-blue: 0 0 24px rgba(35,64,168,0.22);
   --shadow-glow-gold: 0 0 24px rgba(242,198,92,0.2);
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* ═══════════════════════════════════════════
@@ -121,32 +121,32 @@ textarea:focus-visible {
    ═══════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2f3a; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+::-webkit-scrollbar-thumb { background: rgba(35,64,168,0.22); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(35,64,168,0.38); }
 
 /* ═══════════════════════════════════════════
    Glassmorphism Cards
    ═══════════════════════════════════════════ */
 .glass-card {
-  background: rgba(22,25,32,0.85);
-  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(35,64,168,0.12);
   border-radius: 16px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(35,64,168,0.08);
 }
 
 .glass-card-sm {
-  background: rgba(22,25,32,0.9);
-  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(35,64,168,0.10);
   border-radius: 12px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 .glass-nav {
-  background: rgba(10,12,16,0.92);
-  border-bottom: 1px solid var(--border-color);
+  background: rgba(35,64,168,0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -325,7 +325,7 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   background: var(--gradient-primary);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(30,64,175,0.3);
+  box-shadow: 0 4px 12px rgba(35,64,168,0.3);
 }
 
 /* ═══════════════════════════════════════════
@@ -510,8 +510,8 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* POS Product card */
 .pos-product-card {
-  background: rgba(18, 21, 30, 0.7);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(35,64,168,0.10);
   border-radius: 18px;
   overflow: hidden;
   transition: border-color 250ms cubic-bezier(0.4,0,0.2,1),
@@ -528,12 +528,12 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 }
 
 .pos-product-card:hover:not(:disabled) {
-  border-color: rgba(59,130,246,0.45);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6),
-              0 0 0 1px rgba(59,130,246,0.2),
-              0 0 30px rgba(59,130,246,0.12);
+  border-color: rgba(35,64,168,0.40);
+  box-shadow: 0 12px 40px rgba(35,64,168,0.12),
+              0 0 0 1px rgba(35,64,168,0.18),
+              0 0 30px rgba(35,64,168,0.08);
   transform: translateY(-4px) scale(1.01);
-  background: rgba(22,28,42,0.85);
+  background: rgba(255,255,255,0.98);
 }
 
 .pos-product-card:active:not(:disabled) {
@@ -549,33 +549,33 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* Cart item row */
 .cart-item-row {
-  background: rgba(22,25,34,0.6);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(247,240,223,0.8);
+  border: 1px solid rgba(35,64,168,0.08);
   border-radius: 14px;
   padding: 12px 13px;
   transition: border-color 200ms, background 200ms;
   animation: fade-in-up 280ms ease both;
 }
 .cart-item-row:hover {
-  border-color: rgba(255,255,255,0.1);
-  background: rgba(28,32,44,0.8);
+  border-color: rgba(35,64,168,0.15);
+  background: rgba(255,255,255,0.9);
 }
 
 /* Qty control buttons */
 .qty-btn {
   width: 30px; height: 30px;
   border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(35,64,168,0.14);
+  background: rgba(255,255,255,0.8);
   color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 160ms ease;
   font-size: 14px; font-weight: 700; flex-shrink: 0;
 }
-.qty-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); color: var(--text-primary); }
-.qty-btn.plus { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #93c5fd; }
-.qty-btn.plus:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.5); }
+.qty-btn:hover { background: rgba(35,64,168,0.08); border-color: rgba(35,64,168,0.25); color: var(--text-primary); }
+.qty-btn.plus { border-color: rgba(35,64,168,0.25); background: rgba(35,64,168,0.08); color: #2340A8; }
+.qty-btn.plus:hover { background: rgba(35,64,168,0.16); border-color: rgba(35,64,168,0.45); }
 
 /* Category pill */
 .cat-pill {
@@ -584,20 +584,20 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   font-size: 12px; font-weight: 700;
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
   transition: all 220ms cubic-bezier(0.4,0,0.2,1);
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(35,64,168,0.12);
+  background: rgba(255,255,255,0.75);
   color: var(--text-secondary);
 }
 .cat-pill:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(35,64,168,0.25);
   color: var(--text-primary);
 }
 .cat-pill.cat-active {
-  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  background: linear-gradient(135deg, #2340A8, #3D56C4);
   border-color: transparent;
   color: white;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.35), 0 0 0 1px rgba(59,130,246,0.2);
+  box-shadow: 0 4px 16px rgba(35,64,168,0.35), 0 0 0 1px rgba(35,64,168,0.2);
   transform: translateY(-1px);
 }
 
@@ -606,23 +606,23 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   padding: 10px 4px;
   border-radius: 10px;
   font-size: 12px; font-weight: 700;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(35,64,168,0.12);
+  background: rgba(255,255,255,0.75);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 180ms ease;
   text-align: center;
 }
 .discount-chip:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(59,130,246,0.3);
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(35,64,168,0.28);
   color: var(--text-primary);
 }
 .discount-chip.chip-active {
   background: linear-gradient(135deg,#1e3a8a,#2563eb);
-  border-color: rgba(59,130,246,0.5);
+  border-color: rgba(35,64,168,0.5);
   color: white;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  box-shadow: 0 4px 12px rgba(35,64,168,0.3);
 }
 
 /* Checkout button shine effect */
@@ -644,9 +644,9 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* POS search glow */
 .pos-search:focus {
-  border-color: rgba(59,130,246,0.5) !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12), 0 0 20px rgba(59,130,246,0.08) !important;
-  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(35,64,168,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(35,64,168,0.10), 0 0 20px rgba(35,64,168,0.06) !important;
+  background: rgba(255,255,255,0.95) !important;
 }
 
 /* Cart empty state pulse */
@@ -658,9 +658,9 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* Product add flash */
 @keyframes add-flash {
-  0%   { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
-  60%  { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
-  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(35,64,168,0.5); }
+  60%  { box-shadow: 0 0 0 10px rgba(35,64,168,0); }
+  100% { box-shadow: 0 0 0 0 rgba(35,64,168,0); }
 }
 .adding-flash { animation: add-flash 400ms ease-out; }
 
@@ -693,8 +693,8 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   right: 0;
   z-index: 60;
   height: 64px;
-  background: rgba(10,12,16,0.96);
-  border-top: 1px solid var(--border-color);
+  background: rgba(237,227,200,0.97);
+  border-top: 1px solid rgba(35,64,168,0.14);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   padding-bottom: env(safe-area-inset-bottom);
@@ -728,7 +728,7 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 }
 
 .pos-tab-btn.active {
-  color: var(--info);
+  color: #2340A8;
 }
 
 .pos-tab-btn .tab-icon {
@@ -742,7 +742,7 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 }
 
 .pos-tab-btn.active .tab-icon {
-  background: rgba(59,130,246,0.15);
+  background: rgba(35,64,168,0.12);
 }
 
 /* Mobile cart FAB */
@@ -787,9 +787,9 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border-radius: 20px 20px 0 0;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(35,64,168,0.12);
   max-height: 88dvh;
   display: flex;
   flex-direction: column;
@@ -799,7 +799,7 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 .cart-sheet-handle {
   width: 40px;
   height: 4px;
-  background: var(--border-strong);
+  background: rgba(35,64,168,0.20);
   border-radius: 999px;
   margin: 10px auto 0;
   flex-shrink: 0;

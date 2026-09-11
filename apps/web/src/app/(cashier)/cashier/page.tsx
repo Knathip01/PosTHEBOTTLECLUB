@@ -324,21 +324,21 @@ export default function CashierQueuePage() {
         {/* ── TOP HEADER ── */}
         <header style={{
           flexShrink:0, zIndex:40,
-          background:'rgba(10,12,18,0.97)', borderBottom:'1px solid rgba(255,255,255,0.07)',
+          background:'#2340A8', borderBottom:'1px solid rgba(255,255,255,0.15)',
           backdropFilter:'blur(20px)', padding:'0 14px',
           display:'flex', alignItems:'center', justifyContent:'space-between',
           height:54, gap:10,
         }}>
           {/* Left: title */}
           <div style={{display:'flex',alignItems:'center',gap:10,minWidth:0}}>
-            <div style={{width:32,height:32,borderRadius:9,background:'linear-gradient(135deg,#0c4a6e,#0ea5e9)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <div style={{width:32,height:32,borderRadius:9,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
               <CheckCircle2 size={16} color="white"/>
             </div>
             <div style={{minWidth:0}}>
               <p style={{margin:0,fontSize:14,fontWeight:800,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                 {tab==='queue'?'คิวเตรียมของ 💳':tab==='history'?'ประวัติออเดอร์ 📖':'รายงานร้าน 📝'}
               </p>
-              <p style={{margin:0,fontSize:10,color:'#6b7280'}}>
+              <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.65)'}}>
                 {tab==='queue' ? `${sales.length} รายการรอ` : tab==='history' ? `ล่าสุด ${sales.length} บิล` : 'ส่งรายงานประจำวัน'}
               </p>
             </div>
@@ -359,12 +359,12 @@ export default function CashierQueuePage() {
               </div>
             )}
             {refreshing && <RefreshCw size={13} className="animate-spin" style={{color:'#4b5563'}}/>}
-            <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.04)',borderRadius:10,padding:3}}>
+            <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.15)',borderRadius:10,padding:3}}>
               {NAV_ITEMS.map(n=>(
                 <button key={n.id} onClick={()=>switchTab(n.id)} style={{
                   padding:'5px 14px',borderRadius:7,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',
-                  background:tab===n.id?'rgba(255,255,255,0.1)':'transparent',
-                  color:tab===n.id?'#fff':'#6b7280', transition:'all 150ms', position:'relative',whiteSpace:'nowrap',
+                  background:tab===n.id?'rgba(255,255,255,0.25)':'transparent',
+                  color:tab===n.id?'#fff':'rgba(255,255,255,0.75)', transition:'all 150ms', position:'relative',whiteSpace:'nowrap',
                 }}>
                   {n.emoji} {n.label}
                   {n.badge>0 && <span style={{position:'absolute',top:2,right:2,width:14,height:14,background:'#ef4444',borderRadius:'50%',fontSize:8,fontWeight:900,color:'white',display:'flex',alignItems:'center',justifyContent:'center'}}>{n.badge>9?'9+':n.badge}</span>}
@@ -421,10 +421,10 @@ export default function CashierQueuePage() {
                   return (
                     <div key={sale.id} className="cq-card cq-anim" style={{
                       animationDelay:`${idx*40}ms`,
-                      background:'rgba(16,20,30,0.95)',
+                      background:'#FFFFFF',
                       borderRadius:16,overflow:'hidden',
-                      border:`1.5px solid ${ready?'rgba(34,197,94,0.4)':urgent?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.06)'}`,
-                      boxShadow:ready?'0 0 20px rgba(34,197,94,0.1)':urgent?'0 0 20px rgba(239,68,68,0.08)':'none',
+                      border:`1.5px solid ${ready?'rgba(34,197,94,0.4)':urgent?'rgba(239,68,68,0.4)':'rgba(35,64,168,0.14)'}`,
+                      boxShadow:ready?'0 0 20px rgba(34,197,94,0.1)':urgent?'0 0 20px rgba(239,68,68,0.08)':'0 1px 4px rgba(35,64,168,0.08)',
                     }}>
                       {/* Status stripe */}
                       <div style={{height:3,background:ready?'linear-gradient(90deg,#16a34a,#4ade80)':urgent?'linear-gradient(90deg,#dc2626,#f97316)':'rgba(255,255,255,0.04)'}}/>
@@ -443,22 +443,22 @@ export default function CashierQueuePage() {
                           {/* Left */}
                           <div style={{minWidth:0,flex:1}}>
                             <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:4}}>
-                              <span style={{fontSize:16,fontWeight:900,color:urgent&&!ready?'#ef4444':'#f1f5f9'}}>
+                              <span style={{fontSize:16,fontWeight:900,color:urgent&&!ready?'#ef4444':'#1A2660'}}>
                                 {sale.table_no?`🍽️ โต๊ะ ${sale.table_no}`:'🛍️ หน้าร้าน'}
                               </span>
                               {ready && <span style={{fontSize:10,fontWeight:800,color:'#4ade80',background:'rgba(74,222,128,0.12)',border:'1px solid rgba(74,222,128,0.2)',padding:'2px 7px',borderRadius:999}}>🌟 พร้อมเสิร์ฟ</span>}
                               {urgent&&!ready && <span style={{fontSize:10,fontWeight:800,color:'#f87171',background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',padding:'2px 7px',borderRadius:999}}>⚡ รีบด่วน</span>}
                               {sale.status==='pending' && <span style={{fontSize:10,fontWeight:700,color:'#fbbf24',background:'rgba(245,158,11,0.1)',padding:'2px 6px',borderRadius:6}}>รอชำระ</span>}
                             </div>
-                            <p style={{margin:0,fontSize:11,color:'#6b7280',fontFamily:'monospace'}}>#{sale.receipt_no}</p>
-                            {(sale.customers as any)?.full_name && <p style={{margin:'2px 0 0',fontSize:11,color:'#9ca3af'}}>👤 {(sale.customers as any).full_name}</p>}
+                            <p style={{margin:0,fontSize:11,color:'#4A5899',fontFamily:'monospace'}}>#{sale.receipt_no}</p>
+                            {(sale.customers as any)?.full_name && <p style={{margin:'2px 0 0',fontSize:11,color:'#4A5899'}}>👤 {(sale.customers as any).full_name}</p>}
                           </div>
                           {/* Right: time */}
                           <div style={{flexShrink:0,textAlign:'right',paddingLeft:8}}>
-                            <div style={{display:'flex',alignItems:'center',gap:3,fontSize:11,fontWeight:700,color:urgent&&!ready?'#ef4444':'#6b7280',justifyContent:'flex-end'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:3,fontSize:11,fontWeight:700,color:urgent&&!ready?'#ef4444':'#4A5899',justifyContent:'flex-end'}}>
                               <Clock size={11}/><span>{timeSince(sale.created_at)}</span>
                             </div>
-                            <p style={{margin:'3px 0 0',fontSize:10,color:'#374151'}}>ที่แล้ว</p>
+                            <p style={{margin:'3px 0 0',fontSize:10,color:'#8A95BC'}}>ที่แล้ว</p>
                           </div>
                         </div>
 
@@ -466,17 +466,17 @@ export default function CashierQueuePage() {
                         {(hasK||hasB) && (
                           <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                             {hasK && (
-                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(35,64,168,0.06)',border:'1px solid rgba(35,64,168,0.12)'}}>
                                 <span className={kSt==='ready'?'dot-g':kSt==='preparing'?'dot-y':'dot-d'} style={{width:6,height:6,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
-                                <span style={{fontSize:11,fontWeight:700,color:kSt==='ready'?'#4ade80':kSt==='preparing'?'#fbbf24':'#6b7280'}}>
+                                <span style={{fontSize:11,fontWeight:700,color:kSt==='ready'?'#4ade80':kSt==='preparing'?'#fbbf24':'#4A5899'}}>
                                   🍳 ครัว — {kSt==='ready'?'พร้อม':kSt==='preparing'?'กำลังทำ':'รอ'}
                                 </span>
                               </div>
                             )}
                             {hasB && (
-                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(35,64,168,0.06)',border:'1px solid rgba(35,64,168,0.12)'}}>
                                 <span className={bSt==='ready'?'dot-g':bSt==='preparing'?'dot-y':'dot-d'} style={{width:6,height:6,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
-                                <span style={{fontSize:11,fontWeight:700,color:bSt==='ready'?'#4ade80':bSt==='preparing'?'#fbbf24':'#6b7280'}}>
+                                <span style={{fontSize:11,fontWeight:700,color:bSt==='ready'?'#4ade80':bSt==='preparing'?'#fbbf24':'#4A5899'}}>
                                   🍷 บาร์ — {bSt==='ready'?'พร้อม':bSt==='preparing'?'กำลังชง':'รอ'}
                                 </span>
                               </div>
@@ -488,12 +488,12 @@ export default function CashierQueuePage() {
                       {/* Items list */}
                       <div style={{padding:'0 14px 10px',display:'flex',flexDirection:'column',gap:4}}>
                         {(sale.sale_items||[]).map((item:any)=>(
-                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 12px',borderRadius:10,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.04)'}}>
+                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 12px',borderRadius:10,background:'rgba(35,64,168,0.04)',border:'1px solid rgba(35,64,168,0.10)'}}>
                             <div style={{display:'flex',alignItems:'center',gap:9,minWidth:0}}>
                               <div style={{width:28,height:28,borderRadius:8,background:'rgba(190,24,93,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                                 <Wine size={13} style={{color:'#be185d'}}/>
                               </div>
-                              <span style={{fontSize:13,color:'#e2e8f0',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</span>
+                              <span style={{fontSize:13,color:'#1A2660',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</span>
                             </div>
                             <span style={{fontSize:15,fontWeight:900,color:'#fcd34d',flexShrink:0,marginLeft:10}}>×{item.quantity}</span>
                           </div>
@@ -726,18 +726,18 @@ export default function CashierQueuePage() {
 
         {/* ── MOBILE BOTTOM NAV (fixed, safe area aware) ── */}
         <nav className="cq-bnav" style={{
-          background:'rgba(8,10,15,0.98)', borderTop:'1px solid rgba(255,255,255,0.07)',
+          background:'rgba(237,227,200,0.97)', borderTop:'1px solid rgba(35,64,168,0.15)',
           backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)',
           paddingBottom:'env(safe-area-inset-bottom)', flexShrink:0, zIndex:50,
         }}>
           {NAV_ITEMS.map(n=>(
             <button key={n.id} onClick={()=>switchTab(n.id)} className="cq-nav-btn" style={{
               flex:1, border:'none', cursor:'pointer',
-              background:tab===n.id?'rgba(14,165,233,0.06)':'transparent',
-              color:tab===n.id?'#0ea5e9':'#6b7280',
+              background:tab===n.id?'rgba(35,64,168,0.08)':'transparent',
+              color:tab===n.id?'#2340A8':'#4A5899',
               display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
               gap:2, fontSize:10, fontWeight:700,
-              borderTop:`2.5px solid ${tab===n.id?'#0ea5e9':'transparent'}`,
+              borderTop:`2.5px solid ${tab===n.id?'#2340A8':'transparent'}`,
               transition:'all 150ms', position:'relative', paddingTop:10, paddingBottom:8,
             }}>
               <span style={{fontSize:22,lineHeight:1}}>{n.emoji}</span>
@@ -749,7 +749,7 @@ export default function CashierQueuePage() {
                   background:'#ef4444', color:'white',
                   fontSize:9, fontWeight:900,
                   display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px',
-                  border:'2px solid rgba(8,10,15,0.98)',
+                  border:'2px solid rgba(237,227,200,0.97)',
                 }}>
                   {n.badge>99?'99+':n.badge}
                 </span>

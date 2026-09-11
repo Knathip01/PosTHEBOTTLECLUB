@@ -75,36 +75,36 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           transition: all 200ms cubic-bezier(0.4,0,0.2,1);
           position: relative; white-space: nowrap;
         }
-        .nav-link-item:hover { background: rgba(255,255,255,0.06); }
+        .nav-link-item:hover { background: rgba(255,255,255,0.18); }
         .nav-link-item.active-nav {
-          background: rgba(59,130,246,0.14);
-          color: #93c5fd;
-          box-shadow: 0 0 0 1px rgba(59,130,246,0.25);
+          background: rgba(255,255,255,0.22);
+          color: #fff;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
         }
         .user-btn {
           display: flex; align-items: center; gap: 9px;
           padding: 6px 12px 6px 6px; border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.22);
+          background: rgba(255,255,255,0.12);
           cursor: pointer; transition: all 200ms;
         }
         .user-btn:hover {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.14);
+          background: rgba(255,255,255,0.20);
+          border-color: rgba(255,255,255,0.35);
         }
         .avatar-ring {
           width: 30px; height: 30px; border-radius: 50%;
-          background: linear-gradient(135deg,#1e40af,#3b82f6);
+          background: linear-gradient(135deg,#FFFFFF,#D5DEFF);
           display: flex; align-items: center; justify-content: center;
-          font-size: 13px; font-weight: 800; color: white; flex-shrink: 0;
-          box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+          font-size: 13px; font-weight: 800; color: #2340A8; flex-shrink: 0;
+          box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
         }
         .dropdown-menu {
           position: absolute; right: 0; top: calc(100% + 10px);
           width: 220px; border-radius: 16px; overflow: hidden; z-index: 99;
-          background: rgba(18,20,28,0.98);
-          border: 1px solid rgba(255,255,255,0.1);
-          box-shadow: 0 24px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03);
+          background: #FFFFFF;
+          border: 1px solid rgba(35,64,168,0.15);
+          box-shadow: 0 24px 64px rgba(35,64,168,0.20), 0 0 0 1px rgba(35,64,168,0.05);
           backdrop-filter: blur(20px);
           animation: pop 220ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
@@ -113,8 +113,9 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           padding: 12px 16px; font-size: 13px; font-weight: 600;
           background: none; border: none; width: 100%;
           cursor: pointer; transition: background 150ms; text-align: left;
+          color: var(--text-primary);
         }
-        .dropdown-item:hover { background: rgba(255,255,255,0.05); }
+        .dropdown-item:hover { background: rgba(35,64,168,0.05); }
         .mobile-tab {
           flex: 1; display: flex; flex-direction: column; align-items: center;
           justify-content: center; gap: 4px; text-decoration: none;
@@ -133,37 +134,37 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         .clock-badge {
           display: flex; align-items: center; gap: 6px;
           padding: 6px 12px; border-radius: 99px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.25);
           font-size: 13px; font-weight: 600;
-          color: var(--text-secondary); font-variant-numeric: tabular-nums;
+          color: rgba(255,255,255,0.9); font-variant-numeric: tabular-nums;
         }
         .hamburger-btn {
           width: 38px; height: 38px; border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
-          color: var(--text-secondary); flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.25);
+          background: rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.9); flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: all 200ms;
         }
         .hamburger-btn:hover {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.14);
-          color: var(--text-primary);
+          background: rgba(255,255,255,0.25);
+          border-color: rgba(255,255,255,0.4);
+          color: white;
         }
         .brand-logo-wrap {
           display: flex; align-items: center; gap: 10px;
           text-decoration: none; padding: 4px 6px; border-radius: 10px;
           transition: background 200ms; margin-right: 4px;
         }
-        .brand-logo-wrap:hover { background: rgba(255,255,255,0.04); }
+        .brand-logo-wrap:hover { background: rgba(255,255,255,0.12); }
         .nav-divider {
           width: 1px; height: 20px;
-          background: rgba(255,255,255,0.08); flex-shrink: 0;
+          background: rgba(255,255,255,0.2); flex-shrink: 0;
         }
         .bottom-bar-glow {
           position: absolute; bottom: 100%; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), rgba(168,85,247,0.3), transparent);
+          background: linear-gradient(90deg, transparent, rgba(35,64,168,0.3), rgba(61,86,196,0.3), transparent);
         }
         @keyframes slide-drawer {
           from { transform: translateY(100%); opacity: 0; }
@@ -189,8 +190,8 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         flexShrink: 0,
         zIndex: 50,
         position: 'relative',
-        background: 'rgba(8,10,14,0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.12)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
       }}>
@@ -204,10 +205,10 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
             <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ display: 'none' }} className="sm-brand">
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'white', lineHeight: 1.1 }}>
               The Bottle Club
             </p>
-            <p style={{ margin: 0, fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}>
+            <p style={{ margin: 0, fontSize: 9, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}>
               POS System
             </p>
           </div>
@@ -227,7 +228,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
                 key={link.href}
                 href={link.href}
                 className={`nav-link-item ${active ? 'active-nav' : ''}`}
-                style={{ color: active ? link.color : 'var(--text-secondary)' }}
+                style={{ color: active ? '#fff' : 'rgba(255,255,255,0.8)' }}
               >
                 <Icon size={15} />
                 {link.label}
@@ -253,10 +254,10 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
               {profile?.full_name?.[0]?.toUpperCase() || <User size={13} />}
             </div>
             <div style={{ textAlign: 'left' }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
                 {profile?.full_name || '—'}
               </p>
-              <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)', lineHeight: 1 }}>
+              <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>
                 {getRoleLabel(profile?.role || '')}
               </p>
             </div>

@@ -83,9 +83,9 @@ function OrderCard({ sale, onAction, updating }: {
 
   return (
     <div style={{
-      background: '#12151c', border: `1px solid ${borderColor}`, borderRadius: 18,
+      background: '#FFFFFF', border: `1px solid ${borderColor}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      boxShadow: isUrgent ? '0 0 24px rgba(239,68,68,0.12)' : isPreparing ? '0 0 20px rgba(251,146,60,0.08)' : 'none',
+      boxShadow: isUrgent ? '0 0 24px rgba(239,68,68,0.12)' : isPreparing ? '0 0 20px rgba(251,146,60,0.08)' : '0 2px 8px rgba(35,64,168,0.08)',
       transition: 'all 250ms'
     }}>
       {/* Urgent top stripe */}
@@ -94,10 +94,10 @@ function OrderCard({ sale, onAction, updating }: {
       )}
 
       {/* Header */}
-      <div style={{ padding: '12px 14px', background: headerBg, borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+      <div style={{ padding: '12px 14px', background: headerBg, borderBottom: '1px solid rgba(35,64,168,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#ef4444' : '#f1f3f7' }}>
+            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#ef4444' : '#1A2660' }}>
               {sale.table_no ? `🍽️ โต๊ะ ${sale.table_no}` : '🛍️ กลับบ้าน'}
             </span>
             {sale.status === 'pending' && (
@@ -106,11 +106,11 @@ function OrderCard({ sale, onAction, updating }: {
               </span>
             )}
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6b7280' }}>#{sale.receipt_no.slice(-6)}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 11, color: '#4A5899' }}>#{sale.receipt_no.slice(-6)}</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
           <StatusBadge status={kStatus} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent ? '#ef4444' : '#6b7280' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent ? '#ef4444' : '#4A5899' }}>
             <Clock size={10} />
             <span>{getElapsed(sale.created_at)}</span>
             {isUrgent && <AlertTriangle size={10} />}
@@ -124,15 +124,15 @@ function OrderCard({ sale, onAction, updating }: {
           <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 34, height: 34, borderRadius: 9,
-              background: isPreparing ? 'rgba(251,146,60,0.1)' : 'rgba(255,255,255,0.05)',
-              border: `1px solid ${isPreparing ? 'rgba(251,146,60,0.25)' : 'rgba(255,255,255,0.08)'}`,
+              background: isPreparing ? 'rgba(251,146,60,0.1)' : 'rgba(35,64,168,0.06)',
+              border: `1px solid ${isPreparing ? 'rgba(251,146,60,0.25)' : 'rgba(35,64,168,0.15)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 900, color: isPreparing ? '#fb923c' : '#d1d5db', flexShrink: 0
+              fontSize: 14, fontWeight: 900, color: isPreparing ? '#fb923c' : '#1A2660', flexShrink: 0
             }}>
               {item.quantity}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A2660', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.product_name}
               </p>
               {item.sku && <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>SKU: {item.sku}</p>}
@@ -148,7 +148,7 @@ function OrderCard({ sale, onAction, updating }: {
       </div>
 
       {/* Action */}
-      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.1)' }}>
+      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(35,64,168,0.08)', background: 'rgba(35,64,168,0.02)' }}>
         {isReady ? (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -526,7 +526,7 @@ export default function KitchenDisplayPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#080a0d', color: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDE3C8', color: '#1A2660', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── CSS ── */}
       <style>{`
@@ -537,8 +537,8 @@ export default function KitchenDisplayPage() {
       {/* ── Header ── */}
       <header style={{
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', background: 'rgba(8,10,13,0.97)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '0 16px', background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(20px)',
         gap: 10, flexShrink: 0
       }}>
@@ -549,13 +549,13 @@ export default function KitchenDisplayPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Kitchen Display 👨‍🍳</h1>
-            <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>The Bottle Club</p>
+            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>The Bottle Club</p>
           </div>
         </div>
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#6b7280' }} />}
+          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: 'rgba(255,255,255,0.7)' }} />}
 
           {/* Sound Toggle */}
           <button
@@ -564,9 +564,9 @@ export default function KitchenDisplayPage() {
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 11px', borderRadius: 20, cursor: 'pointer',
-              border: `1px solid ${soundEnabled ? 'rgba(251,146,60,0.45)' : 'rgba(255,255,255,0.1)'}`,
-              background: soundEnabled ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.04)',
-              color: soundEnabled ? '#fb923c' : '#6b7280',
+              border: `1px solid ${soundEnabled ? 'rgba(251,146,60,0.45)' : 'rgba(255,255,255,0.3)'}`,
+              background: soundEnabled ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.12)',
+              color: soundEnabled ? '#fb923c' : 'rgba(255,255,255,0.8)',
               fontSize: 13, fontWeight: 700, transition: 'all 200ms'
             }}
           >
@@ -576,19 +576,19 @@ export default function KitchenDisplayPage() {
 
           <button onClick={() => setShowReport(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-            background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-            borderRadius: 20, color: '#34d399', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+            background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: 20, color: '#FFFFFF', fontSize: 12, fontWeight: 700, cursor: 'pointer'
           }}>
             <ClipboardList size={13} />
             <span style={{ display: 'none' }} className="sm-label">ส่งรายงาน</span>
           </button>
 
           {profile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 24, padding: '4px 10px 4px 5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 24, padding: '4px 10px 4px 5px' }}>
               <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#f87171)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: 'white', flexShrink: 0 }}>
                 {(profile.full_name || 'K')[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#FFFFFF' }}>
                 {profile.full_name}
               </span>
             </div>
@@ -601,21 +601,21 @@ export default function KitchenDisplayPage() {
       </header>
 
       {/* ── Filter Bar ── */}
-      <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
+      <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.6)', borderBottom: '1px solid rgba(35,64,168,0.12)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '6px 14px', borderRadius: 999, flexShrink: 0,
-            border: `1px solid ${filter === tab.key ? tab.color + '60' : 'rgba(255,255,255,0.07)'}`,
+            border: `1px solid ${filter === tab.key ? tab.color + '60' : 'rgba(35,64,168,0.2)'}`,
             background: filter === tab.key ? tab.color + '15' : 'transparent',
-            color: filter === tab.key ? tab.color : '#6b7280',
+            color: filter === tab.key ? tab.color : '#4A5899',
             fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms'
           }}>
             {tab.label}
             <span style={{
               minWidth: 18, height: 18, borderRadius: 999,
-              background: filter === tab.key ? tab.color + '25' : 'rgba(255,255,255,0.06)',
-              color: filter === tab.key ? tab.color : '#9ca3af',
+              background: filter === tab.key ? tab.color + '25' : 'rgba(35,64,168,0.08)',
+              color: filter === tab.key ? tab.color : '#4A5899',
               fontSize: 10, fontWeight: 900,
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
             }}>{tab.count}</span>
@@ -638,15 +638,15 @@ export default function KitchenDisplayPage() {
               <ChefHat size={36} style={{ color: '#f87171', opacity: 0.3 }} />
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#4b5563', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
+              <p style={{ color: '#1A2660', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
                 {filter === 'all' ? 'ไม่มีออเดอร์อาหารในขณะนี้' : `ไม่มีออเดอร์สถานะ "${tabs.find(t => t.key === filter)?.label}"`}
               </p>
-              <p style={{ color: '#374151', fontSize: 13, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
+              <p style={{ color: '#4A5899', fontSize: 13, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
             </div>
             <button onClick={() => loadOrders(false)} style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-              borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)', color: '#9ca3af',
+              borderRadius: 12, border: '1px solid rgba(35,64,168,0.2)',
+              background: 'rgba(35,64,168,0.06)', color: '#4A5899',
               fontSize: 13, fontWeight: 700, cursor: 'pointer'
             }}>
               <RefreshCw size={14} /> รีเฟรช
@@ -668,7 +668,7 @@ export default function KitchenDisplayPage() {
       {/* ── Bottom Nav (Mobile only) ── */}
       <div className="kitchen-bottom-nav" style={{
         position: 'sticky', bottom: 0, zIndex: 30,
-        background: 'rgba(8,10,13,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)',
+        background: '#2340A8', borderTop: '1px solid rgba(255,255,255,0.15)',
         backdropFilter: 'blur(20px)', gap: 4,
         padding: '8px 12px', paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
         flexShrink: 0
@@ -677,7 +677,7 @@ export default function KitchenDisplayPage() {
           <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
             flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
             background: filter === tab.key ? tab.color + '18' : 'transparent',
-            color: filter === tab.key ? tab.color : '#6b7280',
+            color: filter === tab.key ? tab.color : 'rgba(255,255,255,0.6)',
             fontSize: 11, fontWeight: 700, cursor: 'pointer',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
             transition: 'all 150ms'
@@ -688,7 +688,7 @@ export default function KitchenDisplayPage() {
         ))}
         <button onClick={() => setShowReport(true)} style={{
           flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-          background: 'transparent', color: '#34d399',
+          background: 'transparent', color: 'rgba(255,255,255,0.8)',
           fontSize: 11, fontWeight: 700, cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
         }}>

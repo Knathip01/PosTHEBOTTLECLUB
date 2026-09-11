@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Product, Category } from '@/lib/types'
+import { Product, Category, FoodWinePairing } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   TrendingUp, ShoppingBag, Users, Package, AlertTriangle, Wine,
   ArrowUpRight, RefreshCw, BarChart3, Tag, Warehouse, Sparkles, Check, X,
   Search, Edit3, Loader2, Key, ClipboardList, Clock, Image as ImageIcon,
-  CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight
+  CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight,
+  Plus, Trash2, Utensils, Percent
 } from 'lucide-react'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip
@@ -16,7 +17,7 @@ import {
 
 export default function ManagerDashboard() {
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'stock' | 'discounts' | 'reports' | 'shop_reports' | 'payments'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'stock' | 'discounts' | 'reports' | 'shop_reports' | 'payments' | 'pairings'>('overview')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -78,6 +79,18 @@ export default function ManagerDashboard() {
   const [selectedPaymentSale, setSelectedPaymentSale] = useState<any | null>(null)
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'pending' | 'paid' | 'all'>('all')
   const [paymentSourceFilter, setPaymentSourceFilter] = useState<'all' | 'pos' | 'menu'>('all')
+  // Food & Wine Pairings
+  const [pairings, setPairings] = useState<FoodWinePairing[]>([])
+  const [showPairingModal, setShowPairingModal] = useState(false)
+  const [editingPairing, setEditingPairing] = useState<FoodWinePairing | null>(null)
+  const [pairingTitle, setPairingTitle] = useState('')
+  const [pairingDescription, setPairingDescription] = useState('')
+  const [pairingFoodId, setPairingFoodId] = useState('')
+  const [pairingWineId, setPairingWineId] = useState('')
+  const [pairingDiscountType, setPairingDiscountType] = useState<'percent' | 'fixed'>('percent')
+  const [pairingDiscountValue, setPairingDiscountValue] = useState<number>(15)
+  const [pairingIsActive, setPairingIsActive] = useState(true)
+  const [savingPairing, setSavingPairing] = useState(false)
 
   const loadData = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true)
@@ -164,6 +177,20 @@ export default function ManagerDashboard() {
         }
       } catch (e) {
         console.log('No allowed_discounts setting found:', e)
+      }
+
+      // Fetch Food & Wine Pairings
+      try {
+        const { data: pairingSetting } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'food_wine_pairings')
+          .single()
+        if (pairingSetting?.value) {
+          setPairings(JSON.parse(pairingSetting.value))
+        }
+      } catch (e) {
+        console.log('No food_wine_pairings found:', e)
       }
 
       // Fetch Stock Receipts
@@ -553,6 +580,108 @@ export default function ManagerDashboard() {
     }
   }
 
+  // Food & Wine Pairing Helpers
+  const isWineOrDrink = (p: Product) => {
+    const cat = (p.categories?.name || '').toLowerCase()
+    const name = p.name.toLowerCase()
+    return ['wine', 'beer', 'drink', 'beverage', 'bar', 'ไวน์', 'เบียร์', 'เครื่องดื่ม', 'rosé', 'sparkling', 'champagne', 'cocktail'].some(k => cat.includes(k) || name.includes(k)) || !!p.grape || !!p.winery
+  }
+  const isFoodItem = (p: Product) => !isWineOrDrink(p)
+
+  const handleSavePairingsList = async (updatedList: FoodWinePairing[]) => {
+    setSavingPairing(true)
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert({ key: 'food_wine_pairings', value: JSON.stringify(updatedList) }, { onConflict: 'key' })
+      if (error) throw error
+      setPairings(updatedList)
+    } catch (err: any) {
+      alert('บันทึกการจับคู่ไม่สำเร็จ: ' + err.message)
+    } finally {
+      setSavingPairing(false)
+    }
+  }
+
+  const handleTogglePairing = async (id: string) => {
+    const updated = pairings.map(p => p.id === id ? { ...p, is_active: !p.is_active } : p)
+    await handleSavePairingsList(updated)
+  }
+
+  const handleDeletePairing = async (id: string) => {
+    if (confirm('ยืนยันลบรายการจับคู่นี้หรือไม่?')) {
+      const updated = pairings.filter(p => p.id !== id)
+      await handleSavePairingsList(updated)
+    }
+  }
+
+  const handleOpenAddPairingModal = () => {
+    setEditingPairing(null)
+    setPairingTitle('')
+    setPairingDescription('')
+    const foodList = products.filter(isFoodItem)
+    const wineList = products.filter(isWineOrDrink)
+    setPairingFoodId(foodList[0]?.id || products[0]?.id || '')
+    setPairingWineId(wineList[0]?.id || products[1]?.id || '')
+    setPairingDiscountType('percent')
+    setPairingDiscountValue(15)
+    setPairingIsActive(true)
+    setShowPairingModal(true)
+  }
+
+  const handleOpenEditPairingModal = (p: FoodWinePairing) => {
+    setEditingPairing(p)
+    setPairingTitle(p.title)
+    setPairingDescription(p.description || '')
+    setPairingFoodId(p.food_product_id)
+    setPairingWineId(p.wine_product_id)
+    setPairingDiscountType(p.discount_type)
+    setPairingDiscountValue(p.discount_value)
+    setPairingIsActive(p.is_active)
+    setShowPairingModal(true)
+  }
+
+  const handleSubmitPairingForm = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!pairingFoodId || !pairingWineId) {
+      alert('กรุณาเลือกทั้งอาหารและไวน์')
+      return
+    }
+    const food = products.find(p => p.id === pairingFoodId)
+    const wine = products.find(p => p.id === pairingWineId)
+    const title = pairingTitle.trim() || `${food?.name || 'อาหาร'} + ${wine?.name || 'ไวน์'}`
+
+    let updatedList: FoodWinePairing[]
+    if (editingPairing) {
+      updatedList = pairings.map(p => p.id === editingPairing.id ? {
+        ...p,
+        title,
+        description: pairingDescription.trim(),
+        food_product_id: pairingFoodId,
+        wine_product_id: pairingWineId,
+        discount_type: pairingDiscountType,
+        discount_value: Number(pairingDiscountValue) || 0,
+        is_active: pairingIsActive,
+      } : p)
+    } else {
+      const newP: FoodWinePairing = {
+        id: 'PAIR-' + Date.now(),
+        title,
+        description: pairingDescription.trim(),
+        food_product_id: pairingFoodId,
+        wine_product_id: pairingWineId,
+        discount_type: pairingDiscountType,
+        discount_value: Number(pairingDiscountValue) || 0,
+        is_active: pairingIsActive,
+        created_at: new Date().toISOString()
+      }
+      updatedList = [newP, ...pairings]
+    }
+    await handleSavePairingsList(updatedList)
+    setShowPairingModal(false)
+    setEditingPairing(null)
+  }
+
   // Filters
   const filteredProducts = products.filter(p => {
     const matchCat = selectedCategory === 'all' || p.category_id === selectedCategory
@@ -675,6 +804,7 @@ export default function ManagerDashboard() {
           { key: 'stock',         label: '⚙️ ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
           { key: 'payments',      label: '💳 ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
           { key: 'discounts',     label: '🔑 อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
+          { key: 'pairings',      label: '🍷 จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
           { key: 'reports',       label: '📈 รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
           { key: 'shop_reports',  label: '📋 รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
         ].map(tab => (
@@ -1844,6 +1974,398 @@ export default function ManagerDashboard() {
           </div>
         )
       })()}
+
+      {/* PAIRINGS TAB */}
+      {activeTab === 'pairings' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" style={{ background: '#FFFFFF' }}>
+            <div className="flex items-center gap-3">
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(35,64,168,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Wine size={24} style={{ color: '#2340A8' }} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800" style={{ margin: 0 }}>🍷 จับคู่อาหาร & Wine (Food & Wine Pairings)</h3>
+                <p className="text-xs text-slate-500" style={{ margin: '3px 0 0' }}>กำหนดและอนุมัติเซ็ตเมนูคู่ไวน์พร้อมมอบส่วนลดพิเศษ จะแสดงผลบนหน้าขาย POS ทันที</p>
+              </div>
+            </div>
+            <button
+              onClick={handleOpenAddPairingModal}
+              className="btn-primary"
+              style={{ padding: '10px 18px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <Plus size={16} />
+              สร้างการจับคู่ใหม่
+            </button>
+          </div>
+
+          {/* Stat Summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF' }}>
+              <span className="text-xs text-slate-500 font-semibold">การจับคู่ทั้งหมด</span>
+              <p className="text-2xl font-bold text-slate-800 mt-1">{pairings.length} รายการ</p>
+            </div>
+            <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF', borderLeft: '4px solid #22c55e' }}>
+              <span className="text-xs text-emerald-600 font-semibold">อนุมัติแล้ว / เปิดขายหน้าร้าน</span>
+              <p className="text-2xl font-bold text-emerald-700 mt-1">{pairings.filter(p => p.is_active).length} รายการ</p>
+            </div>
+            <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF', borderLeft: '4px solid #94a3b8' }}>
+              <span className="text-xs text-slate-400 font-semibold">ปิดใช้งาน / ยังไม่อนุมัติ</span>
+              <p className="text-2xl font-bold text-slate-500 mt-1">{pairings.filter(p => !p.is_active).length} รายการ</p>
+            </div>
+          </div>
+
+          {/* List of pairings */}
+          {pairings.length === 0 ? (
+            <div className="glass-card p-12 text-center" style={{ background: '#FFFFFF' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(35,64,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Wine size={32} style={{ color: '#2340A8' }} />
+              </div>
+              <h4 className="text-base font-bold text-slate-800 mb-2">ยังไม่มีรายการจับคู่อาหารและไวน์</h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto mb-6">สร้างชุดจับคู่เพื่อแนะนำลูกค้าหน้าร้านและมอบส่วนลดพิเศษเมื่อสั่งทั้งอาหารและไวน์คู่กัน</p>
+              <button onClick={handleOpenAddPairingModal} className="btn-primary">
+                <Plus size={16} /> สร้างการจับคู่แรก
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {pairings.map(pairing => {
+                const food = products.find(p => p.id === pairing.food_product_id)
+                const wine = products.find(p => p.id === pairing.wine_product_id)
+                const foodPrice = food?.price || 0
+                const winePrice = wine?.price || 0
+                const combined = foodPrice + winePrice
+                const discount = pairing.discount_type === 'percent'
+                  ? Math.round(combined * (pairing.discount_value / 100))
+                  : Math.min(pairing.discount_value, combined)
+                const finalPrice = Math.max(0, combined - discount)
+
+                return (
+                  <div
+                    key={pairing.id}
+                    className="glass-card overflow-hidden transition-all hover:shadow-md"
+                    style={{
+                      borderLeft: `4px solid ${pairing.is_active ? '#22c55e' : '#cbd5e1'}`,
+                      background: '#FFFFFF'
+                    }}
+                  >
+                    {/* Card Top bar */}
+                    <div className="p-4 border-b flex items-center justify-between gap-3" style={{ borderColor: 'rgba(35,64,168,0.08)', background: 'rgba(237,227,200,0.3)' }}>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{
+                              background: pairing.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.2)',
+                              color: pairing.is_active ? '#16a34a' : '#64748b'
+                            }}
+                          >
+                            {pairing.is_active ? '🟢 อนุมัติแล้ว (ขายหน้าร้าน)' : '⚪ ปิดใช้งาน (ยังไม่อนุมัติ)'}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-900 mt-1 truncate text-sm">{pairing.title}</h4>
+                        {pairing.description && (
+                          <p className="text-[11px] text-slate-500 mt-0.5 truncate">{pairing.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleTogglePairing(pairing.id)}
+                          title={pairing.is_active ? 'กดเพื่อระงับการขาย' : 'กดเพื่ออนุมัติและเปิดขาย'}
+                          style={{
+                            padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                            border: `1px solid ${pairing.is_active ? '#bbf7d0' : '#e2e8f0'}`,
+                            background: pairing.is_active ? '#f0fdf4' : '#f8fafc',
+                            color: pairing.is_active ? '#15803d' : '#64748b', cursor: 'pointer'
+                          }}
+                        >
+                          {pairing.is_active ? 'ระงับ' : 'อนุมัติ'}
+                        </button>
+                        <button
+                          onClick={() => handleOpenEditPairingModal(pairing)}
+                          style={{
+                            padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                            border: '1px solid #e2e8f0', background: '#ffffff', color: '#475569', cursor: 'pointer'
+                          }}
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePairing(pairing.id)}
+                          style={{
+                            padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                            border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', cursor: 'pointer'
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visual Pairing Products */}
+                    <div className="p-4 grid grid-cols-5 items-center gap-3">
+                      {/* Food */}
+                      <div className="col-span-2 text-center">
+                        <div style={{ width: 72, height: 72, borderRadius: 12, overflow: 'hidden', margin: '0 auto 6px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {food?.image_url ? (
+                            <img src={food.image_url} alt={food.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span style={{ fontSize: 32 }}>🍽️</span>
+                          )}
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 line-clamp-1">{food?.name || 'ไม่พบสินค้าอาหาร'}</p>
+                        <span className="text-[11px] text-slate-500 font-semibold">{formatCurrency(foodPrice)}</span>
+                      </div>
+
+                      {/* Plus icon */}
+                      <div className="col-span-1 flex flex-col items-center justify-center">
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(35,64,168,0.1)', color: '#2340A8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16 }}>
+                          +
+                        </div>
+                      </div>
+
+                      {/* Wine */}
+                      <div className="col-span-2 text-center">
+                        <div style={{ width: 72, height: 72, borderRadius: 12, overflow: 'hidden', margin: '0 auto 6px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {wine?.image_url ? (
+                            <img src={wine.image_url} alt={wine.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <span style={{ fontSize: 32 }}>🍷</span>
+                          )}
+                        </div>
+                        <p className="text-xs font-bold text-slate-800 line-clamp-1">{wine?.name || 'ไม่พบสินค้าไวน์'}</p>
+                        <span className="text-[11px] text-slate-500 font-semibold">{formatCurrency(winePrice)}</span>
+                      </div>
+                    </div>
+
+                    {/* Price & Discount Bar */}
+                    <div className="px-4 py-3 border-t flex items-center justify-between" style={{ borderColor: 'rgba(35,64,168,0.08)', background: '#fafaf9' }}>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="px-2.5 py-1 rounded-md text-xs font-extrabold"
+                          style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
+                        >
+                          🏷️ ลด {pairing.discount_type === 'percent' ? `${pairing.discount_value}%` : formatCurrency(pairing.discount_value)}
+                        </span>
+                        <span className="text-[11px] text-slate-400 line-through font-semibold">
+                          {formatCurrency(combined)}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-500 block">ราคาเซ็ตคู่</span>
+                        <span className="text-base font-black text-rose-700">
+                          {formatCurrency(finalPrice)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Modal for Creating / Editing Pairing */}
+          {showPairingModal && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(6px)' }} onClick={() => setShowPairingModal(false)} />
+              <div
+                className="animate-in"
+                style={{
+                  position: 'relative', width: '100%', maxWidth: 540, background: '#FFFFFF',
+                  borderRadius: 20, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden',
+                  border: '1px solid rgba(35,64,168,0.15)'
+                }}
+              >
+                {/* Modal Header */}
+                <div style={{ padding: '16px 20px', background: '#2340A8', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Wine size={20} />
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+                      {editingPairing ? 'แก้ไขการจับคู่อาหาร & Wine' : 'สร้างและอนุมัติการจับคู่ใหม่'}
+                    </h3>
+                  </div>
+                  <button onClick={() => setShowPairingModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Modal Form */}
+                <form onSubmit={handleSubmitPairingForm} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '80vh', overflowY: 'auto' }}>
+                  {/* Select Food */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      🍽️ เลือกอาหาร (Food Item) *
+                    </label>
+                    <select
+                      value={pairingFoodId}
+                      onChange={e => setPairingFoodId(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13, color: '#0f172a', background: '#fff' }}
+                    >
+                      <option value="">-- เลือกรายการอาหาร --</option>
+                      {products.filter(isFoodItem).map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({formatCurrency(p.price)})
+                        </option>
+                      ))}
+                      {products.filter(isFoodItem).length === 0 && products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({formatCurrency(p.price)})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Select Wine */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      🍷 เลือกไวน์ / เครื่องดื่ม (Wine Item) *
+                    </label>
+                    <select
+                      value={pairingWineId}
+                      onChange={e => setPairingWineId(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13, color: '#0f172a', background: '#fff' }}
+                    >
+                      <option value="">-- เลือกรายการไวน์ / เครื่องดื่ม --</option>
+                      {products.filter(isWineOrDrink).map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} {p.vintage ? `(${p.vintage})` : ''} — {formatCurrency(p.price)}
+                        </option>
+                      ))}
+                      {products.filter(isWineOrDrink).length === 0 && products.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({formatCurrency(p.price)})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      ชื่อโปรโมชั่นการจับคู่ (เว้นว่างเพื่อใช้ชื่อสินค้าอัตโนมัติ)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="เช่น Wagyu Ribeye Steak x Cabernet Sauvignon"
+                      value={pairingTitle}
+                      onChange={e => setPairingTitle(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      คำแนะนำรสชาติ / คำอธิบาย (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="เช่น รสสัมผัสเข้มข้นเข้ากันได้ดีกับไวน์บอดี้ฟูล"
+                      value={pairingDescription}
+                      onChange={e => setPairingDescription(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  {/* Discount Setting */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                        รูปแบบส่วนลด *
+                      </label>
+                      <select
+                        value={pairingDiscountType}
+                        onChange={e => setPairingDiscountType(e.target.value as any)}
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13 }}
+                      >
+                        <option value="percent">เปอร์เซ็นต์ (%)</option>
+                        <option value="fixed">จำนวนเงิน (บาท)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                        มูลค่าส่วนลด *
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={pairingDiscountValue}
+                          onChange={e => setPairingDiscountValue(Number(e.target.value))}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13, boxSizing: 'border-box' }}
+                        />
+                        <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#64748b', fontWeight: 700 }}>
+                          {pairingDiscountType === 'percent' ? '%' : '฿'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live Calculation Preview */}
+                  {(() => {
+                    const food = products.find(p => p.id === pairingFoodId)
+                    const wine = products.find(p => p.id === pairingWineId)
+                    const fPrice = food?.price || 0
+                    const wPrice = wine?.price || 0
+                    const sum = fPrice + wPrice
+                    const disc = pairingDiscountType === 'percent'
+                      ? Math.round(sum * (pairingDiscountValue / 100))
+                      : Math.min(pairingDiscountValue, sum)
+                    const totalPay = Math.max(0, sum - disc)
+                    return (
+                      <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px dashed #cbd5e1' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b', marginBottom: 4 }}>
+                          <span>รวมราคาเดิม:</span>
+                          <span>{formatCurrency(fPrice)} + {formatCurrency(wPrice)} = <strong>{formatCurrency(sum)}</strong></span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#ef4444', marginBottom: 6 }}>
+                          <span>ส่วนลด:</span>
+                          <span>-{formatCurrency(disc)} ({pairingDiscountType === 'percent' ? `${pairingDiscountValue}%` : 'บาท'})</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 900, color: '#0f172a', paddingTop: 6, borderTop: '1px solid #e2e8f0' }}>
+                          <span>ราคาขายจริงเซ็ตคู่:</span>
+                          <span style={{ color: '#b02238' }}>{formatCurrency(totalPay)}</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Active / Approved toggle */}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', paddingTop: 4 }}>
+                    <input
+                      type="checkbox"
+                      checked={pairingIsActive}
+                      onChange={e => setPairingIsActive(e.target.checked)}
+                      style={{ width: 18, height: 18, accentColor: '#2340A8' }}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+                      อนุมัติและเปิดขายหน้าร้าน POS ทันที (Active)
+                    </span>
+                  </label>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowPairingModal(false)}
+                      style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #cbd5e1', background: '#f1f5f9', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingPairing}
+                      className="btn-primary"
+                      style={{ flex: 2, padding: 12, borderRadius: 10 }}
+                    >
+                      {savingPairing ? 'กำลังบันทึก...' : editingPairing ? 'บันทึกการแก้ไข' : 'อนุมัติและบันทึกการจับคู่'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       </div>
 
       {/* Mobile Bottom Tab Bar for Manager Console */}
@@ -1864,6 +2386,7 @@ export default function ManagerDashboard() {
           { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={18} /> },
           { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={18} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
           { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={18} />, badge: discountRequests.length || null },
+          { key: 'pairings',      label: 'คู่ไวน์',      icon: <Wine size={18} />, badge: pairings.filter(p => p.is_active).length || null },
           { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={18} /> },
           { key: 'shop_reports',  label: 'รายงานร้าน',    icon: <ClipboardList size={18} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
         ].map(tab => {
