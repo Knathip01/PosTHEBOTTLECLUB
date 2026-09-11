@@ -34,8 +34,13 @@ const parseNote = (s?: string | null) => {
 
 const payLabel = (m: string) => ({cash:'เงินสด',transfer:'โอนเงิน',qr:'QR Code',card:'บัตร'}[m] || m)
 const PayIcon = ({ m }: { m: string }) => {
-  const icons: Record<string,React.ReactNode> = { cash:<Banknote size={14}/>, transfer:<CreditCard size={14}/>, qr:<QrCode size={14}/>, card:<CreditCard size={14}/> }
-  return <span style={{color:'#9ca3af'}}>{icons[m]||icons.cash}</span>
+  const icons: Record<string,React.ReactNode> = {
+    cash:<Banknote size={15} style={{color:'#16A34A'}}/>,
+    transfer:<CreditCard size={15} style={{color:'#2563EB'}}/>,
+    qr:<QrCode size={15} style={{color:'#7C3AED'}}/>,
+    card:<CreditCard size={15} style={{color:'#0284C7'}}/>
+  }
+  return <span style={{display:'inline-flex',alignItems:'center'}}>{icons[m]||icons.cash}</span>
 }
 
 // ─── Sound notification ──────────────────────────────────────────────────────────────
@@ -449,7 +454,7 @@ export default function CashierQueuePage() {
                               </span>
                               {ready && <span style={{fontSize:11,fontWeight:900,color:'#15803D',background:'#DCFCE7',border:'1.5px solid #86EFAC',padding:'2px 8px',borderRadius:999}}>🌟 พร้อมเสิร์ฟ</span>}
                               {urgent&&!ready && <span style={{fontSize:11,fontWeight:900,color:'#B91C1C',background:'#FEE2E2',border:'1.5px solid #FCA5A5',padding:'2px 8px',borderRadius:999}}>⚡ รีบด่วน</span>}
-                              {sale.status==='pending' && <span style={{fontSize:11,fontWeight:800,color:'#92400E',background:'#FEF3C7',border:'1px solid #FCD34D',padding:'2px 8px',borderRadius:6}}>รอชำระ</span>}
+                              {sale.status==='pending' && <span style={{fontSize:11,fontWeight:900,color:'#92400E',background:'#FEF3C7',border:'1.5px solid #F59E0B',padding:'2px 8px',borderRadius:6}}>⏳ รอชำระ</span>}
                             </div>
                             <p style={{margin:0,fontSize:12,color:'#334155',fontWeight:700,fontFamily:'monospace'}}>#{sale.receipt_no}</p>
                             {(sale.customers as any)?.full_name && <p style={{margin:'2px 0 0',fontSize:12,color:'#1E293B',fontWeight:600}}>👤 {(sale.customers as any).full_name}</p>}
@@ -590,7 +595,10 @@ export default function CashierQueuePage() {
                               <span style={{fontSize:11,color:'#475569',fontWeight:600}}>{formatDate(sale.created_at)}</span>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:6,marginTop:4,flexWrap:'wrap'}}>
-                              <div style={{display:'flex',alignItems:'center',gap:4}}><PayIcon m={sale.payment_method}/><span style={{fontSize:12,color:'#1E293B',fontWeight:700}}>{payLabel(sale.payment_method)}</span></div>
+                              <div style={{display:'inline-flex',alignItems:'center',gap:5,padding:'3px 8px',borderRadius:6,background:'#F1F5F9',border:'1px solid rgba(35,64,168,0.15)'}}>
+                                <PayIcon m={sale.payment_method}/>
+                                <span style={{fontSize:11,color:'#0F172A',fontWeight:800}}>{payLabel(sale.payment_method)}</span>
+                              </div>
                               <span style={{fontSize:11,color:'#475569',fontWeight:600}}>• {items.length} รายการ</span>
                               {(sale.customers as any)?.full_name && <span style={{fontSize:11,color:'#1E293B',fontWeight:700}}>• {(sale.customers as any).full_name}</span>}
                             </div>

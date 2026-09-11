@@ -46,15 +46,16 @@ function CopyButton({ text }: { text: string }) {
   }
   return (
     <button onClick={handleCopy} style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
-      padding: '4px 10px', borderRadius: 8,
-      border: copied ? '1px solid rgba(34,197,94,0.4)' : '1px solid var(--border-color)',
-      background: copied ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
-      color: copied ? '#4ade80' : 'var(--text-muted)',
-      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '5px 12px', borderRadius: 8,
+      border: copied ? '1.5px solid #16A34A' : '1.5px solid #38BDF8',
+      background: copied ? '#DCFCE7' : '#FFFFFF',
+      color: copied ? '#15803D' : '#0284C7',
+      fontSize: 11, fontWeight: 800, cursor: 'pointer',
       transition: 'all 0.2s ease',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     }}>
-      {copied ? <Check size={11} /> : <Copy size={11} />}
+      {copied ? <Check size={12} /> : <Copy size={12} />}
       {copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
     </button>
   )
@@ -374,22 +375,22 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       key: 'cash',
       label: 'เงินสด', labelEn: 'Cash',
       icon: <Banknote size={22} />,
-      color: '#22c55e', glow: 'rgba(34,197,94,0.25)',
-      gradient: 'linear-gradient(135deg,#166534 0%,#22c55e 100%)',
+      color: '#059669', glow: 'rgba(5,150,105,0.3)',
+      gradient: 'linear-gradient(135deg,#059669 0%,#10b981 100%)',
     },
     {
       key: 'qr',
       label: 'สแกน QR', labelEn: 'PromptPay',
       icon: <QrCode size={22} />,
-      color: '#a78bfa', glow: 'rgba(167,139,250,0.25)',
-      gradient: 'linear-gradient(135deg,#4c1d95 0%,#a78bfa 100%)',
+      color: '#4338ca', glow: 'rgba(67,56,202,0.3)',
+      gradient: 'linear-gradient(135deg,#4338ca 0%,#6366f1 100%)',
     },
     {
       key: 'transfer',
       label: 'โอนเงิน', labelEn: 'Transfer',
       icon: <ArrowLeftRight size={22} />,
-      color: '#38bdf8', glow: 'rgba(56,189,248,0.25)',
-      gradient: 'linear-gradient(135deg,#0c4a6e 0%,#38bdf8 100%)',
+      color: '#1e3a8a', glow: 'rgba(30,58,138,0.3)',
+      gradient: 'linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%)',
     },
   ]
 
@@ -423,29 +424,30 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             }}>
               {isPending ? <Clock size={38} color="white" /> : <CheckCircle2 size={38} color="white" />}
             </div>
-            <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: 'white' }}>
+            <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 900, color: '#0F172A' }}>
               {isPending ? 'สั่งซื้อแล้ว (รออนุมัติ)!' : 'ชำระเงินสำเร็จ!'}
             </h2>
-            <p style={{ margin: '0 0 22px', fontSize: 13, color: 'var(--text-muted)' }}>#{receipt.receipt_no}</p>
+            <p style={{ margin: '0 0 22px', fontSize: 13, color: '#475569', fontWeight: 700, fontFamily: 'monospace' }}>#{receipt.receipt_no}</p>
 
             <div style={{
-              background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+              background: '#F8FAFC', border: '1.5px solid rgba(35,64,168,0.18)',
               borderRadius: 16, padding: '16px 20px', marginBottom: 20, textAlign: 'left',
+              boxShadow: '0 2px 8px rgba(35,64,168,0.05)',
             }}>
               <SummaryRow label="วิธีชำระ" value={currentMethod.label} />
               <SummaryRow label="ยอดชำระ" value={formatCurrency(receipt.total)} bold />
               {isPending && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 13 }}>
-                  <span style={{ color: 'var(--text-muted)' }}>สถานะ</span>
-                  <span style={{ color: '#f59e0b', fontWeight: 700 }}>รอตรวจสอบ & อนุมัติ</span>
+                  <span style={{ color: '#475569', fontWeight: 700 }}>สถานะ</span>
+                  <span style={{ color: '#B45309', fontWeight: 800 }}>รอตรวจสอบ & อนุมัติ</span>
                 </div>
               )}
               {paymentMethod === 'cash' && (
                 <>
                   <SummaryRow label="รับเงิน" value={formatCurrency(cashAmount)} />
-                  <div style={{ borderTop: '1px solid var(--border-color)', marginTop: 10, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#4ade80', fontWeight: 600, fontSize: 14 }}>เงินทอน</span>
-                    <span style={{ color: '#4ade80', fontWeight: 800, fontSize: 26, fontVariantNumeric: 'tabular-nums' }}>
+                  <div style={{ borderTop: '1.5px solid rgba(35,64,168,0.15)', marginTop: 10, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#15803D', fontWeight: 800, fontSize: 14 }}>เงินทอน</span>
+                    <span style={{ color: '#15803D', fontWeight: 900, fontSize: 28, fontVariantNumeric: 'tabular-nums' }}>
                       {formatCurrency(receipt.change)}
                     </span>
                   </div>
@@ -455,14 +457,14 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 <SummaryRow label="เลขอ้างอิง" value={referenceNo} />
               )}
               {cart.customer && (
-                <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 10, background: 'rgba(242,198,92,0.08)', border: '1px solid rgba(242,198,92,0.2)' }}>
-                  <span style={{ fontSize: 12, color: 'var(--gold-400)' }}>
+                <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 10, background: '#FEF3C7', border: '1.5px solid #FCD34D' }}>
+                  <span style={{ fontSize: 12, color: '#92400E', fontWeight: 800 }}>
                     ✨ {cart.customer.full_name} {isPending ? 'จะได้รับ' : 'ได้รับ'} {Math.floor(receipt.total / 100)} แต้ม
                   </span>
                 </div>
               )}
               {isPending && (
-                <p style={{ margin: '10px 0 0', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: 10 }}>
+                <p style={{ margin: '10px 0 0', fontSize: 11, color: '#64748B', fontWeight: 600, lineHeight: 1.5, textAlign: 'center', borderTop: '1px solid rgba(35,64,168,0.12)', paddingTop: 10 }}>
                   * บิลจะส่งเข้าครัว/สต๊อกจะตัด เมื่อได้รับการอนุมัติชำระเงินจากผู้จัดการ
                 </p>
               )}
@@ -471,23 +473,29 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             {isPending ? (
               <button onClick={onSuccess} style={{
                 ...ghostBtnStyle,
-                background: 'linear-gradient(135deg,#d97706,#f59e0b)',
-                borderColor: 'transparent', color: 'white', fontWeight: 700,
-                width: '100%'
+                background: 'linear-gradient(135deg,#d97706 0%,#f59e0b 100%)',
+                borderColor: 'transparent', color: '#FFFFFF', fontWeight: 900, fontSize: 14,
+                width: '100%', minHeight: 48, boxShadow: '0 6px 20px rgba(217,119,6,0.35)',
               }}>
-                <Sparkles size={15} /> บิลใหม่ / รับคิวถัดไป
+                <Sparkles size={16} /> บิลใหม่ / รับคิวถัดไป
               </button>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button onClick={handlePrintReceipt} style={ghostBtnStyle}>
-                  <Printer size={15} /> พิมพ์ใบเสร็จ
+                <button onClick={handlePrintReceipt} style={{
+                  ...ghostBtnStyle,
+                  background: '#FFFFFF', border: '2px solid rgba(35,64,168,0.3)',
+                  color: '#1E3A8A', fontWeight: 900, fontSize: 14, minHeight: 48,
+                  boxShadow: '0 2px 8px rgba(35,64,168,0.08)',
+                }}>
+                  <Printer size={16} /> พิมพ์ใบเสร็จ
                 </button>
                 <button onClick={onSuccess} style={{
                   ...ghostBtnStyle,
-                  background: 'linear-gradient(135deg,#166534,#22c55e)',
-                  borderColor: 'transparent', color: 'white', fontWeight: 700,
+                  background: 'linear-gradient(135deg,#059669 0%,#10b981 100%)',
+                  borderColor: 'transparent', color: '#FFFFFF', fontWeight: 900, fontSize: 14, minHeight: 48,
+                  boxShadow: '0 6px 20px rgba(5,150,105,0.35)',
                 }}>
-                  <Sparkles size={15} /> บิลใหม่
+                  <Sparkles size={16} /> บิลใหม่
                 </button>
               </div>
             )}
@@ -514,16 +522,17 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 20px', borderBottom: '1px solid var(--border-color)',
+          padding: '16px 20px', background: '#2340A8',
+          borderBottom: '1px solid rgba(255,255,255,0.15)',
         }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: 'white' }}>ชำระเงิน</h2>
-            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{cart.items.length} รายการ</p>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.3px' }}>ชำระเงิน</h2>
+            <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 2, fontWeight: 700 }}>{cart.items.length} รายการ</p>
           </div>
           <button onClick={onClose} style={{
-            width: 36, height: 36, borderRadius: 10, border: '1px solid var(--border-color)',
-            background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-secondary)', cursor: 'pointer',
+            width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#FFFFFF', cursor: 'pointer', transition: 'all 0.15s ease',
           }}><X size={18} /></button>
         </div>
 
@@ -533,20 +542,18 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
           {/* Amount display */}
           <div style={{
             padding: '18px 20px 14px',
-            background: `linear-gradient(160deg, rgba(${hexToRgb(currentMethod.color)},0.08) 0%, transparent 60%)`,
-            borderBottom: '1px solid var(--border-color)',
+            background: '#F8FAFC',
+            borderBottom: '1.5px solid rgba(35,64,168,0.12)',
             transition: 'background 0.4s ease',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <p style={{ margin: '0 0 3px', fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>ยอดที่ต้องชำระ</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                  <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>฿</span>
+                <p style={{ margin: '0 0 4px', fontSize: 11, color: '#475569', fontWeight: 800, letterSpacing: '0.6px', textTransform: 'uppercase' }}>ยอดที่ต้องชำระ</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 15, color: '#64748B', fontWeight: 800 }}>฿</span>
                   <span style={{
-                    fontSize: 40, fontWeight: 800, letterSpacing: '-1.5px', lineHeight: 1,
-                    color: currentMethod.color,
-                    textShadow: `0 0 28px ${currentMethod.glow}`,
-                    transition: 'color 0.4s ease',
+                    fontSize: 42, fontWeight: 900, letterSpacing: '-1.5px', lineHeight: 1,
+                    color: '#0F172A',
                     fontVariantNumeric: 'tabular-nums',
                   }}>
                     {total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -555,21 +562,21 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               </div>
               {cart.customer && (
                 <div style={{
-                  padding: '5px 10px', borderRadius: 20,
-                  background: 'rgba(242,198,92,0.1)', border: '1px solid rgba(242,198,92,0.2)',
-                  fontSize: 11, color: 'var(--gold-400)', whiteSpace: 'nowrap',
+                  padding: '6px 12px', borderRadius: 20,
+                  background: '#FEF3C7', border: '1.5px solid #FCD34D',
+                  fontSize: 12, fontWeight: 800, color: '#92400E', whiteSpace: 'nowrap',
                 }}>🌟 +{Math.floor(total / 100)} แต้ม</div>
               )}
             </div>
             {cart.discount_amount > 0 && (
               <div style={{ marginTop: 8 }}>
                 <span style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: cart.discount_note?.includes('คู่') ? '#b02238' : '#4ade80',
-                  padding: '4px 10px', borderRadius: 8,
-                  background: cart.discount_note?.includes('คู่') ? 'rgba(176,34,56,0.1)' : 'rgba(74,222,128,0.1)',
-                  border: cart.discount_note?.includes('คู่') ? '1px solid rgba(176,34,56,0.25)' : '1px solid rgba(74,222,128,0.2)',
-                  display: 'inline-flex', alignItems: 'center', gap: 5
+                  fontSize: 12, fontWeight: 800,
+                  color: cart.discount_note?.includes('คู่') ? '#BE123C' : '#047857',
+                  padding: '5px 12px', borderRadius: 9,
+                  background: cart.discount_note?.includes('คู่') ? '#FFF1F2' : '#ECFDF5',
+                  border: cart.discount_note?.includes('คู่') ? '1.5px solid #FDA4AF' : '1.5px solid #86EFAC',
+                  display: 'inline-flex', alignItems: 'center', gap: 6
                 }}>
                   {cart.discount_note?.includes('คู่') ? '🍷' : '🏷️'}
                   {cart.discount_note || 'ส่วนลด'} −{formatCurrency(cart.discount_amount)}
@@ -579,11 +586,11 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
           </div>
 
           {/* Payment method tabs — 3 methods */}
-          <div style={{ padding: '14px 20px 0' }}>
-            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+          <div style={{ padding: '16px 20px 0' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 900, letterSpacing: '0.5px', textTransform: 'uppercase', color: '#0F172A' }}>
               วิธีชำระเงิน
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {METHODS.map(m => {
                 const active = paymentMethod === m.key
                 return (
@@ -593,27 +600,25 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center',
                       gap: 6, padding: '14px 8px', borderRadius: 14,
-                      border: active ? `1.5px solid ${m.color}` : '1.5px solid var(--border-color)',
-                      background: active
-                        ? `linear-gradient(160deg, rgba(${hexToRgb(m.color)},0.18) 0%, rgba(${hexToRgb(m.color)},0.06) 100%)`
-                        : 'var(--bg-card)',
-                      color: active ? m.color : 'var(--text-secondary)',
+                      border: active ? `2px solid ${m.color}` : '2px solid rgba(35,64,168,0.18)',
+                      background: active ? m.gradient : '#FFFFFF',
+                      color: active ? '#FFFFFF' : '#1E293B',
                       cursor: 'pointer',
                       transition: 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)',
                       transform: active ? 'translateY(-2px)' : 'translateY(0)',
-                      boxShadow: active ? `0 6px 20px ${m.glow}` : 'none',
+                      boxShadow: active ? `0 6px 20px ${m.glow}` : '0 2px 6px rgba(35,64,168,0.06)',
                     }}
                   >
                     <div style={{
                       width: 42, height: 42, borderRadius: 12,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: active ? m.gradient : 'rgba(255,255,255,0.04)',
-                      color: active ? 'white' : m.color,
+                      background: active ? 'rgba(255,255,255,0.25)' : '#F1F5F9',
+                      color: active ? '#FFFFFF' : m.color,
                       transition: 'all 0.25s ease',
                     }}>{m.icon}</div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 12, fontWeight: active ? 700 : 500 }}>{m.label}</div>
-                      <div style={{ fontSize: 9, color: active ? m.color : 'var(--text-muted)', opacity: 0.8 }}>{m.labelEn}</div>
+                      <div style={{ fontSize: 13, fontWeight: active ? 900 : 800, color: active ? '#FFFFFF' : '#0F172A' }}>{m.label}</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: active ? 'rgba(255,255,255,0.9)' : '#64748B' }}>{m.labelEn}</div>
                     </div>
                   </button>
                 )
@@ -629,40 +634,43 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               <div style={{ animation: 'fadeIn 0.2s ease' }}>
                 <div style={{
                   borderRadius: 16, padding: '16px 18px',
-                  background: 'linear-gradient(160deg,rgba(34,197,94,0.08) 0%,rgba(22,163,74,0.04) 100%)',
-                  border: '1px solid rgba(34,197,94,0.2)', marginBottom: 12,
+                  background: '#F0FDF4',
+                  border: '2px solid #86EFAC', marginBottom: 14,
+                  boxShadow: '0 2px 8px rgba(16,185,129,0.08)',
                 }}>
-                  <p style={{ margin: '0 0 5px', fontSize: 11, color: '#86efac', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  <p style={{ margin: '0 0 5px', fontSize: 12, color: '#166534', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                     จำนวนเงินที่รับ
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                    <span style={{ fontSize: 15, color: '#86efac' }}>฿</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 16, color: '#166534', fontWeight: 800 }}>฿</span>
                     <span style={{
-                      fontSize: 42, fontWeight: 800, letterSpacing: '-1.5px', lineHeight: 1,
-                      color: cashAmount > 0 ? 'white' : 'var(--text-muted)',
+                      fontSize: 42, fontWeight: 900, letterSpacing: '-1.5px', lineHeight: 1,
+                      color: cashAmount > 0 ? '#0F172A' : '#94A3B8',
                       fontVariantNumeric: 'tabular-nums',
                     }}>{cashInput || '0'}</span>
                   </div>
 
                   {cashAmount >= total && cashAmount > 0 && (
                     <div style={{
-                      marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(34,197,94,0.2)',
+                      marginTop: 12, paddingTop: 10, borderTop: '1.5px solid #86EFAC',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      background: '#DCFCE7', borderRadius: 10, padding: '10px 14px',
                       animation: 'fadeIn 0.2s ease',
                     }}>
-                      <span style={{ fontSize: 13, color: '#86efac' }}>เงินทอน</span>
-                      <span style={{ fontSize: 26, fontWeight: 800, color: '#4ade80', textShadow: '0 0 16px rgba(74,222,128,0.4)', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: 14, color: '#15803D', fontWeight: 900 }}>เงินทอน</span>
+                      <span style={{ fontSize: 28, fontWeight: 900, color: '#15803D', fontVariantNumeric: 'tabular-nums' }}>
                         ฿{change.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
                   )}
                   {cashAmount > 0 && cashAmount < total && (
                     <div style={{
-                      marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(239,68,68,0.2)',
+                      marginTop: 12, paddingTop: 10, borderTop: '1.5px solid #FCA5A5',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      background: '#FEE2E2', borderRadius: 10, padding: '10px 14px',
                     }}>
-                      <span style={{ fontSize: 13, color: '#fca5a5' }}>ขาดอีก</span>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: '#ef4444', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: 14, color: '#991B1B', fontWeight: 900 }}>ยังขาดอีก</span>
+                      <span style={{ fontSize: 24, fontWeight: 900, color: '#DC2626', fontVariantNumeric: 'tabular-nums' }}>
                         ฿{(total - cashAmount).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -670,13 +678,18 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 </div>
 
                 {/* Quick presets */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                   <button onClick={() => setCashInput(total.toFixed(2))} style={{
                     ...quickPresetStyle,
-                    background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80', fontWeight: 700,
+                    background: '#DCFCE7', border: '2px solid #16A34A', color: '#15803D', fontWeight: 900,
+                    boxShadow: '0 2px 8px rgba(22,163,74,0.18)',
                   }}>พอดี ฿{formatCurrency(total)}</button>
                   {[20, 50, 100, 500, 1000].filter(a => a > total).slice(0, 3).map(amt => (
-                    <button key={amt} onClick={() => setCashInput(amt.toFixed(2))} style={quickPresetStyle}>
+                    <button key={amt} onClick={() => setCashInput(amt.toFixed(2))} style={{
+                      ...quickPresetStyle,
+                      background: '#FFFFFF', border: '2px solid rgba(35,64,168,0.22)', color: '#1E3A8A', fontWeight: 900,
+                      boxShadow: '0 2px 6px rgba(35,64,168,0.08)',
+                    }}>
                       ฿{amt.toLocaleString()}
                     </button>
                   ))}
@@ -690,23 +703,24 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                       onClick={() => handleNumpadPress(key)}
                       style={{
                         height: 56, borderRadius: 14,
-                        border: '1px solid var(--border-color)',
-                        background: key === '⌫' ? 'rgba(239,68,68,0.08)' : 'var(--bg-card)',
-                        color: key === '⌫' ? '#fca5a5' : 'white',
-                        fontSize: key === '⌫' ? 18 : 21, fontWeight: 600,
+                        border: key === '⌫' ? '2px solid #FCA5A5' : '2px solid rgba(35,64,168,0.18)',
+                        background: key === '⌫' ? '#FEE2E2' : '#FFFFFF',
+                        color: key === '⌫' ? '#DC2626' : '#0F172A',
+                        fontSize: key === '⌫' ? 20 : 23, fontWeight: 900,
                         cursor: 'pointer', transition: 'all 0.1s ease',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         WebkitUserSelect: 'none', userSelect: 'none',
+                        boxShadow: key === '⌫' ? '0 2px 6px rgba(239,68,68,0.1)' : '0 2px 6px rgba(35,64,168,0.08)',
                       }}
                       onPointerDown={e => {
                         const el = e.currentTarget
-                        el.style.transform = 'scale(0.92)'
-                        el.style.background = key === '⌫' ? 'rgba(239,68,68,0.2)' : 'var(--bg-elevated)'
+                        el.style.transform = 'scale(0.93)'
+                        el.style.background = key === '⌫' ? '#FECACA' : '#E2E8F0'
                       }}
                       onPointerUp={e => {
                         const el = e.currentTarget
                         el.style.transform = 'scale(1)'
-                        el.style.background = key === '⌫' ? 'rgba(239,68,68,0.08)' : 'var(--bg-card)'
+                        el.style.background = key === '⌫' ? '#FEE2E2' : '#FFFFFF'
                       }}
                     >{key}</button>
                   ))}
@@ -719,19 +733,21 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               <div style={{ animation: 'fadeIn 0.2s ease', textAlign: 'center' }}>
                 <div style={{
                   borderRadius: 20, padding: '22px 20px',
-                  background: 'linear-gradient(160deg,rgba(167,139,250,0.08) 0%,rgba(124,58,237,0.04) 100%)',
-                  border: '1px solid rgba(167,139,250,0.25)',
+                  background: '#F8FAFC',
+                  border: '2px solid rgba(99,102,241,0.25)',
                   marginBottom: 14,
+                  boxShadow: '0 2px 8px rgba(99,102,241,0.06)',
                 }}>
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
                     <div style={{
-                      width: 28, height: 28, borderRadius: 8,
-                      background: 'linear-gradient(135deg,#4c1d95,#a78bfa)',
+                      width: 30, height: 30, borderRadius: 8,
+                      background: 'linear-gradient(135deg,#4338ca,#6366f1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}><QrCode size={16} color="white" /></div>
-                    <span style={{ fontWeight: 700, color: '#a78bfa', fontSize: 15 }}>PromptPay</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', padding: '2px 8px', borderRadius: 20, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.2)' }}>
+                      boxShadow: '0 2px 6px rgba(67,56,202,0.25)',
+                    }}><QrCode size={17} color="white" /></div>
+                    <span style={{ fontWeight: 900, color: '#4338CA', fontSize: 15 }}>PromptPay QR</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: '#312E81', padding: '3px 10px', borderRadius: 20, background: '#EEF2FF', border: '1.5px solid #C7D2FE' }}>
                       {PROMPTPAY_PHONE}
                     </span>
                   </div>
@@ -739,8 +755,9 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                   {/* QR Code */}
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <div style={{
-                      padding: 16, borderRadius: 18, background: 'white',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                      padding: 16, borderRadius: 18, background: '#FFFFFF',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                      border: '2px solid #E2E8F0',
                       opacity: qrExpired ? 0.3 : 1,
                       transition: 'opacity 0.3s ease',
                       filter: qrExpired ? 'blur(2px)' : 'none',
@@ -755,19 +772,20 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                     {qrExpired && (
                       <div style={{
                         position: 'absolute', inset: 0, borderRadius: 18,
-                        background: 'rgba(10,12,16,0.7)', backdropFilter: 'blur(4px)',
+                        background: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(4px)',
                         display: 'flex', flexDirection: 'column', alignItems: 'center',
                         justifyContent: 'center', gap: 8,
                       }}>
-                        <AlertTriangle size={26} color="#fbbf24" />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>QR หมดอายุแล้ว</span>
+                        <AlertTriangle size={28} color="#FBBF24" />
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>QR หมดอายุแล้ว</span>
                         <button onClick={refreshQR} style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          padding: '7px 16px', borderRadius: 10,
-                          background: 'linear-gradient(135deg,#4c1d95,#a78bfa)',
-                          border: 'none', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          padding: '8px 18px', borderRadius: 10,
+                          background: 'linear-gradient(135deg,#4338ca,#6366f1)',
+                          border: 'none', color: '#FFFFFF', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(67,56,202,0.35)',
                         }}>
-                          <RefreshCw size={12} /> สร้าง QR ใหม่
+                          <RefreshCw size={13} /> สร้าง QR ใหม่
                         </button>
                       </div>
                     )}
@@ -777,22 +795,22 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                   <div style={{
                     marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '10px 22px', borderRadius: 24,
-                    background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)',
+                    background: '#EEF2FF', border: '2px solid #C7D2FE',
                   }}>
-                    <span style={{ fontSize: 13, color: '#c4b5fd' }}>ยอดชำระ</span>
-                    <span style={{ fontSize: 22, fontWeight: 800, color: 'white', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ fontSize: 13, color: '#4338CA', fontWeight: 800 }}>ยอดชำระ</span>
+                    <span style={{ fontSize: 24, fontWeight: 900, color: '#1E1B4B', fontVariantNumeric: 'tabular-nums' }}>
                       {formatCurrency(total)}
                     </span>
                   </div>
 
                   {/* Timer */}
-                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <div style={{
-                      width: 6, height: 6, borderRadius: '50%',
-                      background: qrExpired ? '#ef4444' : '#4ade80',
+                      width: 7, height: 7, borderRadius: '50%',
+                      background: qrExpired ? '#EF4444' : '#16A34A',
                       animation: qrExpired ? 'none' : 'blink 1s infinite',
                     }} />
-                    <span style={{ fontSize: 12, color: qrExpired ? '#fca5a5' : 'var(--text-muted)' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: qrExpired ? '#DC2626' : '#334155' }}>
                       {qrExpired ? 'หมดอายุแล้ว — กด "สร้าง QR ใหม่"' : `หมดอายุใน ${formatTimer(qrTimer)}`}
                     </span>
                   </div>
@@ -801,7 +819,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 {/* Ref input */}
                 <label style={labelStyle}>เลขอ้างอิงธุรกรรม (ใส่หลังลูกค้าชำระแล้ว)</label>
                 <div style={{ position: 'relative' }}>
-                  <Hash size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <Hash size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
                   <input
                     type="text"
                     placeholder="เช่น Ref. 123456789..."
@@ -818,61 +836,64 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               <div style={{ animation: 'fadeIn 0.2s ease' }}>
                 <div style={{
                   borderRadius: 18, overflow: 'hidden',
-                  border: '1px solid rgba(56,189,248,0.25)', marginBottom: 14,
+                  border: '2px solid rgba(35,64,168,0.22)', marginBottom: 14,
+                  boxShadow: '0 2px 8px rgba(35,64,168,0.06)',
                 }}>
                   {/* SCB Bank card */}
                   <div style={{
                     padding: '18px 20px',
                     background: 'linear-gradient(135deg,#4a148c 0%,#7b1fa2 50%,#9c27b0 100%)',
                     position: 'relative', overflow: 'hidden',
+                    boxShadow: '0 4px 16px rgba(107,33,168,0.25)',
                   }}>
                     {/* Decorative circles */}
-                    <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-                    <div style={{ position: 'absolute', bottom: -10, right: 40, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+                    <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+                    <div style={{ position: 'absolute', bottom: -10, right: 40, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                       {/* SCB logo placeholder */}
                       <div style={{
                         width: 40, height: 40, borderRadius: 10,
-                        background: 'rgba(255,255,255,0.15)',
+                        background: 'rgba(255,255,255,0.2)',
                         backdropFilter: 'blur(8px)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        fontWeight: 900, fontSize: 14, color: 'white', letterSpacing: '-0.5px',
+                        border: '1.5px solid rgba(255,255,255,0.3)',
+                        fontWeight: 900, fontSize: 14, color: '#FFFFFF', letterSpacing: '-0.5px',
                       }}>SCB</div>
                       <div>
-                        <p style={{ margin: 0, fontWeight: 700, color: 'white', fontSize: 14 }}>ธนาคารไทยพาณิชย์</p>
-                        <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>Siam Commercial Bank</p>
+                        <p style={{ margin: 0, fontWeight: 900, color: '#FFFFFF', fontSize: 15 }}>ธนาคารไทยพาณิชย์</p>
+                        <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>Siam Commercial Bank</p>
                       </div>
                     </div>
 
                     {/* Account number */}
-                    <p style={{ margin: '0 0 4px', fontSize: 11, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.5px' }}>เลขที่บัญชี</p>
+                    <p style={{ margin: '0 0 4px', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.6px', fontWeight: 700 }}>เลขที่บัญชี</p>
                     <p style={{
-                      margin: '0 0 4px', fontSize: 24, fontWeight: 800, color: 'white',
+                      margin: '0 0 4px', fontSize: 24, fontWeight: 900, color: '#FFFFFF',
                       letterSpacing: 3, fontVariantNumeric: 'tabular-nums',
                       fontFamily: 'monospace',
                     }}>{SCB_ACCOUNT_NO}</p>
-                    <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>{SCB_ACCOUNT_NAME}</p>
+                    <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.95)', fontWeight: 700 }}>{SCB_ACCOUNT_NAME}</p>
                   </div>
 
                   {/* Amount row */}
                   <div style={{
                     padding: '14px 20px',
-                    background: 'rgba(56,189,248,0.06)',
+                    background: '#F0F9FF',
+                    borderBottom: '1px solid #BAE6FD',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}>
                     <div>
-                      <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>ยอดที่ต้องโอน</p>
+                      <p style={{ margin: 0, fontSize: 11, color: '#0369A1', fontWeight: 800 }}>ยอดที่ต้องโอน</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                        <span style={{ fontSize: 26, fontWeight: 800, color: 'white', fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                           {formatCurrency(total)}
                         </span>
                         <CopyButton text={total.toFixed(2)} />
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>เลขบัญชี</p>
+                      <p style={{ margin: 0, fontSize: 11, color: '#0369A1', fontWeight: 800 }}>เลขบัญชี</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                         <CopyButton text={SCB_ACCOUNT_NO.replace(/-/g, '')} />
                       </div>
@@ -882,12 +903,12 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                   {/* Info row */}
                   <div style={{
                     padding: '10px 20px',
-                    background: 'rgba(56,189,248,0.04)',
-                    borderTop: '1px solid var(--border-color)',
+                    background: '#F8FAFC',
+                    borderTop: '1px solid rgba(35,64,168,0.1)',
                     display: 'flex', alignItems: 'center', gap: 8,
                   }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8', flexShrink: 0, animation: 'blink 1.5s infinite' }} />
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0284C7', flexShrink: 0, animation: 'blink 1.5s infinite' }} />
+                    <span style={{ fontSize: 12, color: '#475569', fontWeight: 700 }}>
                       โอนแล้วกรุณากรอกเลข ref ด้านล่าง แล้วกดยืนยัน
                     </span>
                   </div>
@@ -896,7 +917,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 {/* Ref input */}
                 <label style={labelStyle}>เลขอ้างอิงการโอน (ไม่บังคับ)</label>
                 <div style={{ position: 'relative' }}>
-                  <Hash size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <Hash size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
                   <input
                     type="text"
                     placeholder="เช่น Ref. 202507150001..."
@@ -911,11 +932,11 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             {/* Camera / Slip Capture for QR and Transfer methods */}
             {(paymentMethod === 'qr' || paymentMethod === 'transfer') && (
               <div style={{
-                marginTop: 16, background: 'rgba(255,255,255,0.02)',
-                border: '1px solid var(--border-color)', borderRadius: 18,
-                padding: 16
+                marginTop: 16, background: '#F8FAFC',
+                border: '2px solid rgba(35,64,168,0.18)', borderRadius: 18,
+                padding: 16, boxShadow: '0 2px 8px rgba(35,64,168,0.05)',
               }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 900, color: '#0F172A', marginBottom: 12 }}>
                   📸 ถ่ายภาพสลิปจากลูกค้า (โอนเงิน / สแกน QR)
                 </label>
 
@@ -924,7 +945,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                     <div style={{
                       position: 'relative', width: '100%', aspectRatio: '4/3',
                       background: '#000', borderRadius: 14, overflow: 'hidden',
-                      border: '1px solid rgba(255,255,255,0.08)'
+                      border: '2px solid #CBD5E1'
                     }}>
                       <video
                         ref={videoRef}
@@ -934,7 +955,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                       />
                       <div style={{
                         position: 'absolute', inset: '16px',
-                        border: '1px dashed rgba(255,255,255,0.15)',
+                        border: '2px dashed rgba(255,255,255,0.4)',
                         pointerEvents: 'none', borderRadius: 8
                       }} />
                     </div>
@@ -943,9 +964,10 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                         type="button"
                         onClick={capturePhoto}
                         style={{
-                          padding: '10px 20px', borderRadius: 12, border: 'none',
-                          background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: 'white',
-                          fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          padding: '12px 24px', borderRadius: 12, border: 'none',
+                          background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#FFFFFF',
+                          fontSize: 13, fontWeight: 900, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(2,132,199,0.35)',
                         }}
                       >
                         กดถ่ายภาพ 📸
@@ -954,9 +976,9 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                         type="button"
                         onClick={stopCamera}
                         style={{
-                          padding: '10px 20px', borderRadius: 12,
-                          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                          color: '#9aa3b2', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          padding: '12px 20px', borderRadius: 12,
+                          background: '#FFFFFF', border: '2px solid #CBD5E1',
+                          color: '#334155', fontSize: 13, fontWeight: 800, cursor: 'pointer'
                         }}
                       >
                         ยกเลิก
@@ -966,32 +988,32 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                 ) : (
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     {slipImage ? (
-                      <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                      <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '2px solid #3B82F6', flexShrink: 0, boxShadow: '0 2px 8px rgba(59,130,246,0.2)' }}>
                         <img src={slipImage} alt="captured slip" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <button
                           type="button"
                           onClick={() => setSlipImage(null)}
                           style={{
                             position: 'absolute', top: 4, right: 4,
-                            background: '#ef4444', border: 'none', color: 'white',
-                            borderRadius: '50%', width: 20, height: 20,
+                            background: '#EF4444', border: 'none', color: '#FFFFFF',
+                            borderRadius: '50%', width: 22, height: 22,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', padding: 0
+                            cursor: 'pointer', padding: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                           }}
                         >
-                          <X size={12} />
+                          <X size={13} />
                         </button>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', width: '100%' }}>
                         <button
                           type="button"
                           onClick={startCamera}
                           style={{
-                            height: '50px', padding: '0 16px', borderRadius: '12px',
-                            border: '1px dashed rgba(56,189,248,0.4)', background: 'rgba(56,189,248,0.03)',
-                            color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                            fontSize: 13, fontWeight: 700
+                            flex: 1, minWidth: 140, height: '52px', padding: '0 18px', borderRadius: '12px',
+                            border: '2px dashed #2563EB', background: '#EFF6FF',
+                            color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
+                            fontSize: 13, fontWeight: 900, boxShadow: '0 2px 8px rgba(37,99,235,0.08)',
                           }}
                         >
                           <Camera size={18} />
@@ -1002,10 +1024,10 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           style={{
-                            height: '50px', padding: '0 16px', borderRadius: '12px',
-                            border: '1px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.01)',
-                            color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                            fontSize: 13, fontWeight: 700
+                            flex: 1, minWidth: 140, height: '52px', padding: '0 18px', borderRadius: '12px',
+                            border: '2px dashed #64748B', background: '#FFFFFF',
+                            color: '#1E293B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
+                            fontSize: 13, fontWeight: 900, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                           }}
                         >
                           <ImageIcon size={18} />
@@ -1029,11 +1051,11 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             {error && (
               <div style={{
                 display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
-                borderRadius: 12, marginTop: 8,
-                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
-                color: '#fca5a5', fontSize: 13, animation: 'fadeIn 0.2s ease',
+                borderRadius: 12, marginTop: 10,
+                background: '#FEF2F2', border: '1.5px solid #FCA5A5',
+                color: '#DC2626', fontSize: 13, fontWeight: 700, animation: 'fadeIn 0.2s ease',
               }}>
-                <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
                 {error}
               </div>
             )}
@@ -1042,34 +1064,40 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
 
         {/* Sticky footer */}
         <div className="checkout-footer" style={{
-          padding: '12px 20px',
-          borderTop: '1px solid var(--border-color)',
-          background: 'var(--bg-secondary)',
+          padding: '14px 20px',
+          borderTop: '2px solid rgba(35,64,168,0.15)',
+          background: '#FFFFFF',
           display: 'flex', gap: 10,
         }}>
-          <button onClick={onClose} style={{ ...ghostBtnStyle, flex: '0 0 auto', padding: '14px 16px' }}>
-            <X size={16} />
+          <button onClick={onClose} style={{
+            flex: '0 0 auto', padding: '14px 18px', height: 54,
+            borderRadius: 14, border: '2px solid #CBD5E1',
+            background: '#F1F5F9', color: '#334155',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.15s ease',
+          }}>
+            <X size={18} />
           </button>
           <button
             onClick={handleConfirmPayment}
             disabled={!canPay || loading}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '15px 20px', borderRadius: 15, border: 'none',
-              background: canPay && !loading ? currentMethod.gradient : 'var(--bg-card)',
-              color: canPay && !loading ? 'white' : 'var(--text-muted)',
-              fontSize: 15, fontWeight: 800,
+              height: 54, padding: '0 20px', borderRadius: 14, border: 'none',
+              background: canPay && !loading ? currentMethod.gradient : '#E2E8F0',
+              color: canPay && !loading ? '#FFFFFF' : '#94A3B8',
+              fontSize: 16, fontWeight: 900,
               cursor: canPay && !loading ? 'pointer' : 'not-allowed',
               boxShadow: canPay && !loading ? `0 8px 24px ${currentMethod.glow}` : 'none',
-              transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-              letterSpacing: '-0.3px',
+              transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+              letterSpacing: '-0.2px',
             }}
           >
             {loading
-              ? <><Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} /> กำลังบันทึก...</>
-              : <><CheckCircle2 size={17} /> ยืนยันชำระเงิน {formatCurrency(total)}</>
+              ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> กำลังบันทึก...</>
+              : <><CheckCircle2 size={18} /> ยืนยันชำระเงิน {formatCurrency(total)}</>
             }
-            {!loading && canPay && <ChevronRight size={17} style={{ marginLeft: 'auto' }} />}
+            {!loading && canPay && <ChevronRight size={18} style={{ marginLeft: 'auto' }} />}
           </button>
         </div>
       </div>
@@ -1089,8 +1117,8 @@ function hexToRgb(hex: string) {
 function SummaryRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: bold ? 800 : 600, color: bold ? 'white' : 'var(--text-secondary)' }}>{value}</span>
+      <span style={{ fontSize: 13, color: '#475569', fontWeight: 700 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: bold ? 900 : 700, color: '#0F172A' }}>{value}</span>
     </div>
   )
 }
@@ -1099,54 +1127,55 @@ function SummaryRow({ label, value, bold }: { label: string; value: string; bold
 const overlayStyle: React.CSSProperties = {
   position: 'fixed', inset: 0, zIndex: 100,
   display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-  background: 'rgba(0,0,0,0.78)',
-  backdropFilter: 'blur(14px)',
-  WebkitBackdropFilter: 'blur(14px)',
+  background: 'rgba(15,23,42,0.65)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
 }
 
 const panelBase: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(17,19,24,0.97)',
+  background: '#FFFFFF',
   borderTopLeftRadius: 24,
   borderTopRightRadius: 24,
-  boxShadow: '0 -8px 60px rgba(0,0,0,0.6)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  backdropFilter: 'blur(24px)',
+  boxShadow: '0 -10px 40px rgba(15,23,42,0.25)',
+  border: '1.5px solid rgba(35,64,168,0.2)',
 }
 
 const ghostBtnStyle: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
   padding: '14px 18px', borderRadius: 13,
-  border: '1px solid var(--border-color)',
-  background: 'var(--bg-card)',
-  color: 'var(--text-secondary)',
-  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+  border: '1.5px solid rgba(35,64,168,0.25)',
+  background: '#FFFFFF',
+  color: '#1E293B',
+  fontSize: 13, fontWeight: 800, cursor: 'pointer',
   transition: 'all 0.2s ease',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '13px 16px',
-  borderRadius: 13, border: '1.5px solid var(--border-color)',
-  background: 'var(--bg-card)',
-  color: 'white', fontSize: 15, fontWeight: 600,
+  borderRadius: 13, border: '2px solid rgba(35,64,168,0.25)',
+  background: '#FFFFFF',
+  color: '#0F172A', fontSize: 15, fontWeight: 700,
   outline: 'none', boxSizing: 'border-box',
   fontFamily: 'inherit', transition: 'border-color 0.2s ease',
 }
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: 11, fontWeight: 600,
-  letterSpacing: '0.5px', textTransform: 'uppercase',
-  color: 'var(--text-muted)', marginBottom: 8,
+  display: 'block', fontSize: 12, fontWeight: 800,
+  letterSpacing: '0.02em', textTransform: 'uppercase',
+  color: '#0F172A', marginBottom: 8,
 }
 
 const quickPresetStyle: React.CSSProperties = {
-  padding: '7px 13px', borderRadius: 10,
-  border: '1px solid var(--border-color)',
-  background: 'var(--bg-card)',
-  color: 'var(--text-secondary)',
-  fontSize: 12, fontWeight: 600,
+  padding: '8px 16px', borderRadius: 12,
+  border: '1.5px solid rgba(35,64,168,0.25)',
+  background: '#FFFFFF',
+  color: '#1E3A8A',
+  fontSize: 13, fontWeight: 800,
   cursor: 'pointer', whiteSpace: 'nowrap',
   transition: 'all 0.15s ease',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
 }
 
 const globalStyles = `
@@ -1175,6 +1204,6 @@ const globalStyles = `
     .checkout-panel   { border-radius:24px !important; }
   }
   @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    .checkout-footer { padding-bottom:calc(12px + env(safe-area-inset-bottom)) !important; }
+    .checkout-footer { padding-bottom:calc(14px + env(safe-area-inset-bottom)) !important; }
   }
 `
