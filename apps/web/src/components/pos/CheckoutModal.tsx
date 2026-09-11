@@ -563,8 +563,16 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             </div>
             {cart.discount_amount > 0 && (
               <div style={{ marginTop: 8 }}>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-color)' }}>
-                  ส่วนลด −{formatCurrency(cart.discount_amount)}
+                <span style={{
+                  fontSize: 12, fontWeight: 700,
+                  color: cart.discount_note?.includes('คู่') ? '#b02238' : '#4ade80',
+                  padding: '4px 10px', borderRadius: 8,
+                  background: cart.discount_note?.includes('คู่') ? 'rgba(176,34,56,0.1)' : 'rgba(74,222,128,0.1)',
+                  border: cart.discount_note?.includes('คู่') ? '1px solid rgba(176,34,56,0.25)' : '1px solid rgba(74,222,128,0.2)',
+                  display: 'inline-flex', alignItems: 'center', gap: 5
+                }}>
+                  {cart.discount_note?.includes('คู่') ? '🍷' : '🏷️'}
+                  {cart.discount_note || 'ส่วนลด'} −{formatCurrency(cart.discount_amount)}
                 </span>
               </div>
             )}

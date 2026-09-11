@@ -143,6 +143,7 @@ export default function POSPage() {
       : Math.min(pairing.discount_value, combined)
 
     cart.setDiscount(discount, `โปรคู่: ${pairing.title}`)
+    setShowDiscountInput(false)
   }
 
   const handlePinSubmit = async (e: React.FormEvent) => {
@@ -194,8 +195,11 @@ export default function POSPage() {
   }
 
   // ── Cart Panel ──────────────────────────────────────────────────
-  const CartPanel = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+  const CartPanel = () => {
+    const isPairingDiscount = Boolean(cart.discount_amount > 0 && cart.discount_note && (cart.discount_note.startsWith('โปรคู่') || cart.discount_note.includes('คู่')))
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* Cart Header */}
       <div style={{
@@ -344,16 +348,38 @@ export default function POSPage() {
             {cart.discount_amount > 0 && (
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '6px 10px', borderRadius: 8,
-                background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.15)'
+                padding: '8px 12px', borderRadius: 10,
+                background: isPairingDiscount ? 'rgba(176,34,56,0.1)' : 'rgba(74,222,128,0.06)',
+                border: isPairingDiscount ? '1px solid rgba(176,34,56,0.25)' : '1px solid rgba(74,222,128,0.15)'
               }}>
-                <span style={{ fontSize: 12, color: '#4ade80', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Percent size={11} />
+                <span style={{
+                  fontSize: 12,
+                  color: isPairingDiscount ? '#b02238' : '#4ade80',
+                  fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6
+                }}>
+                  {isPairingDiscount ? '🍷' : <Percent size={11} />}
                   {cart.discount_note || 'ส่วนลด'}
                 </span>
-                <span style={{ fontSize: 13, color: '#4ade80', fontWeight: 700 }}>
-                  -{formatCurrency(cart.discount_amount)}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    fontSize: 13,
+                    color: isPairingDiscount ? '#b02238' : '#4ade80',
+                    fontWeight: 800
+                  }}>
+                    -{formatCurrency(cart.discount_amount)}
+                  </span>
+                  <button
+                    onClick={() => cart.setDiscount(0, '')}
+                    title="ยกเลิกส่วนลด"
+                    style={{
+                      background: 'none', border: 'none',
+                      color: isPairingDiscount ? '#b02238' : '#ef4444',
+                      cursor: 'pointer', fontSize: 13, fontWeight: 700, padding: 0, lineHeight: 1
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             )}
             <div style={{
@@ -371,68 +397,72 @@ export default function POSPage() {
             </div>
           </div>
 
-          {/* Discount Toggle */}
-          <button
-            onClick={() => setShowDiscountInput(!showDiscountInput)}
-            style={{
-              width: '100%', marginBottom: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '9px 14px', borderRadius: 10,
-              border: showDiscountInput
-                ? '1px solid rgba(59,130,246,0.35)'
-                : '1px solid rgba(255,255,255,0.08)',
-              background: showDiscountInput
-                ? 'rgba(59,130,246,0.08)'
-                : 'rgba(255,255,255,0.03)',
-              color: showDiscountInput ? '#93c5fd' : 'var(--text-muted)',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 200ms'
-            }}
-          >
-            <Tag size={13} />
-            {cart.discount_amount > 0
-              ? `ส่วนลด: ${cart.discount_note || formatCurrency(cart.discount_amount)}`
-              : 'เพิ่มส่วนลด'
-            }
-          </button>
+          {/* Discount Toggle & Coupons — only show coupon picker when NOT a pairing discount */}
+          {!isPairingDiscount && (
+            <>
+              <button
+                onClick={() => setShowDiscountInput(!showDiscountInput)}
+                style={{
+                  width: '100%', marginBottom: 10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                  padding: '9px 14px', borderRadius: 10,
+                  border: showDiscountInput
+                    ? '1px solid rgba(59,130,246,0.35)'
+                    : '1px solid rgba(255,255,255,0.08)',
+                  background: showDiscountInput
+                    ? 'rgba(59,130,246,0.08)'
+                    : 'rgba(255,255,255,0.03)',
+                  color: showDiscountInput ? '#93c5fd' : 'var(--text-muted)',
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 200ms'
+                }}
+              >
+                <Tag size={13} />
+                {cart.discount_amount > 0
+                  ? `ส่วนลด: ${cart.discount_note || formatCurrency(cart.discount_amount)}`
+                  : 'เพิ่มส่วนลด'
+                }
+              </button>
 
-          {showDiscountInput && (
-            <div className="animate-in" style={{ marginBottom: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 8 }}>
-                {allowedDiscounts.map(pct => {
-                  const isCurrent = cart.discount_note === `ส่วนลด ${pct}%`
-                  return (
+              {showDiscountInput && (
+                <div className="animate-in" style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 8 }}>
+                    {allowedDiscounts.map(pct => {
+                      const isCurrent = cart.discount_note === `ส่วนลด ${pct}%`
+                      return (
+                        <button
+                          key={pct}
+                          className={`discount-chip ${isCurrent ? 'chip-active' : ''}`}
+                          onClick={() => {
+                            if (isCurrent) {
+                              cart.setDiscount(0, '')
+                            } else {
+                              const amt = Math.round(subtotal * (pct / 100))
+                              cart.setDiscount(amt, `ส่วนลด ${pct}%`)
+                            }
+                          }}
+                        >
+                          {pct}%
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {cart.discount_amount > 0 && (
                     <button
-                      key={pct}
-                      className={`discount-chip ${isCurrent ? 'chip-active' : ''}`}
-                      onClick={() => {
-                        if (isCurrent) {
-                          cart.setDiscount(0, '')
-                        } else {
-                          const amt = Math.round(subtotal * (pct / 100))
-                          cart.setDiscount(amt, `ส่วนลด ${pct}%`)
-                        }
+                      onClick={() => cart.setDiscount(0, '')}
+                      style={{
+                        width: '100%', padding: '8px', borderRadius: 9,
+                        fontSize: 12, fontWeight: 700,
+                        border: '1px solid rgba(239,68,68,0.2)',
+                        background: 'rgba(239,68,68,0.06)',
+                        color: '#f87171', cursor: 'pointer', transition: 'all 150ms'
                       }}
                     >
-                      {pct}%
+                      ✕ ยกเลิกส่วนลด
                     </button>
-                  )
-                })}
-              </div>
-              {cart.discount_amount > 0 && (
-                <button
-                  onClick={() => cart.setDiscount(0, '')}
-                  style={{
-                    width: '100%', padding: '8px', borderRadius: 9,
-                    fontSize: 12, fontWeight: 700,
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    background: 'rgba(239,68,68,0.06)',
-                    color: '#f87171', cursor: 'pointer', transition: 'all 150ms'
-                  }}
-                >
-                  ✕ ยกเลิกส่วนลด
-                </button>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
 
           {/* Checkout Button */}
@@ -465,6 +495,7 @@ export default function POSPage() {
       )}
     </div>
   )
+}
 
   return (
     <>

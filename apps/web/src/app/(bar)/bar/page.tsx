@@ -86,16 +86,16 @@ function OrderCard({ sale, onAction, updating }: OrderCardProps) {
 
   return (
     <div style={{
-      background: '#FFFFFF', border: `1px solid ${borderColor}`, borderRadius: 18,
+      background: '#12151c', border: `1px solid ${borderColor}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      boxShadow: isUrgent ? '0 0 24px rgba(239,68,68,0.12)' : isPreparing ? '0 0 20px rgba(56,189,248,0.08)' : '0 2px 8px rgba(35,64,168,0.08)',
+      boxShadow: isUrgent ? '0 0 24px rgba(239,68,68,0.12)' : isPreparing ? '0 0 20px rgba(56,189,248,0.08)' : 'none',
       transition: 'all 250ms'
     }}>
       {/* Card header */}
-      <div style={{ padding: '12px 14px', background: headerBg, borderBottom: '1px solid rgba(35,64,168,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+      <div style={{ padding: '12px 14px', background: headerBg, borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#ef4444' : '#1A2660' }}>
+            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#ef4444' : '#f1f3f7' }}>
               {sale.table_no ? `🍽️ โต๊ะ ${sale.table_no}` : '🛍️ กลับบ้าน'}
             </span>
             {sale.status === 'pending' && (
@@ -104,11 +104,11 @@ function OrderCard({ sale, onAction, updating }: OrderCardProps) {
               </span>
             )}
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: 11, color: '#4A5899' }}>#{sale.receipt_no.slice(-6)}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6b7280' }}>#{sale.receipt_no.slice(-6)}</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
           <StatusBadge status={bStatus} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent ? '#ef4444' : '#4A5899' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent ? '#ef4444' : '#6b7280' }}>
             <Clock size={10} />
             <span>{getElapsed(sale.created_at)}</span>
             {isUrgent && <AlertTriangle size={10} />}
@@ -124,12 +124,12 @@ function OrderCard({ sale, onAction, updating }: OrderCardProps) {
               width: 32, height: 32, borderRadius: 8,
               background: 'rgba(216,169,60,0.1)', border: '1px solid rgba(216,169,60,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 13, fontWeight: 900, color: '#d97706', flexShrink: 0
+              fontSize: 13, fontWeight: 900, color: '#f2c65c', flexShrink: 0
             }}>
               {item.quantity}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A2660', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.product_name}
               </p>
               {item.sku && <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>SKU: {item.sku}</p>}
@@ -145,7 +145,7 @@ function OrderCard({ sale, onAction, updating }: OrderCardProps) {
       </div>
 
       {/* Action button */}
-      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(35,64,168,0.08)', background: 'rgba(35,64,168,0.02)' }}>
+      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.1)' }}>
         {isReady ? (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -519,13 +519,13 @@ export default function BarDisplayPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#EDE3C8', color: '#1A2660', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: '#08090d', color: 'white', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── Header ── */}
       <header style={{
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', background: '#2340A8',
-        borderBottom: '1px solid rgba(255,255,255,0.15)',
+        padding: '0 16px', background: 'rgba(10,12,16,0.97)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
         position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(20px)',
         gap: 10, flexShrink: 0
       }}>
@@ -536,13 +536,13 @@ export default function BarDisplayPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Bar Display 🍸</h1>
-            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>The Bottle Club</p>
+            <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>The Bottle Club</p>
           </div>
         </div>
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: 'rgba(255,255,255,0.7)' }} />}
+          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#6b7280' }} />}
 
           {/* Sound Toggle */}
           <button
@@ -551,9 +551,9 @@ export default function BarDisplayPage() {
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 11px', borderRadius: 20, cursor: 'pointer',
-              border: `1px solid ${soundEnabled ? 'rgba(216,169,60,0.5)' : 'rgba(255,255,255,0.3)'}`,
-              background: soundEnabled ? 'rgba(216,169,60,0.12)' : 'rgba(255,255,255,0.12)',
-              color: soundEnabled ? '#f2c65c' : 'rgba(255,255,255,0.8)',
+              border: `1px solid ${soundEnabled ? 'rgba(216,169,60,0.5)' : 'rgba(255,255,255,0.1)'}`,
+              background: soundEnabled ? 'rgba(216,169,60,0.12)' : 'rgba(255,255,255,0.04)',
+              color: soundEnabled ? '#f2c65c' : '#6b7280',
               fontSize: 13, fontWeight: 700, transition: 'all 200ms'
             }}
           >
@@ -563,8 +563,8 @@ export default function BarDisplayPage() {
 
           <button onClick={() => setShowReport(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-            background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: 20, color: '#FFFFFF', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+            background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)',
+            borderRadius: 20, color: '#38bdf8', fontSize: 12, fontWeight: 700, cursor: 'pointer'
           }}>
             <ClipboardList size={13} />
             <span className="hidden sm:inline" style={{ display: 'none' }}>ส่งรายงาน</span>
@@ -589,20 +589,20 @@ export default function BarDisplayPage() {
       </header>
 
       {/* ── Stats Bar ── */}
-      <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.6)', borderBottom: '1px solid rgba(35,64,168,0.12)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
+      <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '6px 14px', borderRadius: 999, flexShrink: 0,
-            border: `1px solid ${filter === tab.key ? tab.color + '60' : 'rgba(35,64,168,0.2)'}`,
+            border: `1px solid ${filter === tab.key ? tab.color + '60' : 'rgba(255,255,255,0.07)'}`,
             background: filter === tab.key ? tab.color + '15' : 'transparent',
-            color: filter === tab.key ? tab.color : '#4A5899',
+            color: filter === tab.key ? tab.color : '#6b7280',
             fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms'
           }}>
             {tab.label}
             <span style={{
-              minWidth: 18, height: 18, borderRadius: 999, background: filter === tab.key ? tab.color + '25' : 'rgba(35,64,168,0.08)',
-              color: filter === tab.key ? tab.color : '#4A5899', fontSize: 10, fontWeight: 900,
+              minWidth: 18, height: 18, borderRadius: 999, background: filter === tab.key ? tab.color + '25' : 'rgba(255,255,255,0.06)',
+              color: filter === tab.key ? tab.color : '#9ca3af', fontSize: 10, fontWeight: 900,
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
             }}>{tab.count}</span>
           </button>
@@ -616,7 +616,7 @@ export default function BarDisplayPage() {
             <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(216,169,60,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Wine size={28} style={{ color: '#f2c65c' }} className="animate-pulse" />
             </div>
-            <p style={{ color: '#4A5899', fontSize: 14, margin: 0 }}>กำลังโหลดคิวบาร์...</p>
+            <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>กำลังโหลดคิวบาร์...</p>
           </div>
         ) : filteredSales.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60dvh', gap: 16 }}>
@@ -624,15 +624,15 @@ export default function BarDisplayPage() {
               <Wine size={36} style={{ color: '#f2c65c', opacity: 0.3 }} />
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#1A2660', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
+              <p style={{ color: '#4b5563', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
                 {filter === 'all' ? 'ไม่มีคิวออเดอร์ในขณะนี้' : `ไม่มีออเดอร์ที่ "${tabs.find(t => t.key === filter)?.label}"`}
               </p>
-              <p style={{ color: '#4A5899', fontSize: 13, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
+              <p style={{ color: '#374151', fontSize: 13, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
             </div>
             <button onClick={() => loadOrders(false)} style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-              borderRadius: 12, border: '1px solid rgba(35,64,168,0.2)',
-              background: 'rgba(35,64,168,0.06)', color: '#4A5899',
+              borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.04)', color: '#9ca3af',
               fontSize: 13, fontWeight: 700, cursor: 'pointer'
             }}>
               <RefreshCw size={14} /> รีเฟรช
