@@ -59,8 +59,8 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
         position: 'sticky', top: 0, zIndex: 50,
         height: 56, display: 'flex', alignItems: 'center',
         padding: '0 16px', gap: 12,
-        background: 'rgba(10,12,16,0.94)',
-        borderBottom: '1px solid var(--border-color)',
+        background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         flexShrink: 0
@@ -69,15 +69,15 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
         <Link href="/stockstaff" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
           <div className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>The Bottle Club</p>
-            <p style={{ margin: 0, fontSize: 9, color: '#fbbf24', letterSpacing: '0.1em', fontWeight: 700 }}>STOCK STAFF</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>The Bottle Club</p>
+            <p style={{ margin: 0, fontSize: 9, color: '#FDE047', letterSpacing: '0.1em', fontWeight: 800 }}>STOCK STAFF</p>
           </div>
         </Link>
 
         <div style={{ flex: 1 }} />
 
         {/* Clock desktop */}
-        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'var(--text-muted)', fontSize: 12, flexShrink: 0 }}>
+        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, flexShrink: 0, fontWeight: 600 }}>
           <Clock size={13} />
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
         </div>
@@ -89,18 +89,18 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
               width: 30, height: 30, borderRadius: 9,
               background: 'linear-gradient(135deg,#d97706,#f59e0b)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, color: '#1a1200'
+              fontSize: 12, fontWeight: 800, color: '#FFFFFF'
             }}>{userInitial}</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{userName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>{userName}</span>
           </div>
           <button
             onClick={handleLogout}
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: 'none',
-              border: 'none', color: '#f87171', fontSize: 13, fontWeight: 600,
+              border: 'none', color: '#FECACA', fontSize: 13, fontWeight: 700,
               cursor: 'pointer', padding: '6px 10px', borderRadius: 8, transition: 'background 150ms'
             }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
           >
             <LogOut size={14} />ออกระบบ
@@ -113,8 +113,8 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
           onClick={() => setShowMenu(true)}
           style={{
             width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-card)', color: 'var(--text-secondary)'
+            border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.15)', color: '#FFFFFF'
           }}
         >
           <Menu size={16} />

@@ -204,24 +204,25 @@ export default function POSPage() {
       {/* Cart Header */}
       <div style={{
         padding: '16px 18px 14px',
-        borderBottom: '1px solid rgba(35,64,168,0.12)',
+        borderBottom: '1px solid rgba(35,64,168,0.18)',
         flexShrink: 0,
-        background: 'rgba(237,227,200,0.6)',
+        background: 'rgba(237,227,200,0.9)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: 'rgba(35,64,168,0.1)', border: '1px solid rgba(35,64,168,0.2)',
+              background: '#2340A8',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(35,64,168,0.3)'
             }}>
-              <ShoppingBag size={17} style={{ color: '#2340A8' }} />
+              <ShoppingBag size={17} style={{ color: '#FFFFFF' }} />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
                 รายการสั่งซื้อ
               </p>
-              <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)' }}>
+              <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 600 }}>
                 {itemCount > 0 ? `${itemCount} รายการ` : 'ยังไม่มีสินค้า'}
               </p>
             </div>
@@ -230,12 +231,13 @@ export default function POSPage() {
             <button
               onClick={cart.clearCart}
               style={{
-                fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8,
-                border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)',
-                color: '#f87171', cursor: 'pointer', transition: 'all 150ms'
+                fontSize: 11, fontWeight: 800, padding: '6px 12px', borderRadius: 8,
+                border: '1.5px solid #FCA5A5', background: '#FEE2E2',
+                color: '#DC2626', cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: '0 1px 4px rgba(220,38,38,0.1)'
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.14)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.06)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FECACA' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FEE2E2' }}
             >
               ล้างทั้งหมด
             </button>
@@ -334,28 +336,27 @@ export default function POSPage() {
       {cart.items.length > 0 && (
         <div style={{
           padding: '16px 18px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
           flexShrink: 0,
-          background: 'rgba(8,10,14,0.7)',
-          backdropFilter: 'blur(20px)',
+          background: 'rgba(237,227,200,0.95)',
+          borderTop: '1.5px solid rgba(35,64,168,0.2)',
         }}>
           {/* Totals */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>ยอดรวม ({itemCount} รายการ)</span>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>{formatCurrency(subtotal)}</span>
+              <span style={{ fontSize: 13, color: '#334155', fontWeight: 700 }}>ยอดรวม ({itemCount} รายการ)</span>
+              <span style={{ fontSize: 14, color: '#0F172A', fontWeight: 800 }}>{formatCurrency(subtotal)}</span>
             </div>
             {cart.discount_amount > 0 && (
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '8px 12px', borderRadius: 10,
-                background: isPairingDiscount ? 'rgba(176,34,56,0.1)' : 'rgba(74,222,128,0.06)',
-                border: isPairingDiscount ? '1px solid rgba(176,34,56,0.25)' : '1px solid rgba(74,222,128,0.15)'
+                background: isPairingDiscount ? 'rgba(176,34,56,0.12)' : 'rgba(21,128,61,0.1)',
+                border: isPairingDiscount ? '1.5px solid rgba(176,34,56,0.3)' : '1.5px solid rgba(21,128,61,0.25)'
               }}>
                 <span style={{
                   fontSize: 12,
-                  color: isPairingDiscount ? '#b02238' : '#4ade80',
-                  fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6
+                  color: isPairingDiscount ? '#991B1B' : '#15803D',
+                  fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6
                 }}>
                   {isPairingDiscount ? '🍷' : <Percent size={11} />}
                   {cart.discount_note || 'ส่วนลด'}
@@ -363,8 +364,8 @@ export default function POSPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{
                     fontSize: 13,
-                    color: isPairingDiscount ? '#b02238' : '#4ade80',
-                    fontWeight: 800
+                    color: isPairingDiscount ? '#991B1B' : '#15803D',
+                    fontWeight: 900
                   }}>
                     -{formatCurrency(cart.discount_amount)}
                   </span>
@@ -373,8 +374,8 @@ export default function POSPage() {
                     title="ยกเลิกส่วนลด"
                     style={{
                       background: 'none', border: 'none',
-                      color: isPairingDiscount ? '#b02238' : '#ef4444',
-                      cursor: 'pointer', fontSize: 13, fontWeight: 700, padding: 0, lineHeight: 1
+                      color: isPairingDiscount ? '#991B1B' : '#DC2626',
+                      cursor: 'pointer', fontSize: 13, fontWeight: 800, padding: 0, lineHeight: 1
                     }}
                   >
                     ✕
@@ -384,13 +385,11 @@ export default function POSPage() {
             )}
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10, marginTop: 4
+              borderTop: '1.5px solid rgba(35,64,168,0.18)', paddingTop: 10, marginTop: 4
             }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>ยอดสุทธิ</span>
+              <span style={{ fontSize: 16, fontWeight: 900, color: '#0F172A' }}>ยอดสุทธิ</span>
               <span style={{
-                fontSize: 22, fontWeight: 900,
-                background: 'linear-gradient(135deg,#d8a93c,#f2c65c)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                fontSize: 24, fontWeight: 900, color: '#1E3A8A'
               }}>
                 {formatCurrency(total)}
               </span>
@@ -405,15 +404,14 @@ export default function POSPage() {
                 style={{
                   width: '100%', marginBottom: 10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                  padding: '9px 14px', borderRadius: 10,
+                  padding: '10px 14px', borderRadius: 10,
                   border: showDiscountInput
-                    ? '1px solid rgba(59,130,246,0.35)'
-                    : '1px solid rgba(255,255,255,0.08)',
-                  background: showDiscountInput
-                    ? 'rgba(59,130,246,0.08)'
-                    : 'rgba(255,255,255,0.03)',
-                  color: showDiscountInput ? '#93c5fd' : 'var(--text-muted)',
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 200ms'
+                    ? '1.5px solid #2340A8'
+                    : '1.5px solid rgba(35,64,168,0.25)',
+                  background: '#FFFFFF',
+                  color: '#1E3A8A',
+                  fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 200ms',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
                 }}
               >
                 <Tag size={13} />
@@ -451,10 +449,10 @@ export default function POSPage() {
                       onClick={() => cart.setDiscount(0, '')}
                       style={{
                         width: '100%', padding: '8px', borderRadius: 9,
-                        fontSize: 12, fontWeight: 700,
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        background: 'rgba(239,68,68,0.06)',
-                        color: '#f87171', cursor: 'pointer', transition: 'all 150ms'
+                        fontSize: 12, fontWeight: 800,
+                        border: '1.5px solid #FCA5A5',
+                        background: '#FEE2E2',
+                        color: '#DC2626', cursor: 'pointer', transition: 'all 150ms'
                       }}
                     >
                       ✕ ยกเลิกส่วนลด
@@ -470,22 +468,21 @@ export default function POSPage() {
             onClick={() => setShowCheckout(true)}
             className="checkout-shine"
             style={{
-              width: '100%', padding: '15px', fontSize: 15, borderRadius: 14,
+              width: '100%', padding: '16px', fontSize: 16, borderRadius: 14,
               border: 'none', cursor: 'pointer',
-              background: 'linear-gradient(135deg,#d8a93c 0%,#f2c65c 50%,#d8a93c 100%)',
-              backgroundSize: '200% 100%',
-              color: '#1a0f00', fontWeight: 900, letterSpacing: 0.3,
+              background: 'linear-gradient(135deg, #1E3A8A 0%, #2340A8 50%, #1D4ED8 100%)',
+              color: '#FFFFFF', fontWeight: 900, letterSpacing: 0.3,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              boxShadow: '0 6px 24px rgba(216,169,60,0.4), 0 0 0 1px rgba(242,198,92,0.2)',
+              boxShadow: '0 6px 22px rgba(35,64,168,0.45)',
               transition: 'transform 150ms ease, box-shadow 150ms ease',
             }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow = '0 10px 32px rgba(216,169,60,0.55), 0 0 0 1px rgba(242,198,92,0.3)'
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(35,64,168,0.6)'
             }}
             onMouseLeave={e => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(216,169,60,0.4), 0 0 0 1px rgba(242,198,92,0.2)'
+              e.currentTarget.style.boxShadow = '0 6px 22px rgba(35,64,168,0.45)'
             }}
           >
             <CreditCard size={18} />
@@ -555,14 +552,15 @@ export default function POSPage() {
                 onClick={() => router.push('/cashier')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '0 14px', height: 40, fontSize: 12, fontWeight: 700,
+                  padding: '0 16px', height: 40, fontSize: 13, fontWeight: 800,
                   borderRadius: 99, whiteSpace: 'nowrap', flexShrink: 0,
-                  background: 'rgba(99,102,241,0.15)',
-                  border: '1px solid rgba(99,102,241,0.25)',
-                  color: '#a5b4fc', cursor: 'pointer', transition: 'all 200ms'
+                  background: 'linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%)',
+                  border: '1.5px solid #1E3A8A',
+                  color: '#FFFFFF', cursor: 'pointer', transition: 'all 200ms',
+                  boxShadow: '0 4px 12px rgba(35,64,168,0.3)'
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.25)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.15)' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}
               >
                 <Package size={14} />
                 เตรียมสินค้า
@@ -1138,22 +1136,20 @@ function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }
       {/* Info */}
       <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 3, width: '100%', boxSizing: 'border-box' }}>
         <p style={{
-          margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text-primary)',
+          margin: 0, fontSize: 13, fontWeight: 800, color: '#0F172A',
           lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical', overflow: 'hidden', textAlign: 'left', minHeight: 32
+          WebkitBoxOrient: 'vertical', overflow: 'hidden', textAlign: 'left', minHeight: 34
         }}>
           {product.name}
         </p>
         {product.brand && (
-          <p style={{ margin: 0, fontSize: 10, color: 'var(--text-muted)', textAlign: 'left', fontWeight: 500 }}>
+          <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'left', fontWeight: 600 }}>
             {product.brand}{product.vintage && ` · ${product.vintage}`}
           </p>
         )}
         <div style={{ marginTop: 'auto', paddingTop: 6 }}>
           <span style={{
-            fontSize: 14, fontWeight: 900,
-            background: 'linear-gradient(135deg,#d8a93c,#f2c65c)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            fontSize: 15, fontWeight: 900, color: '#1E3A8A'
           }}>
             {formatCurrency(product.price)}
           </span>

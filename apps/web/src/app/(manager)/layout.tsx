@@ -59,8 +59,8 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
         position: 'sticky', top: 0, zIndex: 50,
         height: 56, display: 'flex', alignItems: 'center',
         padding: '0 16px', gap: 12,
-        background: 'rgba(10,12,16,0.94)',
-        borderBottom: '1px solid var(--border-color)',
+        background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         flexShrink: 0
@@ -69,8 +69,8 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
         <Link href="/manager" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
           <div className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>The Bottle Club</p>
-            <p style={{ margin: 0, fontSize: 9, color: '#c084fc', letterSpacing: '0.1em', fontWeight: 700 }}>MANAGER</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>The Bottle Club</p>
+            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', fontWeight: 800 }}>MANAGER</p>
           </div>
         </Link>
 
@@ -84,11 +84,11 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                 key={link.href} href={link.href}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 12px', borderRadius: 8,
-                  textDecoration: 'none', fontSize: 13, fontWeight: 600,
-                  color: active ? '#c084fc' : 'var(--text-secondary)',
-                  background: active ? 'rgba(192,132,252,0.1)' : 'transparent',
-                  border: `1px solid ${active ? 'rgba(192,132,252,0.2)' : 'transparent'}`,
+                  padding: '6px 14px', borderRadius: 8,
+                  textDecoration: 'none', fontSize: 13, fontWeight: 800,
+                  color: active ? '#1E3A8A' : 'rgba(255,255,255,0.9)',
+                  background: active ? '#FFFFFF' : 'transparent',
+                  boxShadow: active ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
                   transition: 'all 150ms'
                 }}
               >
@@ -102,32 +102,33 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
         <div style={{ flex: 1 }} className="md:hidden" />
 
         {/* Clock */}
-        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'var(--text-muted)', fontSize: 12, flexShrink: 0 }}>
+        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
           <Clock size={13} />
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
         </div>
 
         {/* User + Logout — Desktop */}
-        <div className="hidden md:flex items-center gap-8" style={{ flexShrink: 0 }}>
+        <div className="hidden md:flex items-center gap-6" style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 9,
-              background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, color: 'white'
+              fontSize: 12, fontWeight: 900, color: 'white'
             }}>{userInitial}</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{userName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>{userName}</span>
           </div>
           <button
             onClick={handleLogout}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', color: '#f87171',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              padding: '6px 10px', borderRadius: 8, transition: 'background 150ms'
+              background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
+              color: '#FFFFFF', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+              padding: '6px 12px', borderRadius: 8, transition: 'all 150ms'
             }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.35)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.2)'}
           >
             <LogOut size={14} />
             ออกระบบ
@@ -140,8 +141,8 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
           onClick={() => setShowMenu(true)}
           style={{
             width: 36, height: 36, borderRadius: 9,
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-card)', color: 'var(--text-secondary)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            background: 'rgba(255,255,255,0.15)', color: '#FFFFFF',
             flexShrink: 0
           }}
         >

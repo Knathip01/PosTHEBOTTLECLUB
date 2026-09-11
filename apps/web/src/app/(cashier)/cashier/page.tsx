@@ -324,21 +324,21 @@ export default function CashierQueuePage() {
         {/* ── TOP HEADER ── */}
         <header style={{
           flexShrink:0, zIndex:40,
-          background:'rgba(10,12,18,0.97)', borderBottom:'1px solid rgba(255,255,255,0.07)',
+          background:'#2340A8', borderBottom:'1px solid rgba(255,255,255,0.15)',
           backdropFilter:'blur(20px)', padding:'0 14px',
           display:'flex', alignItems:'center', justifyContent:'space-between',
           height:54, gap:10,
         }}>
           {/* Left: title */}
           <div style={{display:'flex',alignItems:'center',gap:10,minWidth:0}}>
-            <div style={{width:32,height:32,borderRadius:9,background:'linear-gradient(135deg,#0c4a6e,#0ea5e9)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <div style={{width:32,height:32,borderRadius:9,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
               <CheckCircle2 size={16} color="white"/>
             </div>
             <div style={{minWidth:0}}>
               <p style={{margin:0,fontSize:14,fontWeight:800,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                 {tab==='queue'?'คิวเตรียมของ 💳':tab==='history'?'ประวัติออเดอร์ 📖':'รายงานร้าน 📝'}
               </p>
-              <p style={{margin:0,fontSize:10,color:'#6b7280'}}>
+              <p style={{margin:0,fontSize:11,color:'rgba(255,255,255,0.75)',fontWeight:600}}>
                 {tab==='queue' ? `${sales.length} รายการรอ` : tab==='history' ? `ล่าสุด ${sales.length} บิล` : 'ส่งรายงานประจำวัน'}
               </p>
             </div>
@@ -350,29 +350,30 @@ export default function CashierQueuePage() {
             {readyCount > 0 && (
               <div style={{
                 display:'flex', alignItems:'center', gap:5,
-                background:'rgba(16,185,129,0.12)', border:'1.5px solid rgba(16,185,129,0.4)',
+                background:'rgba(16,185,129,0.2)', border:'1.5px solid #34d399',
                 borderRadius:999, padding:'4px 10px 4px 7px',
                 animation: 'pulse 1.5s ease-in-out infinite'
               }}>
                 <span style={{fontSize:14}}>🍳</span>
-                <span style={{fontSize:11,fontWeight:800,color:'#34d399'}}>{readyCount} พร้อมเสิร์ฟ</span>
+                <span style={{fontSize:11,fontWeight:900,color:'#ecfdf5'}}>{readyCount} พร้อมเสิร์ฟ</span>
               </div>
             )}
-            {refreshing && <RefreshCw size={13} className="animate-spin" style={{color:'#4b5563'}}/>}
-            <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.04)',borderRadius:10,padding:3}}>
+            {refreshing && <RefreshCw size={13} className="animate-spin" style={{color:'#FFFFFF'}}/>}
+            <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.15)',borderRadius:10,padding:3}}>
               {NAV_ITEMS.map(n=>(
                 <button key={n.id} onClick={()=>switchTab(n.id)} style={{
-                  padding:'5px 14px',borderRadius:7,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',
-                  background:tab===n.id?'rgba(255,255,255,0.1)':'transparent',
-                  color:tab===n.id?'#fff':'#6b7280', transition:'all 150ms', position:'relative',whiteSpace:'nowrap',
+                  padding:'6px 14px',borderRadius:7,border:'none',fontSize:12,fontWeight:800,cursor:'pointer',
+                  background:tab===n.id?'#FFFFFF':'transparent',
+                  color:tab===n.id?'#1E3A8A':'rgba(255,255,255,0.85)', transition:'all 150ms', position:'relative',whiteSpace:'nowrap',
+                  boxShadow:tab===n.id?'0 2px 6px rgba(0,0,0,0.15)':'none',
                 }}>
                   {n.emoji} {n.label}
-                  {n.badge>0 && <span style={{position:'absolute',top:2,right:2,width:14,height:14,background:'#ef4444',borderRadius:'50%',fontSize:8,fontWeight:900,color:'white',display:'flex',alignItems:'center',justifyContent:'center'}}>{n.badge>9?'9+':n.badge}</span>}
+                  {n.badge>0 && <span style={{position:'absolute',top:2,right:2,width:15,height:15,background:'#ef4444',borderRadius:'50%',fontSize:9,fontWeight:900,color:'white',display:'flex',alignItems:'center',justifyContent:'center'}}>{n.badge>9?'9+':n.badge}</span>}
                 </button>
               ))}
             </div>
             {tab!=='report' && (
-              <button onClick={()=>loadData(tab as any,false)} style={{width:32,height:32,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#6b7280',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <button onClick={()=>loadData(tab as any,false)} style={{width:32,height:32,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.25)',background:'rgba(255,255,255,0.15)',color:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
                 <RefreshCw size={13}/>
               </button>
             )}
@@ -403,12 +404,12 @@ export default function CashierQueuePage() {
                   <CheckCircle2 size={36} style={{color:'#0ea5e9',opacity:0.4}}/>
                 </div>
                 <div style={{textAlign:'center'}}>
-                  <p style={{margin:'0 0 6px',fontSize:17,fontWeight:800,color:'#374151'}}>ไม่มีออเดอร์รอเตรียม</p>
-                  <p style={{margin:0,fontSize:13,color:'#374151'}}>ออเดอร์ที่ชำระแล้วจะปรากฏที่นี่โดยอัตโนมัติ</p>
+                  <p style={{margin:'0 0 6px',fontSize:18,fontWeight:900,color:'#0F172A'}}>ไม่มีออเดอร์รอเตรียม</p>
+                  <p style={{margin:0,fontSize:13,color:'#334155',fontWeight:600}}>ออเดอร์ที่ชำระแล้วจะปรากฏที่นี่โดยอัตโนมัติ</p>
                 </div>
               </div>
             ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 {sales.map((sale,idx) => {
                   const {kitchen:kSt,bar:bSt,cleanNote} = parseNote(sale.note)
                   const hasK = sale.sale_items?.some((i:any)=>classifyCategory(i.products?.categories?.name)==='kitchen')
@@ -421,44 +422,44 @@ export default function CashierQueuePage() {
                   return (
                     <div key={sale.id} className="cq-card cq-anim" style={{
                       animationDelay:`${idx*40}ms`,
-                      background:'rgba(16,20,30,0.95)',
+                      background:'#FFFFFF',
                       borderRadius:16,overflow:'hidden',
-                      border:`1.5px solid ${ready?'rgba(34,197,94,0.4)':urgent?'rgba(239,68,68,0.4)':'rgba(255,255,255,0.06)'}`,
-                      boxShadow:ready?'0 0 20px rgba(34,197,94,0.1)':urgent?'0 0 20px rgba(239,68,68,0.08)':'none',
+                      border:ready?'2.5px solid #16A34A':urgent?'2.5px solid #EF4444':'1.5px solid rgba(35,64,168,0.2)',
+                      boxShadow:ready?'0 8px 24px rgba(22,163,74,0.18)':urgent?'0 8px 24px rgba(239,68,68,0.18)':'0 4px 16px rgba(35,64,168,0.08)',
                     }}>
                       {/* Status stripe */}
-                      <div style={{height:3,background:ready?'linear-gradient(90deg,#16a34a,#4ade80)':urgent?'linear-gradient(90deg,#dc2626,#f97316)':'rgba(255,255,255,0.04)'}}/>
+                      <div style={{height:4,background:ready?'linear-gradient(90deg,#15803d,#22c55e)':urgent?'linear-gradient(90deg,#dc2626,#ea580c)':'linear-gradient(90deg,#1e3a8a,#2340a8)'}}/>
                       {/* Pulsing top stripe for ready orders */}
                       {ready && (
                         <div style={{
-                          height: 3, marginTop: -3,
-                          background: 'linear-gradient(90deg,#16a34a,#4ade80)',
+                          height: 4, marginTop: -4,
+                          background: 'linear-gradient(90deg,#15803d,#4ade80)',
                           animation: 'pulse 1.2s ease-in-out infinite'
                         }}/>
                       )}
 
                       {/* Card Header */}
-                      <div style={{padding:'14px 14px 10px',background:ready?'rgba(34,197,94,0.03)':urgent?'rgba(239,68,68,0.03)':'transparent'}}>
+                      <div style={{padding:'14px 16px 12px',background:ready?'#F0FDF4':urgent?'#FEF2F2':'#F8FAFC',borderBottom:'1px solid rgba(35,64,168,0.1)'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                           {/* Left */}
                           <div style={{minWidth:0,flex:1}}>
-                            <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginBottom:4}}>
-                              <span style={{fontSize:16,fontWeight:900,color:urgent&&!ready?'#ef4444':'#f1f5f9'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:4}}>
+                              <span style={{fontSize:17,fontWeight:900,color:urgent&&!ready?'#DC2626':'#0F172A'}}>
                                 {sale.table_no?`🍽️ โต๊ะ ${sale.table_no}`:'🛍️ หน้าร้าน'}
                               </span>
-                              {ready && <span style={{fontSize:10,fontWeight:800,color:'#4ade80',background:'rgba(74,222,128,0.12)',border:'1px solid rgba(74,222,128,0.2)',padding:'2px 7px',borderRadius:999}}>🌟 พร้อมเสิร์ฟ</span>}
-                              {urgent&&!ready && <span style={{fontSize:10,fontWeight:800,color:'#f87171',background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',padding:'2px 7px',borderRadius:999}}>⚡ รีบด่วน</span>}
-                              {sale.status==='pending' && <span style={{fontSize:10,fontWeight:700,color:'#fbbf24',background:'rgba(245,158,11,0.1)',padding:'2px 6px',borderRadius:6}}>รอชำระ</span>}
+                              {ready && <span style={{fontSize:11,fontWeight:900,color:'#15803D',background:'#DCFCE7',border:'1.5px solid #86EFAC',padding:'2px 8px',borderRadius:999}}>🌟 พร้อมเสิร์ฟ</span>}
+                              {urgent&&!ready && <span style={{fontSize:11,fontWeight:900,color:'#B91C1C',background:'#FEE2E2',border:'1.5px solid #FCA5A5',padding:'2px 8px',borderRadius:999}}>⚡ รีบด่วน</span>}
+                              {sale.status==='pending' && <span style={{fontSize:11,fontWeight:800,color:'#92400E',background:'#FEF3C7',border:'1px solid #FCD34D',padding:'2px 8px',borderRadius:6}}>รอชำระ</span>}
                             </div>
-                            <p style={{margin:0,fontSize:11,color:'#6b7280',fontFamily:'monospace'}}>#{sale.receipt_no}</p>
-                            {(sale.customers as any)?.full_name && <p style={{margin:'2px 0 0',fontSize:11,color:'#9ca3af'}}>👤 {(sale.customers as any).full_name}</p>}
+                            <p style={{margin:0,fontSize:12,color:'#334155',fontWeight:700,fontFamily:'monospace'}}>#{sale.receipt_no}</p>
+                            {(sale.customers as any)?.full_name && <p style={{margin:'2px 0 0',fontSize:12,color:'#1E293B',fontWeight:600}}>👤 {(sale.customers as any).full_name}</p>}
                           </div>
                           {/* Right: time */}
                           <div style={{flexShrink:0,textAlign:'right',paddingLeft:8}}>
-                            <div style={{display:'flex',alignItems:'center',gap:3,fontSize:11,fontWeight:700,color:urgent&&!ready?'#ef4444':'#6b7280',justifyContent:'flex-end'}}>
-                              <Clock size={11}/><span>{timeSince(sale.created_at)}</span>
+                            <div style={{display:'flex',alignItems:'center',gap:4,fontSize:12,fontWeight:800,color:urgent&&!ready?'#DC2626':'#334155',justifyContent:'flex-end'}}>
+                              <Clock size={13}/><span>{timeSince(sale.created_at)}</span>
                             </div>
-                            <p style={{margin:'3px 0 0',fontSize:10,color:'#374151'}}>ที่แล้ว</p>
+                            <p style={{margin:'3px 0 0',fontSize:11,color:'#64748B',fontWeight:600}}>ที่แล้ว</p>
                           </div>
                         </div>
 
@@ -466,18 +467,18 @@ export default function CashierQueuePage() {
                         {(hasK||hasB) && (
                           <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                             {hasK && (
-                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                                <span className={kSt==='ready'?'dot-g':kSt==='preparing'?'dot-y':'dot-d'} style={{width:6,height:6,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
-                                <span style={{fontSize:11,fontWeight:700,color:kSt==='ready'?'#4ade80':kSt==='preparing'?'#fbbf24':'#6b7280'}}>
-                                  🍳 ครัว — {kSt==='ready'?'พร้อม':kSt==='preparing'?'กำลังทำ':'รอ'}
+                              <div style={{display:'flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:999,background:'#FFFFFF',border:'1.5px solid rgba(35,64,168,0.18)',boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+                                <span className={kSt==='ready'?'dot-g':kSt==='preparing'?'dot-y':'dot-d'} style={{width:8,height:8,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
+                                <span style={{fontSize:12,fontWeight:800,color:kSt==='ready'?'#15803D':kSt==='preparing'?'#B45309':'#334155'}}>
+                                  🍳 ครัว — {kSt==='ready'?'พร้อมเสิร์ฟ':kSt==='preparing'?'กำลังทำ':'รอ'}
                                 </span>
                               </div>
                             )}
                             {hasB && (
-                              <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 10px',borderRadius:999,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                                <span className={bSt==='ready'?'dot-g':bSt==='preparing'?'dot-y':'dot-d'} style={{width:6,height:6,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
-                                <span style={{fontSize:11,fontWeight:700,color:bSt==='ready'?'#4ade80':bSt==='preparing'?'#fbbf24':'#6b7280'}}>
-                                  🍷 บาร์ — {bSt==='ready'?'พร้อม':bSt==='preparing'?'กำลังชง':'รอ'}
+                              <div style={{display:'flex',alignItems:'center',gap:6,padding:'5px 12px',borderRadius:999,background:'#FFFFFF',border:'1.5px solid rgba(35,64,168,0.18)',boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
+                                <span className={bSt==='ready'?'dot-g':bSt==='preparing'?'dot-y':'dot-d'} style={{width:8,height:8,borderRadius:'50%',display:'inline-block',flexShrink:0}}/>
+                                <span style={{fontSize:12,fontWeight:800,color:bSt==='ready'?'#15803D':bSt==='preparing'?'#B45309':'#334155'}}>
+                                  🍷 บาร์ — {bSt==='ready'?'พร้อมเสิร์ฟ':bSt==='preparing'?'กำลังชง':'รอ'}
                                 </span>
                               </div>
                             )}
@@ -486,26 +487,26 @@ export default function CashierQueuePage() {
                       </div>
 
                       {/* Items list */}
-                      <div style={{padding:'0 14px 10px',display:'flex',flexDirection:'column',gap:4}}>
+                      <div style={{padding:'12px 14px 10px',display:'flex',flexDirection:'column',gap:6}}>
                         {(sale.sale_items||[]).map((item:any)=>(
-                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 12px',borderRadius:10,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.04)'}}>
+                          <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',borderRadius:10,background:'#F8FAFC',border:'1.5px solid rgba(35,64,168,0.12)'}}>
                             <div style={{display:'flex',alignItems:'center',gap:9,minWidth:0}}>
-                              <div style={{width:28,height:28,borderRadius:8,background:'rgba(190,24,93,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                <Wine size={13} style={{color:'#be185d'}}/>
+                              <div style={{width:30,height:30,borderRadius:8,background:'rgba(190,24,93,0.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                <Wine size={15} style={{color:'#be185d'}}/>
                               </div>
-                              <span style={{fontSize:13,color:'#e2e8f0',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</span>
+                              <span style={{fontSize:14,color:'#0F172A',fontWeight:800,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</span>
                             </div>
-                            <span style={{fontSize:15,fontWeight:900,color:'#fcd34d',flexShrink:0,marginLeft:10}}>×{item.quantity}</span>
+                            <span style={{fontSize:16,fontWeight:900,color:'#1E3A8A',flexShrink:0,marginLeft:10}}>×{item.quantity}</span>
                           </div>
                         ))}
                         {sale.discount_amount > 0 && (
                           <div style={{
-                            padding: '7px 12px', borderRadius: 10,
-                            background: sale.discount_note?.includes('คู่') ? 'rgba(176,34,56,0.1)' : 'rgba(34,197,94,0.08)',
-                            border: sale.discount_note?.includes('คู่') ? '1px solid rgba(176,34,56,0.25)' : '1px solid rgba(34,197,94,0.2)',
+                            padding: '8px 12px', borderRadius: 10,
+                            background: sale.discount_note?.includes('คู่') ? '#FFF1F2' : '#ECFDF5',
+                            border: sale.discount_note?.includes('คู่') ? '1.5px solid #FDA4AF' : '1.5px solid #6EE7B7',
                             fontSize: 12,
-                            color: sale.discount_note?.includes('คู่') ? '#b02238' : '#34d399',
-                            fontWeight: 700,
+                            color: sale.discount_note?.includes('คู่') ? '#BE123C' : '#047857',
+                            fontWeight: 800,
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                           }}>
                             <span>{sale.discount_note?.includes('คู่') ? '🍷' : '🏷️'} {sale.discount_note || 'ส่วนลด'}</span>
@@ -513,24 +514,24 @@ export default function CashierQueuePage() {
                           </div>
                         )}
                         {cleanNote && (
-                          <div style={{padding:'8px 12px',borderRadius:10,background:'rgba(245,158,11,0.05)',border:'1px solid rgba(245,158,11,0.15)',fontSize:12,color:'#fbbf24',marginTop:2}}>
+                          <div style={{padding:'8px 12px',borderRadius:10,background:'#FEF3C7',border:'1.5px solid #FCD34D',fontSize:12,color:'#92400E',fontWeight:700,marginTop:2}}>
                             📝 {cleanNote}
                           </div>
                         )}
                       </div>
 
                       {/* Action Button — 52px tall minimum */}
-                      <div style={{padding:'10px 12px 14px'}}>
+                      <div style={{padding:'10px 14px 14px'}}>
                         <button
                           onClick={()=>markServed(sale.id)}
                           disabled={isUpdating}
                           style={{
                             width:'100%', minHeight:52, borderRadius:14, border:'none',
-                            background:isUpdating?'rgba(255,255,255,0.06)':'linear-gradient(135deg,#059669,#10b981)',
-                            color:isUpdating?'#6b7280':'white',
-                            fontSize:15, fontWeight:800, cursor:isUpdating?'not-allowed':'pointer',
+                            background:isUpdating?'#E2E8F0':'linear-gradient(135deg,#059669 0%,#10b981 100%)',
+                            color:isUpdating?'#64748B':'white',
+                            fontSize:16, fontWeight:900, cursor:isUpdating?'not-allowed':'pointer',
                             display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                            boxShadow:isUpdating?'none':'0 4px 20px rgba(16,185,129,0.35)',
+                            boxShadow:isUpdating?'none':'0 6px 20px rgba(5,150,105,0.4)',
                             transition:'all 150ms', letterSpacing:'0.01em',
                           }}
                           onTouchStart={e => { if (!isUpdating) (e.currentTarget as HTMLElement).style.transform='scale(0.97)' }}
@@ -554,83 +555,85 @@ export default function CashierQueuePage() {
             <>
               {/* Filter row */}
               <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:12}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:'10px 12px'}}>
-                  <Search size={14} style={{color:'#6b7280',flexShrink:0}}/>
-                  <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loadData('history',true)} placeholder="ค้นหาเลขบิล..." style={{flex:1,background:'none',border:'none',color:'white',fontSize:14,outline:'none',minWidth:0}}/>
-                  {search && <button onClick={()=>{setSearch('');loadData('history',true)}} style={{background:'none',border:'none',color:'#6b7280',cursor:'pointer',padding:0,display:'flex',alignItems:'center'}}><X size={14}/></button>}
+                <div style={{display:'flex',alignItems:'center',gap:8,background:'#FFFFFF',border:'1.5px solid rgba(35,64,168,0.25)',borderRadius:12,padding:'10px 12px',boxShadow:'0 1px 4px rgba(0,0,0,0.03)'}}>
+                  <Search size={14} style={{color:'#1E3A8A',flexShrink:0}}/>
+                  <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loadData('history',true)} placeholder="ค้นหาเลขบิล..." style={{flex:1,background:'none',border:'none',color:'#0F172A',fontSize:14,fontWeight:600,outline:'none',minWidth:0}}/>
+                  {search && <button onClick={()=>{setSearch('');loadData('history',true)}} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',padding:0,display:'flex',alignItems:'center'}}><X size={14}/></button>}
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                  <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,padding:'9px 10px',borderRadius:10,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'white',fontSize:13,outline:'none',minWidth:0}}/>
-                  <span style={{color:'#4b5563',fontSize:12,flexShrink:0}}>ถึง</span>
-                  <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,padding:'9px 10px',borderRadius:10,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.07)',color:'white',fontSize:13,outline:'none',minWidth:0}}/>
-                  <button onClick={()=>loadData('history',true)} style={{padding:'9px 14px',borderRadius:10,border:'none',background:'rgba(14,165,233,0.15)',color:'#38bdf8',fontSize:13,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>ค้นหา</button>
+                  <input type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)} style={{flex:1,padding:'9px 10px',borderRadius:10,background:'#FFFFFF',border:'1.5px solid rgba(35,64,168,0.25)',color:'#0F172A',fontSize:13,fontWeight:600,outline:'none',minWidth:0}}/>
+                  <span style={{color:'#334155',fontSize:12,fontWeight:800,flexShrink:0}}>ถึง</span>
+                  <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)} style={{flex:1,padding:'9px 10px',borderRadius:10,background:'#FFFFFF',border:'1.5px solid rgba(35,64,168,0.25)',color:'#0F172A',fontSize:13,fontWeight:600,outline:'none',minWidth:0}}/>
+                  <button onClick={()=>loadData('history',true)} style={{padding:'9px 16px',borderRadius:10,border:'none',background:'#2340A8',color:'#FFFFFF',fontSize:13,fontWeight:800,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0,boxShadow:'0 2px 8px rgba(35,64,168,0.3)'}}>ค้นหา</button>
                 </div>
               </div>
 
               {loading ? (
-                <div style={{display:'flex',justifyContent:'center',paddingTop:60}}><Loader2 size={28} className="animate-spin" style={{color:'#0ea5e9'}}/></div>
+                <div style={{display:'flex',justifyContent:'center',paddingTop:60}}><Loader2 size={28} className="animate-spin" style={{color:'#1E3A8A'}}/></div>
               ) : sales.length===0 ? (
                 <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'40dvh',gap:12}}>
-                  <CheckCircle2 size={40} style={{color:'#22c55e',opacity:0.25}}/>
-                  <p style={{color:'#374151',fontSize:14,margin:0}}>ไม่พบประวัติออเดอร์</p>
+                  <CheckCircle2 size={40} style={{color:'#16a34a',opacity:0.3}}/>
+                  <p style={{color:'#0F172A',fontSize:15,fontWeight:800,margin:0}}>ไม่พบประวัติออเดอร์</p>
                 </div>
               ) : (
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                <div style={{display:'flex',flexDirection:'column',gap:10}}>
                   {sales.map(sale=>{
                     const isExp = expandedId===sale.id
                     const items = sale.sale_items||[]
                     return (
-                      <div key={sale.id} style={{background:'rgba(16,20,30,0.95)',borderRadius:14,border:'1px solid rgba(255,255,255,0.06)',overflow:'hidden'}}>
+                      <div key={sale.id} style={{background:'#FFFFFF',borderRadius:14,border:'1.5px solid rgba(35,64,168,0.18)',boxShadow:'0 2px 10px rgba(35,64,168,0.06)',overflow:'hidden'}}>
                         {/* Row header — tap to expand */}
-                        <div onClick={()=>setExpandedId(isExp?null:sale.id)} style={{padding:'12px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer',minHeight:60}}>
+                        <div onClick={()=>setExpandedId(isExp?null:sale.id)} style={{padding:'14px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer',minHeight:60}}>
                           <div style={{minWidth:0,flex:1}}>
                             <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>
-                              <span style={{fontSize:12,fontWeight:800,color:'#e11d48',fontFamily:'monospace'}}>#{sale.receipt_no}</span>
-                              <span style={{fontSize:10,color:'#6b7280'}}>{formatDate(sale.created_at)}</span>
+                              <span style={{fontSize:13,fontWeight:900,color:'#1E3A8A',fontFamily:'monospace'}}>#{sale.receipt_no}</span>
+                              <span style={{fontSize:11,color:'#475569',fontWeight:600}}>{formatDate(sale.created_at)}</span>
                             </div>
                             <div style={{display:'flex',alignItems:'center',gap:6,marginTop:4,flexWrap:'wrap'}}>
-                              <div style={{display:'flex',alignItems:'center',gap:4}}><PayIcon m={sale.payment_method}/><span style={{fontSize:11,color:'#9ca3af'}}>{payLabel(sale.payment_method)}</span></div>
-                              <span style={{fontSize:10,color:'#374151'}}>• {items.length} รายการ</span>
-                              {(sale.customers as any)?.full_name && <span style={{fontSize:10,color:'#4b5563'}}>• {(sale.customers as any).full_name}</span>}
+                              <div style={{display:'flex',alignItems:'center',gap:4}}><PayIcon m={sale.payment_method}/><span style={{fontSize:12,color:'#1E293B',fontWeight:700}}>{payLabel(sale.payment_method)}</span></div>
+                              <span style={{fontSize:11,color:'#475569',fontWeight:600}}>• {items.length} รายการ</span>
+                              {(sale.customers as any)?.full_name && <span style={{fontSize:11,color:'#1E293B',fontWeight:700}}>• {(sale.customers as any).full_name}</span>}
                             </div>
                           </div>
                           <div style={{display:'flex',alignItems:'center',gap:10,flexShrink:0,paddingLeft:8}}>
-                            <span style={{fontSize:15,fontWeight:900,color:'#fcd34d'}}>{formatCurrency(sale.total_amount)}</span>
-                            <div style={{width:26,height:26,borderRadius:8,background:'rgba(255,255,255,0.04)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                              <ChevronDown size={13} style={{color:'#6b7280',transform:isExp?'rotate(180deg)':'none',transition:'transform 200ms'}}/>
+                            <span style={{fontSize:16,fontWeight:900,color:'#1E3A8A'}}>{formatCurrency(sale.total_amount)}</span>
+                            <div style={{width:28,height:28,borderRadius:8,background:'rgba(35,64,168,0.08)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              <ChevronDown size={14} style={{color:'#1E3A8A',transform:isExp?'rotate(180deg)':'none',transition:'transform 200ms'}}/>
                             </div>
                           </div>
                         </div>
 
                         {/* Expanded detail */}
                         {isExp && (
-                          <div className="hist-detail" style={{borderTop:'1px solid rgba(255,255,255,0.05)',padding:'12px 14px',display:'flex',flexDirection:'column',gap:6}}>
+                          <div className="hist-detail" style={{borderTop:'1px solid rgba(35,64,168,0.1)',padding:'14px 16px',display:'flex',flexDirection:'column',gap:8,background:'#F8FAFC'}}>
                             {items.map((item:any)=>(
-                              <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 10px',borderRadius:9,background:'rgba(255,255,255,0.02)'}}>
+                              <div key={item.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderRadius:9,background:'#FFFFFF',border:'1px solid rgba(35,64,168,0.08)'}}>
                                 <div style={{minWidth:0}}>
-                                  <p style={{margin:0,fontSize:12,color:'#e2e8f0',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</p>
-                                  <p style={{margin:'2px 0 0',fontSize:10,color:'#6b7280'}}>{formatCurrency(item.unit_price)} × {item.quantity}</p>
+                                  <p style={{margin:0,fontSize:13,color:'#0F172A',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.product_name}</p>
+                                  <p style={{margin:'2px 0 0',fontSize:11,color:'#475569',fontWeight:600}}>{formatCurrency(item.unit_price)} × {item.quantity}</p>
                                 </div>
-                                <span style={{fontSize:12,fontWeight:700,color:'#fcd34d',flexShrink:0,marginLeft:8}}>{formatCurrency(item.line_total)}</span>
+                                <span style={{fontSize:13,fontWeight:900,color:'#1E3A8A',flexShrink:0,marginLeft:8}}>{formatCurrency(item.line_total)}</span>
                               </div>
                             ))}
                             {sale.discount_amount > 0 && (
                               <div style={{
-                                display: 'flex', justifyContent: 'space-between', padding: '6px 10px',
-                                color: sale.discount_note?.includes('คู่') ? '#b02238' : '#34d399',
-                                fontSize: 12, fontWeight: 700
+                                display: 'flex', justifyContent: 'space-between', padding: '8px 12px',
+                                background: sale.discount_note?.includes('คู่') ? '#FFF1F2' : '#ECFDF5',
+                                border: sale.discount_note?.includes('คู่') ? '1px solid #FDA4AF' : '1px solid #86EFAC',
+                                color: sale.discount_note?.includes('คู่') ? '#BE123C' : '#047857',
+                                fontSize: 12, fontWeight: 800, borderRadius: 9
                               }}>
                                 <span>{sale.discount_note?.includes('คู่') ? '🍷' : '🏷️'} {sale.discount_note || 'ส่วนลด'}</span>
                                 <span>-{formatCurrency(sale.discount_amount)}</span>
                               </div>
                             )}
                             {/* Total row */}
-                            <div style={{display:'flex',justifyContent:'space-between',padding:'8px 10px',borderTop:'1px solid rgba(255,255,255,0.06)',marginTop:2}}>
-                              <span style={{fontSize:12,color:'#6b7280'}}>ยอดสุทธิ</span>
-                              <span style={{fontSize:14,fontWeight:900,color:'#fcd34d'}}>{formatCurrency(sale.total_amount)}</span>
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'10px 12px',borderTop:'1.5px solid rgba(35,64,168,0.15)',marginTop:2}}>
+                              <span style={{fontSize:13,color:'#0F172A',fontWeight:800}}>ยอดสุทธิ</span>
+                              <span style={{fontSize:16,fontWeight:900,color:'#1E3A8A'}}>{formatCurrency(sale.total_amount)}</span>
                             </div>
                             {/* Undo button */}
-                            <button onClick={()=>undoServed(sale.id)} disabled={updatingId===sale.id} style={{width:'100%',minHeight:44,marginTop:4,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.03)',color:'#9ca3af',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                            <button onClick={()=>undoServed(sale.id)} disabled={updatingId===sale.id} style={{width:'100%',minHeight:44,marginTop:4,borderRadius:10,border:'1.5px solid #CBD5E1',background:'#FFFFFF',color:'#334155',fontSize:13,fontWeight:800,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}}>
                               {updatingId===sale.id?<Loader2 size={14} className="animate-spin"/>:<Undo size={14}/>} ดึงกลับคิว
                             </button>
                           </div>
@@ -646,66 +649,66 @@ export default function CashierQueuePage() {
           {/* ─── REPORT TAB ─── */}
           {tab === 'report' && (
             <div style={{maxWidth:520,margin:'0 auto'}}>
-              <div style={{background:'rgba(16,20,30,0.95)',borderRadius:18,border:'1px solid rgba(255,255,255,0.07)',overflow:'hidden'}}>
-                <div style={{height:4,background:'linear-gradient(90deg,#0c4a6e,#0ea5e9,#38bdf8)'}}/>
+              <div style={{background:'#FFFFFF',borderRadius:18,border:'1.5px solid rgba(35,64,168,0.18)',boxShadow:'0 4px 20px rgba(35,64,168,0.08)',overflow:'hidden'}}>
+                <div style={{height:4,background:'linear-gradient(90deg,#1e3a8a,#2340a8,#3b82f6)'}}/>
                 {/* Header */}
-                <div style={{padding:'16px 18px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{width:38,height:38,borderRadius:10,background:'rgba(14,165,233,0.1)',border:'1px solid rgba(14,165,233,0.15)',display:'flex',alignItems:'center',justifyContent:'center',color:'#0ea5e9',flexShrink:0}}>
+                <div style={{padding:'16px 18px',borderBottom:'1px solid rgba(35,64,168,0.1)',display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{width:38,height:38,borderRadius:10,background:'rgba(35,64,168,0.1)',border:'1px solid rgba(35,64,168,0.2)',display:'flex',alignItems:'center',justifyContent:'center',color:'#1E3A8A',flexShrink:0}}>
                     <ClipboardList size={18}/>
                   </div>
                   <div>
-                    <h2 style={{margin:0,fontSize:15,fontWeight:800,color:'white'}}>รายงานความเรียบร้อย</h2>
-                    <p style={{margin:0,fontSize:11,color:'#6b7280'}}>ส่งรายงานไปยังผู้จัดการ</p>
+                    <h2 style={{margin:0,fontSize:16,fontWeight:900,color:'#0F172A'}}>รายงานความเรียบร้อย</h2>
+                    <p style={{margin:0,fontSize:12,color:'#475569',fontWeight:600}}>ส่งรายงานไปยังผู้จัดการ</p>
                   </div>
                 </div>
 
                 <div style={{padding:'18px'}}>
                   {rSuccess ? (
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 0',gap:14}}>
-                      <div style={{width:72,height:72,borderRadius:'50%',background:'rgba(14,165,233,0.1)',border:'1px solid rgba(14,165,233,0.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                        <CheckCircle2 size={34} style={{color:'#0ea5e9'}}/>
+                      <div style={{width:72,height:72,borderRadius:'50%',background:'rgba(16,185,129,0.12)',border:'2px solid #10B981',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <CheckCircle2 size={36} style={{color:'#059669'}}/>
                       </div>
                       <div style={{textAlign:'center'}}>
-                        <p style={{margin:'0 0 6px',fontSize:17,fontWeight:800,color:'white'}}>ส่งรายงานสำเร็จ! ✅</p>
-                        <p style={{margin:0,fontSize:13,color:'#6b7280'}}>กำลังกลับไปหน้าคิว...</p>
+                        <p style={{margin:'0 0 6px',fontSize:18,fontWeight:900,color:'#0F172A'}}>ส่งรายงานสำเร็จ! ✅</p>
+                        <p style={{margin:0,fontSize:13,color:'#475569',fontWeight:600}}>กำลังกลับไปหน้าคิว...</p>
                       </div>
                     </div>
                   ) : (
                     <div style={{display:'flex',flexDirection:'column',gap:14}}>
                       {/* Title */}
                       <div>
-                        <label style={{display:'block',fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.06em'}}>หัวข้อรายงาน *</label>
-                        <input value={rTitle} onChange={e=>setRTitle(e.target.value)} placeholder="เช่น เปิดร้านเรียบร้อย, ทำความสะอาดแล้ว..." style={{width:'100%',padding:'13px 14px',borderRadius:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'white',fontSize:14,outline:'none',boxSizing:'border-box',fontFamily:'inherit'}}
-                          onFocus={e=>e.currentTarget.style.borderColor='rgba(14,165,233,0.5)'}
-                          onBlur={e=>e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'}
+                        <label style={{display:'block',fontSize:12,fontWeight:800,color:'#0F172A',marginBottom:6,letterSpacing:'0.02em'}}>หัวข้อรายงาน *</label>
+                        <input value={rTitle} onChange={e=>setRTitle(e.target.value)} placeholder="เช่น เปิดร้านเรียบร้อย, ทำความสะอาดแล้ว..." style={{width:'100%',padding:'13px 14px',borderRadius:12,background:'#F8FAFC',border:'1.5px solid rgba(35,64,168,0.25)',color:'#0F172A',fontSize:14,fontWeight:600,outline:'none',boxSizing:'border-box',fontFamily:'inherit'}}
+                          onFocus={e=>e.currentTarget.style.borderColor='#2340A8'}
+                          onBlur={e=>e.currentTarget.style.borderColor='rgba(35,64,168,0.25)'}
                         />
                       </div>
                       {/* Note */}
                       <div>
-                        <label style={{display:'block',fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.06em'}}>รายละเอียดเพิ่มเติม</label>
-                        <textarea value={rNote} onChange={e=>setRNote(e.target.value)} rows={3} placeholder="รายละเอียด, ปัญหา, หมายเหตุ..." style={{width:'100%',padding:'13px 14px',borderRadius:12,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'white',fontSize:13,outline:'none',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit',lineHeight:1.6}}
-                          onFocus={e=>e.currentTarget.style.borderColor='rgba(14,165,233,0.5)'}
-                          onBlur={e=>e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'}
+                        <label style={{display:'block',fontSize:12,fontWeight:800,color:'#0F172A',marginBottom:6,letterSpacing:'0.02em'}}>รายละเอียดเพิ่มเติม</label>
+                        <textarea value={rNote} onChange={e=>setRNote(e.target.value)} rows={3} placeholder="รายละเอียด, ปัญหา, หมายเหตุ..." style={{width:'100%',padding:'13px 14px',borderRadius:12,background:'#F8FAFC',border:'1.5px solid rgba(35,64,168,0.25)',color:'#0F172A',fontSize:13,fontWeight:600,outline:'none',resize:'vertical',boxSizing:'border-box',fontFamily:'inherit',lineHeight:1.6}}
+                          onFocus={e=>e.currentTarget.style.borderColor='#2340A8'}
+                          onBlur={e=>e.currentTarget.style.borderColor='rgba(35,64,168,0.25)'}
                         />
                       </div>
                       {/* Images */}
                       <div>
-                        <label style={{display:'block',fontSize:11,fontWeight:700,color:'#9ca3af',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.06em'}}>📸 รูปภาพ ({rImages.length}/5)</label>
+                        <label style={{display:'block',fontSize:12,fontWeight:800,color:'#0F172A',marginBottom:10,letterSpacing:'0.02em'}}>📸 รูปภาพ ({rImages.length}/5)</label>
                         {camActive ? (
                           <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                            <div style={{position:'relative',width:'100%',aspectRatio:'4/3',background:'#000',borderRadius:14,overflow:'hidden',border:'1px solid rgba(255,255,255,0.1)'}}>
+                            <div style={{position:'relative',width:'100%',aspectRatio:'4/3',background:'#000',borderRadius:14,overflow:'hidden',border:'1px solid rgba(0,0,0,0.1)'}}>
                               <video ref={videoRef} playsInline muted style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                              <div style={{position:'absolute',inset:12,border:'1px dashed rgba(255,255,255,0.15)',borderRadius:8,pointerEvents:'none'}}/>
+                              <div style={{position:'absolute',inset:12,border:'1px dashed rgba(255,255,255,0.4)',borderRadius:8,pointerEvents:'none'}}/>
                             </div>
                             <div style={{display:'flex',gap:8}}>
-                              <button onClick={capturePhoto} style={{flex:2,padding:'13px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#0ea5e9,#0284c7)',color:'white',fontSize:14,fontWeight:800,cursor:'pointer'}}>📸 ถ่ายรูป</button>
-                              <button onClick={stopCam} style={{flex:1,padding:'13px',borderRadius:12,border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.03)',color:'#9ca3af',fontSize:14,fontWeight:700,cursor:'pointer'}}>ยกเลิก</button>
+                              <button onClick={capturePhoto} style={{flex:2,padding:'13px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#1e3a8a,#2340a8)',color:'white',fontSize:14,fontWeight:800,cursor:'pointer'}}>📸 ถ่ายรูป</button>
+                              <button onClick={stopCam} style={{flex:1,padding:'13px',borderRadius:12,border:'1.5px solid #CBD5E1',background:'#FFFFFF',color:'#334155',fontSize:14,fontWeight:700,cursor:'pointer'}}>ยกเลิก</button>
                             </div>
                           </div>
                         ) : (
                           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(80px,1fr))',gap:8}}>
                             {rImages.map((img,i)=>(
-                              <div key={i} style={{position:'relative',borderRadius:10,overflow:'hidden',aspectRatio:'1',border:'1px solid rgba(255,255,255,0.08)'}}>
+                              <div key={i} style={{position:'relative',borderRadius:10,overflow:'hidden',aspectRatio:'1',border:'1px solid rgba(0,0,0,0.1)'}}>
                                 <img src={img} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                                 <button onClick={()=>setRImages(p=>p.filter((_,idx)=>idx!==i))} style={{position:'absolute',top:3,right:3,width:22,height:22,background:'rgba(239,68,68,0.9)',border:'none',borderRadius:'50%',color:'white',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
                                   <X size={12}/>
@@ -714,11 +717,11 @@ export default function CashierQueuePage() {
                             ))}
                             {rImages.length<5 && (
                               <>
-                                <button onClick={startCam} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(14,165,233,0.4)',background:'rgba(14,165,233,0.04)',color:'#0ea5e9',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer'}}>
-                                  <Camera size={22}/><span style={{fontSize:9,fontWeight:700}}>กล้อง</span>
+                                <button onClick={startCam} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(35,64,168,0.4)',background:'rgba(35,64,168,0.05)',color:'#1E3A8A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer',fontWeight:700}}>
+                                  <Camera size={22}/><span style={{fontSize:10,fontWeight:800}}>กล้อง</span>
                                 </button>
-                                <button onClick={()=>fileRef.current?.click()} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.02)',color:'#6b7280',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer'}}>
-                                  <ImageIcon size={22}/><span style={{fontSize:9,fontWeight:700}}>อัปโหลด</span>
+                                <button onClick={()=>fileRef.current?.click()} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(35,64,168,0.3)',background:'#FFFFFF',color:'#334155',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer',fontWeight:700}}>
+                                  <ImageIcon size={22}/><span style={{fontSize:10,fontWeight:800}}>อัปโหลด</span>
                                 </button>
                               </>
                             )}
@@ -732,10 +735,10 @@ export default function CashierQueuePage() {
                       {/* Submit */}
                       <button onClick={submitReport} disabled={!rTitle.trim()||rLoading} style={{
                         width:'100%', minHeight:52, borderRadius:14, border:'none',
-                        background:rTitle.trim()&&!rLoading?'linear-gradient(135deg,#0c4a6e,#0ea5e9)':'rgba(255,255,255,0.04)',
-                        color:rTitle.trim()&&!rLoading?'white':'#6b7280',
+                        background:rTitle.trim()&&!rLoading?'linear-gradient(135deg,#1E3A8A 0%,#2340A8 100%)':'#E2E8F0',
+                        color:rTitle.trim()&&!rLoading?'white':'#64748B',
                         fontSize:15, fontWeight:800, cursor:rTitle.trim()&&!rLoading?'pointer':'not-allowed',
-                        boxShadow:rTitle.trim()&&!rLoading?'0 6px 24px rgba(14,165,233,0.3)':'none',
+                        boxShadow:rTitle.trim()&&!rLoading?'0 6px 22px rgba(35,64,168,0.35)':'none',
                         display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 200ms'
                       }}>
                         {rLoading?<><Loader2 size={16} className="animate-spin"/>กำลังส่ง...</>:<><Send size={15}/>ส่งรายงาน</>}
@@ -750,18 +753,18 @@ export default function CashierQueuePage() {
 
         {/* ── MOBILE BOTTOM NAV (fixed, safe area aware) ── */}
         <nav className="cq-bnav" style={{
-          background:'rgba(8,10,15,0.98)', borderTop:'1px solid rgba(255,255,255,0.07)',
+          background:'rgba(237,227,200,0.98)', borderTop:'1.5px solid rgba(35,64,168,0.2)',
           backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)',
           paddingBottom:'env(safe-area-inset-bottom)', flexShrink:0, zIndex:50,
         }}>
           {NAV_ITEMS.map(n=>(
             <button key={n.id} onClick={()=>switchTab(n.id)} className="cq-nav-btn" style={{
               flex:1, border:'none', cursor:'pointer',
-              background:tab===n.id?'rgba(14,165,233,0.06)':'transparent',
-              color:tab===n.id?'#0ea5e9':'#6b7280',
+              background:tab===n.id?'rgba(35,64,168,0.12)':'transparent',
+              color:tab===n.id?'#1E3A8A':'#475569',
               display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-              gap:2, fontSize:10, fontWeight:700,
-              borderTop:`2.5px solid ${tab===n.id?'#0ea5e9':'transparent'}`,
+              gap:2, fontSize:11, fontWeight:tab===n.id?900:700,
+              borderTop:`3px solid ${tab===n.id?'#1E3A8A':'transparent'}`,
               transition:'all 150ms', position:'relative', paddingTop:10, paddingBottom:8,
             }}>
               <span style={{fontSize:22,lineHeight:1}}>{n.emoji}</span>
@@ -773,7 +776,7 @@ export default function CashierQueuePage() {
                   background:'#ef4444', color:'white',
                   fontSize:9, fontWeight:900,
                   display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px',
-                  border:'2px solid rgba(8,10,15,0.98)',
+                  border:'2px solid white',
                 }}>
                   {n.badge>99?'99+':n.badge}
                 </span>

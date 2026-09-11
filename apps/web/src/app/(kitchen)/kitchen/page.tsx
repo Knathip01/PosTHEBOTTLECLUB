@@ -49,14 +49,14 @@ function getElapsed(createdAt: string) {
 
 // ─── Status Badge ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; color: string; bg: string }> = {
-    pending:   { label: '⏳ รอทำ',       color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
-    preparing: { label: '🔥 กำลังปรุง',  color: '#fb923c', bg: 'rgba(251,146,60,0.12)' },
-    ready:     { label: '✅ พร้อมเสิร์ฟ', color: '#4ade80', bg: 'rgba(74,222,128,0.12)' },
+  const map: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    pending:   { label: '⏳ รอทำ',       color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' },
+    preparing: { label: '🔥 กำลังปรุง',  color: '#C2410C', bg: '#FFEDD5', border: '#FDBA74' },
+    ready:     { label: '✅ พร้อมเสิร์ฟ', color: '#15803D', bg: '#DCFCE7', border: '#86EFAC' },
   }
   const s = map[status] || map.pending
   return (
-    <span style={{ fontSize: 11, fontWeight: 700, color: s.color, background: s.bg, padding: '3px 9px', borderRadius: 999 }}>
+    <span style={{ fontSize: 12, fontWeight: 800, color: s.color, background: s.bg, border: `1.5px solid ${s.border}`, padding: '3px 10px', borderRadius: 999 }}>
       {s.label}
     </span>
   )
@@ -78,106 +78,106 @@ function OrderCard({ sale, onAction, updating }: {
   const elapsedMin = Math.floor((Date.now() - new Date(sale.created_at).getTime()) / 60000)
   const isUrgent = elapsedMin >= 15 && !isReady
 
-  const borderColor = isUrgent ? 'rgba(239,68,68,0.55)' : isPreparing ? 'rgba(251,146,60,0.4)' : 'rgba(255,255,255,0.07)'
-  const headerBg   = isUrgent ? 'rgba(239,68,68,0.08)' : isPreparing ? 'rgba(251,146,60,0.06)' : 'rgba(255,255,255,0.02)'
+  const borderColor = isUrgent ? '#EF4444' : isPreparing ? '#F97316' : isReady ? '#16A34A' : 'rgba(35,64,168,0.2)'
+  const headerBg   = isUrgent ? '#FEF2F2' : isPreparing ? '#FFF7ED' : isReady ? '#F0FDF4' : '#F8FAFC'
 
   return (
     <div style={{
-      background: '#12151c', border: `1px solid ${borderColor}`, borderRadius: 18,
+      background: '#FFFFFF', border: `2px solid ${borderColor}`, borderRadius: 18,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      boxShadow: isUrgent ? '0 0 24px rgba(239,68,68,0.12)' : isPreparing ? '0 0 20px rgba(251,146,60,0.08)' : 'none',
+      boxShadow: isUrgent ? '0 8px 24px rgba(239,68,68,0.18)' : isPreparing ? '0 8px 24px rgba(249,115,22,0.18)' : '0 4px 16px rgba(35,64,168,0.08)',
       transition: 'all 250ms'
     }}>
       {/* Urgent top stripe */}
       {isUrgent && (
-        <div style={{ height: 3, background: 'linear-gradient(90deg,#ef4444,#f97316)', flexShrink: 0 }} />
+        <div style={{ height: 4, background: 'linear-gradient(90deg,#dc2626,#ea580c)', flexShrink: 0 }} />
       )}
 
       {/* Header */}
-      <div style={{ padding: '12px 14px', background: headerBg, borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+      <div style={{ padding: '14px 16px', background: headerBg, borderBottom: '1.5px solid rgba(35,64,168,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#ef4444' : '#f1f3f7' }}>
+            <span style={{ fontSize: 18, fontWeight: 900, color: isUrgent ? '#DC2626' : '#0F172A' }}>
               {sale.table_no ? `🍽️ โต๊ะ ${sale.table_no}` : '🛍️ กลับบ้าน'}
             </span>
             {sale.status === 'pending' && (
-              <span style={{ fontSize: 10, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', padding: '1px 7px', borderRadius: 4, fontWeight: 700 }}>
+              <span style={{ fontSize: 11, background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', padding: '2px 8px', borderRadius: 6, fontWeight: 800 }}>
                 ยังไม่ชำระ
               </span>
             )}
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6b7280' }}>#{sale.receipt_no.slice(-6)}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#334155', fontWeight: 700, fontFamily: 'monospace' }}>#{sale.receipt_no.slice(-6)}</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
           <StatusBadge status={kStatus} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: isUrgent ? '#ef4444' : '#6b7280' }}>
-            <Clock size={10} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: isUrgent ? '#DC2626' : '#334155' }}>
+            <Clock size={12} />
             <span>{getElapsed(sale.created_at)}</span>
-            {isUrgent && <AlertTriangle size={10} />}
+            {isUrgent && <AlertTriangle size={12} />}
           </div>
         </div>
       </div>
 
       {/* Items list */}
-      <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ padding: '14px 16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {kitchenItems.map((item: any) => (
-          <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: '#F8FAFC', border: '1px solid rgba(35,64,168,0.08)' }}>
             <div style={{
               width: 34, height: 34, borderRadius: 9,
-              background: isPreparing ? 'rgba(251,146,60,0.1)' : 'rgba(255,255,255,0.05)',
-              border: `1px solid ${isPreparing ? 'rgba(251,146,60,0.25)' : 'rgba(255,255,255,0.08)'}`,
+              background: isPreparing ? '#FFEDD5' : '#EEF2FF',
+              border: `1.5px solid ${isPreparing ? '#FDBA74' : '#C7D2FE'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 900, color: isPreparing ? '#fb923c' : '#d1d5db', flexShrink: 0
+              fontSize: 15, fontWeight: 900, color: isPreparing ? '#C2410C' : '#1E3A8A', flexShrink: 0
             }}>
               {item.quantity}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.product_name}
               </p>
-              {item.sku && <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>SKU: {item.sku}</p>}
+              {item.sku && <p style={{ margin: 0, fontSize: 11, color: '#64748B', fontWeight: 600 }}>SKU: {item.sku}</p>}
             </div>
             <span style={{ fontSize: 18, flexShrink: 0 }}>🍳</span>
           </div>
         ))}
         {cleanNote && (
-          <div style={{ padding: '8px 10px', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 10, fontSize: 12, color: '#f59e0b' }}>
+          <div style={{ padding: '9px 12px', background: '#FEF3C7', border: '1.5px solid #FCD34D', borderRadius: 10, fontSize: 13, color: '#92400E', fontWeight: 800 }}>
             📝 {cleanNote}
           </div>
         )}
       </div>
 
       {/* Action */}
-      <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.1)' }}>
+      <div style={{ padding: '12px 16px 14px', borderTop: '1px solid rgba(35,64,168,0.1)', background: '#F8FAFC' }}>
         {isReady ? (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '12px', borderRadius: 12,
-            background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)',
-            color: '#4ade80', fontSize: 14, fontWeight: 700
+            padding: '13px', borderRadius: 12,
+            background: '#DCFCE7', border: '1.5px solid #86EFAC',
+            color: '#15803D', fontSize: 15, fontWeight: 900
           }}>
-            <CheckCircle size={16} /> พร้อมเสิร์ฟแล้ว 🎉
+            <CheckCircle size={18} /> พร้อมเสิร์ฟแล้ว 🎉
           </div>
         ) : (
           <button
             onClick={() => onAction(sale.id, isPreparing ? 'ready' : 'preparing')}
             disabled={updating}
             style={{
-              width: '100%', padding: '13px', borderRadius: 12, border: 'none',
+              width: '100%', padding: '14px', borderRadius: 12, border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              fontSize: 14, fontWeight: 800, cursor: updating ? 'not-allowed' : 'pointer',
+              fontSize: 15, fontWeight: 900, cursor: updating ? 'not-allowed' : 'pointer',
               background: isPreparing
-                ? 'linear-gradient(135deg,#16a34a,#22c55e)'
-                : 'linear-gradient(135deg,#ea580c,#fb923c)',
-              color: 'white',
+                ? 'linear-gradient(135deg,#15803D 0%,#16A34A 100%)'
+                : 'linear-gradient(135deg,#C2410C 0%,#EA580C 100%)',
+              color: '#FFFFFF',
               opacity: updating ? 0.7 : 1,
               transition: 'all 150ms',
-              boxShadow: isPreparing ? '0 4px 16px rgba(34,197,94,0.3)' : '0 4px 16px rgba(251,146,60,0.3)'
+              boxShadow: isPreparing ? '0 6px 20px rgba(21,128,61,0.4)' : '0 6px 20px rgba(194,65,12,0.4)'
             }}
           >
-            {updating ? <Loader2 size={16} className="animate-spin" /> :
-              isPreparing ? <><CheckCircle size={16} /> ทำเสร็จแล้ว (พร้อมเสิร์ฟ)</> :
-              <><Play size={16} /> เริ่มปรุงอาหาร</>}
+            {updating ? <Loader2 size={18} className="animate-spin" /> :
+              isPreparing ? <><CheckCircle size={18} /> ทำเสร็จแล้ว (พร้อมเสิร์ฟ)</> :
+              <><Play size={18} /> เริ่มปรุงอาหาร</>}
           </button>
         )}
       </div>
@@ -259,29 +259,29 @@ function ReportModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div style={{
-        background: '#12151c', borderRadius: '24px 24px 0 0',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: '#FFFFFF', borderRadius: '24px 24px 0 0',
+        border: '1.5px solid rgba(35,64,168,0.2)',
         width: '100%', maxWidth: 600, maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
         paddingBottom: 'env(safe-area-inset-bottom)'
       }}>
         {/* Handle */}
-        <div style={{ width: 40, height: 4, background: 'rgba(255,255,255,0.15)', borderRadius: 999, margin: '12px auto 0', flexShrink: 0 }} />
+        <div style={{ width: 40, height: 4, background: '#CBD5E1', borderRadius: 999, margin: '12px auto 0', flexShrink: 0 }} />
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(35,64,168,0.1)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(35,64,168,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E3A8A' }}>
               <ClipboardList size={18} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'white' }}>ส่งรายงานห้องครัว</h3>
-              <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>รายงานความเรียบร้อยประจำวัน</p>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0F172A' }}>ส่งรายงานห้องครัว</h3>
+              <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 600 }}>รายงานความเรียบร้อยประจำวัน</p>
             </div>
           </div>
-          <button onClick={() => { stopCamera(); onClose() }} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => { stopCamera(); onClose() }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#F1F5F9', border: 'none', color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={16} />
           </button>
         </div>
@@ -290,45 +290,45 @@ function ReportModal({ onClose }: { onClose: () => void }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {success ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 16 }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#DCFCE7', border: '2px solid #86EFAC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#15803D' }}>
                 <CheckCircle size={36} />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <h4 style={{ margin: '0 0 6px', color: 'white', fontSize: 18, fontWeight: 800 }}>ส่งรายงานสำเร็จ! ✅</h4>
-                <p style={{ margin: 0, color: '#6b7280', fontSize: 13 }}>ข้อมูลถูกส่งไปยังผู้จัดการแล้ว</p>
+                <h4 style={{ margin: '0 0 6px', color: '#0F172A', fontSize: 18, fontWeight: 900 }}>ส่งรายงานสำเร็จ! ✅</h4>
+                <p style={{ margin: 0, color: '#475569', fontSize: 13, fontWeight: 600 }}>ข้อมูลถูกส่งไปยังผู้จัดการแล้ว</p>
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 6 }}>หัวข้อรายงาน *</label>
+                <label style={{ fontSize: 12, fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: 6 }}>หัวข้อรายงาน *</label>
                 <input
                   value={title} onChange={e => setTitle(e.target.value)}
                   placeholder="เช่น ความเรียบร้อยในครัว, ตรวจเตาแก๊ส..."
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: '#F8FAFC', border: '1.5px solid rgba(35,64,168,0.25)', color: '#0F172A', fontSize: 14, fontWeight: 600, outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 6 }}>รายละเอียดเพิ่มเติม</label>
+                <label style={{ fontSize: 12, fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: 6 }}>รายละเอียดเพิ่มเติม</label>
                 <textarea
                   value={note} onChange={e => setNote(e.target.value)}
                   rows={3} placeholder="ตรวจวัตถุดิบ, ความสะอาด, ปัญหาที่พบ..."
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 14, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 12, background: '#F8FAFC', border: '1.5px solid rgba(35,64,168,0.25)', color: '#0F172A', fontSize: 14, fontWeight: 600, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 10 }}>📸 แนบภาพ (สูงสุด 5 รูป)</label>
+                <label style={{ fontSize: 12, fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: 10 }}>📸 แนบภาพ (สูงสุด 5 รูป)</label>
                 {cameraActive ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', background: '#000', borderRadius: 14, overflow: 'hidden' }}>
                       <video ref={videoRef} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', inset: 16, border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 8, pointerEvents: 'none' }} />
+                      <div style={{ position: 'absolute', inset: 16, border: '1px dashed rgba(255,255,255,0.4)', borderRadius: 8, pointerEvents: 'none' }} />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={capture} style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#10b981,#059669)', color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      <button onClick={capture} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#1e3a8a,#2340a8)', color: 'white', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}>
                         📸 ถ่ายภาพ
                       </button>
-                      <button onClick={stopCamera} style={{ flex: 1, padding: '11px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      <button onClick={stopCamera} style={{ flex: 1, padding: '12px', borderRadius: 12, background: '#FFFFFF', border: '1.5px solid #CBD5E1', color: '#334155', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                         ยกเลิก
                       </button>
                     </div>
@@ -336,7 +336,7 @@ function ReportModal({ onClose }: { onClose: () => void }) {
                 ) : (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {images.map((img, i) => (
-                      <div key={i} style={{ position: 'relative', width: 72, height: 72, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div key={i} style={{ position: 'relative', width: 72, height: 72, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
                         <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))}
                           style={{ position: 'absolute', top: 2, right: 2, width: 20, height: 20, background: '#ef4444', border: 'none', borderRadius: '50%', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
@@ -345,13 +345,13 @@ function ReportModal({ onClose }: { onClose: () => void }) {
                       </div>
                     ))}
                     {images.length < 5 && (<>
-                      <button onClick={startCamera} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(16,185,129,0.4)', background: 'rgba(16,185,129,0.04)', color: '#10b981', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' }}>
+                      <button onClick={startCamera} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(35,64,168,0.4)', background: 'rgba(35,64,168,0.05)', color: '#1E3A8A', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontWeight: 800 }}>
                         <Camera size={20} />
-                        <span style={{ fontSize: 9, fontWeight: 700 }}>กล้อง</span>
+                        <span style={{ fontSize: 10, fontWeight: 800 }}>กล้อง</span>
                       </button>
-                      <button onClick={() => fileRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.02)', color: '#6b7280', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer' }}>
+                      <button onClick={() => fileRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(35,64,168,0.3)', background: '#F8FAFC', color: '#334155', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontWeight: 800 }}>
                         <ImageIcon size={20} />
-                        <span style={{ fontSize: 9, fontWeight: 700 }}>อัปโหลด</span>
+                        <span style={{ fontSize: 10, fontWeight: 800 }}>อัปโหลด</span>
                       </button>
                     </>)}
                     <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFile} style={{ display: 'none' }} />
@@ -364,17 +364,17 @@ function ReportModal({ onClose }: { onClose: () => void }) {
 
         {/* Footer */}
         {!success && (
-          <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+          <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(35,64,168,0.1)', flexShrink: 0 }}>
             <button
               onClick={submit}
               disabled={!title.trim() || loading}
               style={{
                 width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-                background: title.trim() && !loading ? 'linear-gradient(135deg,#10b981,#059669)' : 'rgba(255,255,255,0.04)',
-                color: title.trim() && !loading ? 'white' : '#6b7280',
+                background: title.trim() && !loading ? 'linear-gradient(135deg,#1E3A8A 0%,#2340A8 100%)' : '#E2E8F0',
+                color: title.trim() && !loading ? 'white' : '#64748B',
                 fontSize: 15, fontWeight: 800,
                 cursor: title.trim() && !loading ? 'pointer' : 'not-allowed',
-                boxShadow: title.trim() && !loading ? '0 6px 20px rgba(16,185,129,0.3)' : 'none',
+                boxShadow: title.trim() && !loading ? '0 6px 20px rgba(35,64,168,0.35)' : 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
               }}
             >
@@ -526,7 +526,7 @@ export default function KitchenDisplayPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#080a0d', color: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDE3C8', color: '#0F172A', display: 'flex', flexDirection: 'column' }}>
 
       {/* ── CSS ── */}
       <style>{`
@@ -537,25 +537,25 @@ export default function KitchenDisplayPage() {
       {/* ── Header ── */}
       <header style={{
         height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', background: 'rgba(8,10,13,0.97)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '0 16px', background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(20px)',
         gap: 10, flexShrink: 0
       }}>
         {/* Left */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f87171', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', flexShrink: 0 }}>
             <ChefHat size={18} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Kitchen Display 👨‍🍳</h1>
-            <p style={{ margin: 0, fontSize: 10, color: '#6b7280' }}>The Bottle Club</p>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Kitchen Display 👨‍🍳</h1>
+            <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>The Bottle Club</p>
           </div>
         </div>
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#6b7280' }} />}
+          {refreshing && <RefreshCw size={13} className="animate-spin" style={{ color: '#FFFFFF' }} />}
 
           {/* Sound Toggle */}
           <button
@@ -563,91 +563,97 @@ export default function KitchenDisplayPage() {
             title={soundEnabled ? 'ปิดเสียง' : 'เปิดเสียง'}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
-              padding: '6px 11px', borderRadius: 20, cursor: 'pointer',
-              border: `1px solid ${soundEnabled ? 'rgba(251,146,60,0.45)' : 'rgba(255,255,255,0.1)'}`,
-              background: soundEnabled ? 'rgba(251,146,60,0.12)' : 'rgba(255,255,255,0.04)',
-              color: soundEnabled ? '#fb923c' : '#6b7280',
-              fontSize: 13, fontWeight: 700, transition: 'all 200ms'
+              padding: '6px 12px', borderRadius: 20, cursor: 'pointer',
+              border: `1.5px solid ${soundEnabled ? '#FCD34D' : 'rgba(255,255,255,0.3)'}`,
+              background: soundEnabled ? '#F59E0B' : 'rgba(255,255,255,0.15)',
+              color: soundEnabled ? '#000000' : '#FFFFFF',
+              fontSize: 13, fontWeight: 800, transition: 'all 200ms'
             }}
           >
             <span style={{ fontSize: 16 }}>{soundEnabled ? '🔔' : '🔕'}</span>
-            <span style={{ fontSize: 11 }}>{soundEnabled ? 'เสียงเปิด' : 'เสียงปิด'}</span>
+            <span style={{ fontSize: 11, fontWeight: 900 }}>{soundEnabled ? 'เสียงเปิด' : 'เสียงปิด'}</span>
           </button>
 
           <button onClick={() => setShowReport(true)} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-            background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-            borderRadius: 20, color: '#34d399', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+            background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: 20, color: '#FFFFFF', fontSize: 12, fontWeight: 800, cursor: 'pointer'
           }}>
-            <ClipboardList size={13} />
+            <ClipboardList size={14} />
             <span style={{ display: 'none' }} className="sm-label">ส่งรายงาน</span>
           </button>
 
           {profile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 24, padding: '4px 10px 4px 5px' }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#ef4444,#f87171)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: 'white', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 24, padding: '4px 10px 4px 5px' }}>
+              <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900, color: '#1E3A8A', flexShrink: 0 }}>
                 {(profile.full_name || 'K')[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: '#FFFFFF', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {profile.full_name}
               </span>
             </div>
           )}
 
-          <button onClick={handleLogout} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={handleLogout} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', color: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <LogOut size={14} />
           </button>
         </div>
       </header>
 
       {/* ── Filter Bar ── */}
-      <div style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
-        {tabs.map(tab => (
-          <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '6px 14px', borderRadius: 999, flexShrink: 0,
-            border: `1px solid ${filter === tab.key ? tab.color + '60' : 'rgba(255,255,255,0.07)'}`,
-            background: filter === tab.key ? tab.color + '15' : 'transparent',
-            color: filter === tab.key ? tab.color : '#6b7280',
-            fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms'
-          }}>
-            {tab.label}
-            <span style={{
-              minWidth: 18, height: 18, borderRadius: 999,
-              background: filter === tab.key ? tab.color + '25' : 'rgba(255,255,255,0.06)',
-              color: filter === tab.key ? tab.color : '#9ca3af',
-              fontSize: 10, fontWeight: 900,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
-            }}>{tab.count}</span>
-          </button>
-        ))}
+      <div style={{ padding: '10px 16px', background: 'rgba(237,227,200,0.95)', borderBottom: '1.5px solid rgba(35,64,168,0.15)', display: 'flex', gap: 8, overflowX: 'auto', flexShrink: 0 }}>
+        {tabs.map(tab => {
+          const isActive = filter === tab.key
+          const activeBg = tab.key === 'all' ? '#1E3A8A' : tab.key === 'pending' ? '#D97706' : tab.key === 'preparing' ? '#C2410C' : '#15803D'
+          return (
+            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 16px', borderRadius: 999, flexShrink: 0,
+              border: isActive ? `1.5px solid ${activeBg}` : '1.5px solid rgba(35,64,168,0.25)',
+              background: isActive ? activeBg : '#FFFFFF',
+              color: isActive ? '#FFFFFF' : '#1E293B',
+              fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 150ms',
+              boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
+            }}>
+              {tab.label}
+              <span style={{
+                minWidth: 18, height: 18, borderRadius: 999,
+                background: isActive ? 'rgba(255,255,255,0.25)' : '#F1F5F9',
+                color: isActive ? '#FFFFFF' : '#0F172A',
+                fontSize: 11, fontWeight: 900,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px'
+              }}>{tab.count}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* ── Main Content ── */}
       <main style={{ flex: 1, padding: 14, overflowY: 'auto' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60dvh', gap: 14 }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239,68,68,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ChefHat size={28} style={{ color: '#f87171' }} className="animate-pulse" />
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(35,64,168,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ChefHat size={28} style={{ color: '#1E3A8A' }} className="animate-pulse" />
             </div>
-            <p style={{ color: '#6b7280', fontSize: 14, margin: 0 }}>กำลังโหลดคิวห้องครัว...</p>
+            <p style={{ color: '#334155', fontSize: 14, fontWeight: 700, margin: 0 }}>กำลังโหลดคิวห้องครัว...</p>
           </div>
         ) : filteredSales.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60dvh', gap: 16 }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(239,68,68,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ChefHat size={36} style={{ color: '#f87171', opacity: 0.3 }} />
+            <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(35,64,168,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ChefHat size={36} style={{ color: '#1E3A8A', opacity: 0.4 }} />
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#4b5563', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
+              <p style={{ color: '#0F172A', fontSize: 17, fontWeight: 900, margin: '0 0 4px' }}>
                 {filter === 'all' ? 'ไม่มีออเดอร์อาหารในขณะนี้' : `ไม่มีออเดอร์สถานะ "${tabs.find(t => t.key === filter)?.label}"`}
               </p>
-              <p style={{ color: '#374151', fontSize: 13, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
+              <p style={{ color: '#334155', fontSize: 13, fontWeight: 600, margin: 0 }}>รอรับออเดอร์ใหม่จากแคชเชียร์...</p>
             </div>
             <button onClick={() => loadOrders(false)} style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-              borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)', color: '#9ca3af',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer'
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px',
+              borderRadius: 12, border: '1.5px solid rgba(35,64,168,0.25)',
+              background: '#FFFFFF', color: '#1E3A8A',
+              fontSize: 13, fontWeight: 800, cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(35,64,168,0.1)'
             }}>
               <RefreshCw size={14} /> รีเฟรช
             </button>
@@ -668,32 +674,36 @@ export default function KitchenDisplayPage() {
       {/* ── Bottom Nav (Mobile only) ── */}
       <div className="kitchen-bottom-nav" style={{
         position: 'sticky', bottom: 0, zIndex: 30,
-        background: 'rgba(8,10,13,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)',
+        background: 'rgba(237,227,200,0.98)', borderTop: '1.5px solid rgba(35,64,168,0.2)',
         backdropFilter: 'blur(20px)', gap: 4,
         padding: '8px 12px', paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
         flexShrink: 0
       }}>
-        {tabs.map(tab => (
-          <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
-            flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-            background: filter === tab.key ? tab.color + '18' : 'transparent',
-            color: filter === tab.key ? tab.color : '#6b7280',
-            fontSize: 11, fontWeight: 700, cursor: 'pointer',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-            transition: 'all 150ms'
-          }}>
-            <span style={{ fontSize: 18 }}>{tab.emoji}</span>
-            <span style={{ fontSize: 9 }}>{tab.count > 0 ? `(${tab.count})` : tab.label}</span>
-          </button>
-        ))}
+        {tabs.map(tab => {
+          const isActive = filter === tab.key
+          return (
+            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
+              flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
+              background: isActive ? 'rgba(35,64,168,0.12)' : 'transparent',
+              color: isActive ? '#1E3A8A' : '#475569',
+              fontSize: 11, fontWeight: isActive ? 900 : 700, cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              borderTop: `2.5px solid ${isActive ? '#1E3A8A' : 'transparent'}`,
+              transition: 'all 150ms'
+            }}>
+              <span style={{ fontSize: 18 }}>{tab.emoji}</span>
+              <span style={{ fontSize: 10 }}>{tab.count > 0 ? `(${tab.count})` : tab.label}</span>
+            </button>
+          )
+        })}
         <button onClick={() => setShowReport(true)} style={{
           flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-          background: 'transparent', color: '#34d399',
+          background: 'transparent', color: '#1E3A8A',
           fontSize: 11, fontWeight: 700, cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
         }}>
           <span style={{ fontSize: 18 }}>📋</span>
-          <span style={{ fontSize: 9 }}>รายงาน</span>
+          <span style={{ fontSize: 10, fontWeight: 800 }}>รายงาน</span>
         </button>
       </div>
 

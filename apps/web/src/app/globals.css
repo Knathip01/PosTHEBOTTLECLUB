@@ -11,12 +11,12 @@
   --brand-cobalt:  #1e40af;
   --brand-cobalt-light: #3b82f6;
 
-  /* Dark UI Palette */
-  --bg-primary:    #0a0c10;
-  --bg-secondary:  #111318;
-  --bg-card:       #161920;
-  --bg-card-hover: #1c2028;
-  --bg-elevated:   #1f2330;
+  /* Cream & Cobalt UI Palette */
+  --bg-primary:    #EDE3C8;
+  --bg-secondary:  #E2D6B5;
+  --bg-card:       #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --bg-elevated:   #FFFFFF;
 
   /* Wine/Teal accent kept for compatibility */
   --wine-900: #09111e;
@@ -30,30 +30,30 @@
   --wine-100: #ddfbf6;
 
   /* Gold */
-  --gold-500: #d8a93c;
-  --gold-400: #f2c65c;
-  --gold-300: #f8dfa0;
+  --gold-500: #b45309;
+  --gold-400: #d97706;
+  --gold-300: #f59e0b;
 
   /* Borders */
-  --border-color:  #252830;
-  --border-strong: #353a45;
-  --border-glow:   rgba(59,130,246,0.35);
+  --border-color:  rgba(35,64,168,0.18);
+  --border-strong: rgba(35,64,168,0.32);
+  --border-glow:   rgba(35,64,168,0.35);
 
-  /* Text */
-  --text-primary:   #f1f3f7;
-  --text-secondary: #9aa3b2;
-  --text-muted:     #5c6475;
+  /* Text - Dark, Sharp, High-Contrast */
+  --text-primary:   #0F172A;
+  --text-secondary: #334155;
+  --text-muted:     #64748B;
 
   /* Status */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger:  #ef4444;
-  --info:    #3b82f6;
+  --success: #15803d;
+  --warning: #d97706;
+  --danger:  #b91c1c;
+  --info:    #1d4ed8;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  --gradient-gold:    linear-gradient(135deg, #d8a93c 0%, #f2c65c 100%);
-  --gradient-dark:    linear-gradient(180deg, #161920 0%, #0a0c10 100%);
+  --gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  --gradient-gold:    linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  --gradient-dark:    linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
 
   /* Shadows */
   --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
@@ -128,25 +128,22 @@ textarea:focus-visible {
    Glassmorphism Cards
    ═══════════════════════════════════════════ */
 .glass-card {
-  background: rgba(22,25,32,0.85);
-  border: 1px solid var(--border-color);
+  background: #FFFFFF;
+  border: 1.5px solid rgba(35,64,168,0.18);
   border-radius: 16px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(35,64,168,0.08);
 }
 
 .glass-card-sm {
-  background: rgba(22,25,32,0.9);
-  border: 1px solid var(--border-color);
+  background: #FFFFFF;
+  border: 1.5px solid rgba(35,64,168,0.18);
   border-radius: 12px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 2px 10px rgba(35,64,168,0.06);
 }
 
 .glass-nav {
-  background: rgba(10,12,16,0.92);
-  border-bottom: 1px solid var(--border-color);
+  background: #2340A8;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -162,13 +159,13 @@ textarea:focus-visible {
   padding: 12px 20px;
   border: none;
   border-radius: 12px;
-  background: var(--gradient-primary);
-  color: #fff;
-  font-weight: 700;
+  background: linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%);
+  color: #FFFFFF;
+  font-weight: 800;
   font-size: 14px;
   letter-spacing: 0.01em;
   transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-  box-shadow: 0 4px 16px rgba(30,64,175,0.35);
+  box-shadow: 0 4px 18px rgba(30,64,175,0.4);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -196,12 +193,12 @@ textarea:focus-visible {
   padding: 12px 20px;
   border: none;
   border-radius: 12px;
-  background: var(--gradient-gold);
-  color: #1a1200;
-  font-weight: 700;
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  color: #FFFFFF;
+  font-weight: 800;
   font-size: 14px;
   transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-  box-shadow: 0 4px 16px rgba(216,169,60,0.3);
+  box-shadow: 0 4px 18px rgba(180,83,9,0.35);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -218,11 +215,11 @@ textarea:focus-visible {
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid rgba(35,64,168,0.25);
   border-radius: 10px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-weight: 500;
+  background: #FFFFFF;
+  color: #1E293B;
+  font-weight: 700;
   font-size: 13px;
   transition: all 160ms ease;
   cursor: pointer;
@@ -230,9 +227,9 @@ textarea:focus-visible {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  border-color: var(--border-strong);
-  background: var(--bg-card);
-  color: var(--text-primary);
+  border-color: #2340A8;
+  background: #F8FAFC;
+  color: #0F172A;
 }
 
 /* Keep wine button for backward compatibility */
@@ -244,15 +241,15 @@ textarea:focus-visible {
   padding: 10px 16px;
   border: none;
   border-radius: 10px;
-  background: var(--wine-500);
-  color: #05211f;
-  font-weight: 700;
+  background: #be185d;
+  color: #FFFFFF;
+  font-weight: 800;
   cursor: pointer;
   transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 .btn-wine:hover:not(:disabled) {
-  background: var(--wine-300);
-  box-shadow: 0 8px 18px rgba(22, 163, 155, 0.2);
+  background: #9d174d;
+  box-shadow: 0 8px 18px rgba(190, 24, 93, 0.35);
   transform: translateY(-1px);
 }
 .btn-wine:disabled { cursor: not-allowed; opacity: 0.55; }
@@ -262,27 +259,28 @@ textarea:focus-visible {
    ═══════════════════════════════════════════ */
 .wine-input {
   width: 100%;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid rgba(35,64,168,0.25);
   border-radius: 10px;
   padding: 11px 14px;
-  background: var(--bg-secondary);
+  background: #FFFFFF;
   color: var(--text-primary);
   font-size: 14px;
+  font-weight: 600;
   line-height: 1.35;
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-.wine-input:hover { border-color: var(--border-strong); }
+.wine-input:hover { border-color: #2340A8; }
 
 .wine-input:focus {
-  border-color: var(--info);
-  background: #0f1117;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  border-color: #2340A8;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(35,64,168,0.18);
 }
 
-.wine-input::placeholder { color: var(--text-muted); }
-select.wine-input option { background: #161920; color: var(--text-primary); }
+.wine-input::placeholder { color: #64748B; }
+select.wine-input option { background: #FFFFFF; color: #0F172A; }
 
 /* ═══════════════════════════════════════════
    Badges & Pills
@@ -510,8 +508,8 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 
 /* POS Product card */
 .pos-product-card {
-  background: rgba(18, 21, 30, 0.7);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: #FFFFFF;
+  border: 1.5px solid rgba(35,64,168,0.18);
   border-radius: 18px;
   overflow: hidden;
   transition: border-color 250ms cubic-bezier(0.4,0,0.2,1),
@@ -523,81 +521,83 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
   display: flex;
   flex-direction: column;
   position: relative;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 16px rgba(35,64,168,0.06);
 }
 
 .pos-product-card:hover:not(:disabled) {
-  border-color: rgba(59,130,246,0.45);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6),
-              0 0 0 1px rgba(59,130,246,0.2),
-              0 0 30px rgba(59,130,246,0.12);
+  border-color: #2340A8;
+  box-shadow: 0 12px 36px rgba(35,64,168,0.16),
+              0 0 0 1px #2340A8;
   transform: translateY(-4px) scale(1.01);
-  background: rgba(22,28,42,0.85);
+  background: #FFFFFF;
 }
 
 .pos-product-card:active:not(:disabled) {
-  transform: scale(0.96);
+  transform: scale(0.97);
   transition-duration: 80ms;
 }
 
 .pos-product-card:disabled {
-  opacity: 0.38;
+  opacity: 0.45;
   cursor: not-allowed;
-  filter: grayscale(0.4);
+  filter: grayscale(0.5);
 }
 
 /* Cart item row */
 .cart-item-row {
-  background: rgba(22,25,34,0.6);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: #FFFFFF;
+  border: 1.5px solid rgba(35,64,168,0.15);
   border-radius: 14px;
   padding: 12px 13px;
-  transition: border-color 200ms, background 200ms;
+  transition: border-color 200ms, background 200ms, box-shadow 200ms;
   animation: fade-in-up 280ms ease both;
+  box-shadow: 0 2px 8px rgba(35,64,168,0.05);
 }
 .cart-item-row:hover {
-  border-color: rgba(255,255,255,0.1);
-  background: rgba(28,32,44,0.8);
+  border-color: rgba(35,64,168,0.35);
+  background: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(35,64,168,0.1);
 }
 
 /* Qty control buttons */
 .qty-btn {
-  width: 30px; height: 30px;
-  border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: var(--text-secondary);
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(35,64,168,0.25);
+  background: #FFFFFF;
+  color: #0F172A;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 160ms ease;
-  font-size: 14px; font-weight: 700; flex-shrink: 0;
+  font-size: 15px; font-weight: 800; flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
-.qty-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); color: var(--text-primary); }
-.qty-btn.plus { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #93c5fd; }
-.qty-btn.plus:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.5); }
+.qty-btn:hover { background: #F1F5F9; border-color: #2340A8; color: #1E3A8A; }
+.qty-btn.plus { border-color: #2340A8; background: #2340A8; color: #FFFFFF; }
+.qty-btn.plus:hover { background: #1E3A8A; border-color: #1E3A8A; }
 
 /* Category pill */
 .cat-pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 16px; border-radius: 99px;
-  font-size: 12px; font-weight: 700;
+  font-size: 13px; font-weight: 800;
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
   transition: all 220ms cubic-bezier(0.4,0,0.2,1);
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
-  color: var(--text-secondary);
+  border: 1.5px solid rgba(35,64,168,0.25);
+  background: #FFFFFF;
+  color: #1E293B;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 .cat-pill:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.14);
-  color: var(--text-primary);
+  background: #F1F5F9;
+  border-color: #2340A8;
+  color: #0F172A;
 }
 .cat-pill.cat-active {
-  background: linear-gradient(135deg, #1e40af, #3b82f6);
-  border-color: transparent;
-  color: white;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.35), 0 0 0 1px rgba(59,130,246,0.2);
+  background: linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%);
+  border-color: #1E3A8A;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(35,64,168,0.4);
   transform: translateY(-1px);
 }
 
@@ -605,24 +605,24 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 .discount-chip {
   padding: 10px 4px;
   border-radius: 10px;
-  font-size: 12px; font-weight: 700;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
-  color: var(--text-secondary);
+  font-size: 13px; font-weight: 800;
+  border: 1.5px solid rgba(35,64,168,0.25);
+  background: #FFFFFF;
+  color: #1E293B;
   cursor: pointer;
   transition: all 180ms ease;
   text-align: center;
 }
 .discount-chip:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(59,130,246,0.3);
-  color: var(--text-primary);
+  background: #F1F5F9;
+  border-color: #2340A8;
+  color: #0F172A;
 }
 .discount-chip.chip-active {
-  background: linear-gradient(135deg,#1e3a8a,#2563eb);
-  border-color: rgba(59,130,246,0.5);
-  color: white;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg,#1E3A8A,#2563EB);
+  border-color: #1E3A8A;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(35,64,168,0.35);
 }
 
 /* Checkout button shine effect */
@@ -643,10 +643,16 @@ select.wine-input option { background: #161920; color: var(--text-primary); }
 }
 
 /* POS search glow */
+.pos-search {
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(35,64,168,0.25) !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
+}
 .pos-search:focus {
-  border-color: rgba(59,130,246,0.5) !important;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12), 0 0 20px rgba(59,130,246,0.08) !important;
-  background: rgba(255,255,255,0.05) !important;
+  border-color: #2340A8 !important;
+  box-shadow: 0 0 0 3px rgba(35,64,168,0.18), 0 0 20px rgba(35,64,168,0.1) !important;
+  background: #FFFFFF !important;
 }
 
 /* Cart empty state pulse */

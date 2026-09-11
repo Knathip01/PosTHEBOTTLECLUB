@@ -379,13 +379,13 @@ export default function StockStaffDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-white">แผงควบคุมระบบพนักงานคลังสินค้า</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>ระบบรับของนำเข้า ปรับระดับคลังสินค้า และสแกนตรวจสอบระดับสต๊อก</p>
+          <h1 className="font-display text-2xl font-black" style={{ color: '#0F172A' }}>แผงควบคุมระบบพนักงานคลังสินค้า</h1>
+          <p style={{ color: '#475569', fontSize: 13, fontWeight: 500 }}>ระบบรับของนำเข้า ปรับระดับคลังสินค้า และสแกนตรวจสอบระดับสต๊อก</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'var(--border-color)', scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'rgba(35,64,168,0.15)', scrollbarWidth: 'none' }}>
         {[
           { key: 'receive', label: '📥 รับของนำเข้าคลัง', icon: <Download size={14} /> },
           { key: 'adjust', label: '🔧 ปรับปรุงสต๊อกสินค้า', icon: <Edit3 size={14} /> },
@@ -397,12 +397,12 @@ export default function StockStaffDashboard() {
               clearPhoto()
               setActiveTab(tab.key as any)
             }}
-            className="flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all relative shrink-0"
+            className="flex items-center gap-2 px-4 py-3 text-sm font-extrabold transition-all relative shrink-0"
             style={{
               background: 'none',
               border: 'none',
-              borderBottom: activeTab === tab.key ? '2px solid #fbbf24' : '2px solid transparent',
-              color: activeTab === tab.key ? 'white' : 'var(--text-muted)',
+              borderBottom: activeTab === tab.key ? '3px solid #1E3A8A' : '3px solid transparent',
+              color: activeTab === tab.key ? '#1E3A8A' : '#334155',
               cursor: 'pointer'
             }}
           >
@@ -416,8 +416,8 @@ export default function StockStaffDashboard() {
       {activeTab === 'receive' && (
         <div className="glass-card p-6 w-full max-w-4xl mx-auto">
           <div className="flex items-center gap-2 mb-6">
-            <FileText size={18} style={{ color: 'var(--gold-400)' }} />
-            <h2 className="font-display text-lg font-bold text-white">บันทึกรับสินค้านำเข้าคลังสินค้าใหม่</h2>
+            <FileText size={18} style={{ color: '#1E3A8A' }} />
+            <h2 className="font-display text-lg font-black" style={{ color: '#0F172A' }}>บันทึกรับสินค้านำเข้าคลังสินค้าใหม่</h2>
           </div>
 
           <form onSubmit={handleReceiveStock} className="space-y-6">
@@ -445,8 +445,8 @@ export default function StockStaffDashboard() {
             </div>
 
             {/* Camera Photo Upload & Live Viewfinder */}
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
-              <span className="block text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+            <div className="p-4 rounded-xl border space-y-4" style={{ background: '#F8FAFC', borderColor: 'rgba(35,64,168,0.15)' }}>
+              <span className="block text-xs font-bold" style={{ color: '#334155' }}>
                 📸 ถ่ายรูปใบเสร็จ / รูปสินค้าหลักฐานนำเข้า (หลักฐานการรับสินค้า)
               </span>
 
@@ -473,7 +473,7 @@ export default function StockStaffDashboard() {
                       className="pos-btn-gradient-blue"
                       style={{
                         padding: '10px 24px', borderRadius: 14,
-                        fontSize: 13, fontWeight: 700, border: 'none',
+                        fontSize: 13, fontWeight: 800, border: 'none',
                         cursor: 'pointer'
                       }}
                     >
@@ -482,10 +482,10 @@ export default function StockStaffDashboard() {
                     <button
                       type="button"
                       onClick={stopCamera}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold border"
+                      className="px-4 py-2 rounded-xl text-xs font-bold border"
                       style={{
-                        background: 'transparent', borderColor: 'var(--border-color)',
-                        color: 'var(--text-secondary)', cursor: 'pointer'
+                        background: '#FFFFFF', borderColor: 'rgba(35,64,168,0.25)',
+                        color: '#1E293B', cursor: 'pointer'
                       }}
                     >
                       ปิดกล้อง
@@ -501,9 +501,9 @@ export default function StockStaffDashboard() {
                       onClick={startCamera}
                       className="flex-1 flex items-center justify-center gap-2 py-4 px-3 rounded-xl border border-dashed transition-all"
                       style={{
-                        background: 'rgba(251,191,36,0.05)',
-                        borderColor: 'rgba(251,191,36,0.3)',
-                        color: '#fbbf24', cursor: 'pointer', fontSize: 13, fontWeight: 700
+                        background: '#FFFBEB',
+                        borderColor: '#F59E0B',
+                        color: '#B45309', cursor: 'pointer', fontSize: 13, fontWeight: 800
                       }}
                     >
                       <ImageIcon size={16} />
@@ -546,11 +546,11 @@ export default function StockStaffDashboard() {
             {/* Receipt Items list */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-white">รายการสินค้านำเข้า</span>
+                <span className="text-xs font-black" style={{ color: '#0F172A' }}>รายการสินค้านำเข้า</span>
                 <button
                   type="button"
                   onClick={addRecvItemRow}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1 rounded bg-[#fbbf24]/10 text-[#fbbf24] border border-[#fbbf24]/20 font-bold transition-all"
+                  className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-900 border border-blue-200 font-extrabold transition-all"
                   style={{ cursor: 'pointer' }}
                 >
                   <Plus size={12} /> เพิ่มรายการสินค้า
@@ -559,9 +559,9 @@ export default function StockStaffDashboard() {
 
               <div className="space-y-3">
                 {recvItems.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 flex-wrap md:flex-nowrap items-end bg-black/20 p-3 rounded-xl border border-white/5">
+                  <div key={idx} className="flex gap-2 flex-wrap md:flex-nowrap items-end p-3 rounded-xl border" style={{ background: '#F8FAFC', borderColor: 'rgba(35,64,168,0.15)' }}>
                     <div className="flex-1 min-w-[200px]">
-                      <label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>เลือกสินค้าที่นำเข้า</label>
+                      <label className="block text-[10px] mb-1 font-semibold" style={{ color: '#475569' }}>เลือกสินค้าที่นำเข้า</label>
                       <select
                         value={item.productId}
                         onChange={e => updateRecvItemRow(idx, 'productId', e.target.value)}
@@ -576,7 +576,7 @@ export default function StockStaffDashboard() {
                     </div>
 
                     <div className="w-24">
-                      <label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>จำนวนนำเข้า</label>
+                      <label className="block text-[10px] mb-1 font-semibold" style={{ color: '#475569' }}>จำนวนนำเข้า</label>
                       <input
                         type="number"
                         min="1"
@@ -584,12 +584,12 @@ export default function StockStaffDashboard() {
                         value={item.qty}
                         onChange={e => updateRecvItemRow(idx, 'qty', e.target.value)}
                         required
-                        className="wine-input text-xs text-center w-full"
+                        className="wine-input text-xs text-center w-full font-bold"
                       />
                     </div>
 
                     <div className="w-32">
-                      <label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>ราคาทุน/หน่วย (บาท)</label>
+                      <label className="block text-[10px] mb-1 font-semibold" style={{ color: '#475569' }}>ราคาทุน/หน่วย (บาท)</label>
                       <input
                         type="number"
                         step="0.01"
@@ -598,7 +598,7 @@ export default function StockStaffDashboard() {
                         value={item.cost}
                         onChange={e => updateRecvItemRow(idx, 'cost', e.target.value)}
                         required
-                        className="wine-input text-xs text-center w-full"
+                        className="wine-input text-xs text-center w-full font-bold"
                       />
                     </div>
 
@@ -606,7 +606,7 @@ export default function StockStaffDashboard() {
                       type="button"
                       onClick={() => removeRecvItemRow(idx)}
                       disabled={recvItems.length === 1}
-                      className="p-2.5 rounded-lg border text-red-400 border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all mb-0.5"
+                      className="p-2.5 rounded-lg border text-red-600 border-red-300 bg-red-50 hover:bg-red-100 transition-all mb-0.5"
                       style={{ cursor: recvItems.length === 1 ? 'not-allowed' : 'pointer', opacity: recvItems.length === 1 ? 0.3 : 1 }}
                     >
                       <Trash2 size={13} />
@@ -616,10 +616,10 @@ export default function StockStaffDashboard() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <div className="flex justify-between items-center pt-4 border-t" style={{ borderColor: 'rgba(35,64,168,0.15)' }}>
+              <div className="text-xs font-semibold" style={{ color: '#475569' }}>
                 ยอดราคาทุนรวมสุทธิ:{' '}
-                <span className="font-bold text-white text-sm ml-1.5">
+                <span className="font-black text-sm ml-1.5" style={{ color: '#1E3A8A' }}>
                   {formatCurrency(
                     recvItems.reduce(
                       (sum, item) => sum + (parseInt(item.qty) || 0) * (parseFloat(item.cost) || 0),
@@ -631,8 +631,8 @@ export default function StockStaffDashboard() {
               <button
                 type="submit"
                 disabled={saving}
-                className="btn-wine px-6 py-2.5 text-xs font-bold flex items-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #d97706, #b45309)', color: 'white' }}
+                className="btn-wine px-6 py-2.5 text-xs font-black flex items-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%)', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(30,58,138,0.3)', borderRadius: 10 }}
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
                 {saving ? 'กำลังบันทึกรายการ...' : 'บันทึกบิลนำเข้าคลัง'}
@@ -646,18 +646,18 @@ export default function StockStaffDashboard() {
       {activeTab === 'adjust' && (
         <div className="glass-card p-6 w-full max-w-xl mx-auto">
           <div className="flex items-center gap-2 mb-6">
-            <Edit3 size={18} style={{ color: 'var(--gold-400)' }} />
-            <h2 className="font-display text-lg font-bold text-white">แบบฟอร์มปรับปรุงจำนวนสินค้าชำรุดเสียหาย</h2>
+            <Edit3 size={18} style={{ color: '#1E3A8A' }} />
+            <h2 className="font-display text-lg font-black" style={{ color: '#0F172A' }}>แบบฟอร์มปรับปรุงจำนวนสินค้าชำรุดเสียหาย</h2>
           </div>
 
           <form onSubmit={handleAdjustStock} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>เลือกสินค้าที่ต้องการปรับปรุง</label>
+              <label className="block text-xs font-bold mb-1.5" style={{ color: '#334155' }}>เลือกสินค้าที่ต้องการปรับปรุง</label>
               <select
                 value={adjustProductId}
                 onChange={e => setAdjustProductId(e.target.value)}
                 required
-                className="wine-input text-sm w-full"
+                className="wine-input text-sm w-full font-semibold"
               >
                 <option value="">-- เลือกสินค้า --</option>
                 {products.map(p => (
@@ -667,20 +667,20 @@ export default function StockStaffDashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>จำนวนเปลี่ยนแปลงสต๊อก (ใส่เลขติดลบเพื่อระบุของชำรุด)</label>
+              <label className="block text-xs font-bold mb-1.5" style={{ color: '#334155' }}>จำนวนเปลี่ยนแปลงสต๊อก (ใส่เลขติดลบเพื่อระบุของชำรุด)</label>
               <input
                 type="number"
                 placeholder="เช่น -5 (สำหรับของพัง/ลดลง) หรือ 3 (สำหรับพบบวกเพิ่ม)"
                 value={adjustQty}
                 onChange={e => setAdjustQty(e.target.value)}
                 required
-                className="wine-input text-sm w-full"
+                className="wine-input text-sm w-full font-bold"
               />
-              <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>*ตัวอย่าง: ใส่ `-2` เพื่อหักไวน์ชำรุดแตกเสียหาย 2 ขวดออกจากระบบ</p>
+              <p className="text-[10px] mt-1 font-semibold" style={{ color: '#64748B' }}>*ตัวอย่าง: ใส่ `-2` เพื่อหักไวน์ชำรุดแตกเสียหาย 2 ขวดออกจากระบบ</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>เหตุผลการปรับปรุงสต๊อก</label>
+              <label className="block text-xs font-bold mb-1.5" style={{ color: '#334155' }}>เหตุผลการปรับปรุงสต๊อก</label>
               <input
                 type="text"
                 placeholder="เช่น ขวดยี่ห้อฉลากฉีกขาด, ตรวจนับสต๊อกรอบเย็นแตกหัก"
@@ -692,8 +692,8 @@ export default function StockStaffDashboard() {
             </div>
 
             {/* Camera Photo Upload & Live Viewfinder */}
-            <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-4">
-              <span className="block text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+            <div className="p-4 rounded-xl border space-y-4" style={{ background: '#F8FAFC', borderColor: 'rgba(35,64,168,0.15)' }}>
+              <span className="block text-xs font-bold" style={{ color: '#334155' }}>
                 📸 ถ่ายรูปภาพหลักฐานการปรับสต๊อกสินค้า (สินค้าเสียหาย/มีตำหนิ)
               </span>
 
@@ -719,7 +719,7 @@ export default function StockStaffDashboard() {
                       className="pos-btn-gradient-blue"
                       style={{
                         padding: '10px 24px', borderRadius: 14,
-                        fontSize: 13, fontWeight: 700, border: 'none',
+                        fontSize: 13, fontWeight: 800, border: 'none',
                         cursor: 'pointer'
                       }}
                     >
@@ -728,10 +728,10 @@ export default function StockStaffDashboard() {
                     <button
                       type="button"
                       onClick={stopCamera}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold border"
+                      className="px-4 py-2 rounded-xl text-xs font-bold border"
                       style={{
-                        background: 'transparent', borderColor: 'var(--border-color)',
-                        color: 'var(--text-secondary)', cursor: 'pointer'
+                        background: '#FFFFFF', borderColor: 'rgba(35,64,168,0.25)',
+                        color: '#1E293B', cursor: 'pointer'
                       }}
                     >
                       ปิดกล้อง
@@ -746,9 +746,9 @@ export default function StockStaffDashboard() {
                       onClick={startCamera}
                       className="flex-1 flex items-center justify-center gap-2 py-4 px-3 rounded-xl border border-dashed transition-all"
                       style={{
-                        background: 'rgba(251,191,36,0.05)',
-                        borderColor: 'rgba(251,191,36,0.3)',
-                        color: '#fbbf24', cursor: 'pointer', fontSize: 13, fontWeight: 700
+                        background: '#FFFBEB',
+                        borderColor: '#F59E0B',
+                        color: '#B45309', cursor: 'pointer', fontSize: 13, fontWeight: 800
                       }}
                     >
                       <ImageIcon size={16} />
@@ -789,8 +789,8 @@ export default function StockStaffDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full btn-wine py-3 text-sm font-bold flex items-center justify-center gap-2 mt-4"
-              style={{ background: 'linear-gradient(135deg, #d97706, #b45309)', color: 'white' }}
+              className="w-full btn-wine py-3 text-sm font-black flex items-center justify-center gap-2 mt-4"
+              style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%)', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(30,58,138,0.3)', borderRadius: 10 }}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Edit3 size={16} />}
               {saving ? 'กำลังบันทึกข้อมูล...' : 'บันทึกการปรับสต๊อกสินค้า'}
@@ -827,23 +827,23 @@ export default function StockStaffDashboard() {
           <div style={{ overflowX: 'auto' }}>
             <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.01)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(35,64,168,0.15)', background: 'rgba(35,64,168,0.04)' }}>
                   {['รายละเอียดสินค้า', 'หมวดหมู่', 'รหัสบาร์โค้ด', 'ระดับต่ำสุด', 'สต๊อกคงเหลือ', 'สถานะคลัง'].map(h => (
-                    <th key={h} className="p-3 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                    <th key={h} className="p-3 text-xs font-extrabold" style={{ color: '#334155' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.map(p => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(35,64,168,0.1)' }}>
                     <td className="p-3">
-                      <p className="text-sm font-bold text-white">{p.name}</p>
-                      <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>SKU: {p.sku || '—'}</p>
+                      <p className="text-sm font-bold" style={{ color: '#0F172A' }}>{p.name}</p>
+                      <p className="text-xs font-mono font-medium" style={{ color: '#64748B' }}>SKU: {p.sku || '—'}</p>
                     </td>
-                    <td className="p-3 text-sm text-secondary" style={{ color: 'var(--text-secondary)' }}>{(p.categories as any)?.name || '—'}</td>
-                    <td className="p-3 text-sm font-mono" style={{ color: 'var(--text-muted)' }}>{p.barcode || '—'}</td>
-                    <td className="p-3 text-sm text-center md:text-left" style={{ color: 'var(--text-muted)' }}>{p.min_stock} ชิ้น</td>
-                    <td className="p-3 text-sm font-bold" style={{ color: p.stock <= p.min_stock ? '#fbbf24' : 'white' }}>{p.stock} ขวด</td>
+                    <td className="p-3 text-sm font-medium" style={{ color: '#334155' }}>{(p.categories as any)?.name || '—'}</td>
+                    <td className="p-3 text-sm font-mono font-medium" style={{ color: '#475569' }}>{p.barcode || '—'}</td>
+                    <td className="p-3 text-sm text-center md:text-left font-medium" style={{ color: '#475569' }}>{p.min_stock} ชิ้น</td>
+                    <td className="p-3 text-sm font-black" style={{ color: p.stock <= p.min_stock ? '#B45309' : '#0F172A' }}>{p.stock} ขวด</td>
                     <td className="p-3">
                       {p.stock === 0 ? (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-500 border border-red-500/20">สินค้าหมด (OUT)</span>

@@ -75,22 +75,22 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           transition: all 200ms cubic-bezier(0.4,0,0.2,1);
           position: relative; white-space: nowrap;
         }
-        .nav-link-item:hover { background: rgba(255,255,255,0.06); }
+        .nav-link-item:hover { background: rgba(255,255,255,0.18); color: #FFFFFF; }
         .nav-link-item.active-nav {
-          background: rgba(59,130,246,0.14);
-          color: #93c5fd;
-          box-shadow: 0 0 0 1px rgba(59,130,246,0.25);
+          background: rgba(255,255,255,0.25);
+          color: #FFFFFF !important;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.3), 0 2px 8px rgba(0,0,0,0.15);
         }
         .user-btn {
           display: flex; align-items: center; gap: 9px;
           padding: 6px 12px 6px 6px; border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.25);
+          background: rgba(255,255,255,0.12);
           cursor: pointer; transition: all 200ms;
         }
         .user-btn:hover {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.14);
+          background: rgba(255,255,255,0.22);
+          border-color: rgba(255,255,255,0.4);
         }
         .avatar-ring {
           width: 30px; height: 30px; border-radius: 50%;
@@ -189,8 +189,8 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         flexShrink: 0,
         zIndex: 50,
         position: 'relative',
-        background: 'rgba(8,10,14,0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
       }}>
@@ -199,15 +199,15 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           <div style={{
             width: 32, height: 32, borderRadius: 9,
             overflow: 'hidden', flexShrink: 0,
-            boxShadow: '0 0 0 1px rgba(255,255,255,0.1)'
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.2)'
           }}>
             <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ display: 'none' }} className="sm-brand">
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.1 }}>
               The Bottle Club
             </p>
-            <p style={{ margin: 0, fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}>
+            <p style={{ margin: 0, fontSize: 9, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase' }}>
               POS System
             </p>
           </div>
@@ -215,10 +215,10 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
 
         <style>{`.sm-brand { display: none; } @media (min-width: 480px) { .sm-brand { display: block !important; } } .hidden-md { display: block; } @media (min-width: 768px) { .hidden-md { display: none !important; } } .show-md { display: none; } @media (min-width: 768px) { .show-md { display: flex !important; } } .show-lg { display: none; } @media (min-width: 1024px) { .show-lg { display: flex !important; } }`}</style>
 
-        <div className="nav-divider show-md" />
+        <div className="nav-divider show-md" style={{ background: 'rgba(255,255,255,0.2)' }} />
 
         {/* Desktop Nav */}
-        <nav className="show-md" style={{ flex: 1, gap: 2 }}>
+        <nav className="show-md" style={{ flex: 1, gap: 4 }}>
           {navLinks.map(link => {
             const Icon = link.icon
             const active = isActive(link.href)
@@ -227,7 +227,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
                 key={link.href}
                 href={link.href}
                 className={`nav-link-item ${active ? 'active-nav' : ''}`}
-                style={{ color: active ? link.color : 'var(--text-secondary)' }}
+                style={{ color: active ? '#FFFFFF' : 'rgba(255,255,255,0.85)', fontWeight: 700 }}
               >
                 <Icon size={15} />
                 {link.label}
