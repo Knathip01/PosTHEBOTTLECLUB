@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils'
 import {
   Search, ShoppingBag, Plus, Minus, Trash2, User, UserPlus,
   Tag, CreditCard, X, Loader2, AlertCircle, CheckCircle2,
-  Key, ChevronRight, Package, Sparkles, Receipt, Percent, Wine, Utensils
+  Key, ChevronRight, Package, Sparkles, Receipt, Percent, Wine, Utensils, Check
 } from 'lucide-react'
 import CheckoutModal from '@/components/pos/CheckoutModal'
 import CustomerSearchModal from '@/components/pos/CustomerSearchModal'
@@ -31,7 +31,6 @@ export default function POSPage() {
   const [showMobileCart, setShowMobileCart] = useState(false)
   const [allowedDiscounts, setAllowedDiscounts] = useState<number[]>([10, 20, 30, 40, 50, 60, 70, 80, 90])
   const [pairings, setPairings] = useState<FoodWinePairing[]>([])
-  const [pairingToast, setPairingToast] = useState<{ title: string; discount: number } | null>(null)
 
   const [profile, setProfile] = useState<any>(null)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
@@ -144,8 +143,6 @@ export default function POSPage() {
       : Math.min(pairing.discount_value, combined)
 
     cart.setDiscount(discount, `โปรคู่: ${pairing.title}`)
-    setPairingToast({ title: pairing.title, discount })
-    setTimeout(() => setPairingToast(null), 3500)
   }
 
   const handlePinSubmit = async (e: React.FormEvent) => {
@@ -599,33 +596,20 @@ export default function POSPage() {
           <div className="no-scrollbar" style={{ flex: 1, overflow: 'auto', padding: '14px' }}>
             {/* If Pairings category is selected */}
             {selectedCategory === 'pairings' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1A2660' }}>
-                      🍷 เซ็ตจับคู่อาหาร & Wine พิเศษ (Food & Wine Pairings)
-                    </h3>
-                    <p style={{ margin: '3px 0 0', fontSize: 12, color: '#4A5899' }}>
-                      สั่งอาหารคู่ไวน์รับส่วนลดโปรโมชั่นทันที แสดงรูปคู่กันและระบุส่วนลดชัดเจน
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
-                  gap: 14
-                }}>
-                  {pairings.filter(p => p.is_active).map(pairing => (
-                    <PairingCard
-                      key={pairing.id}
-                      pairing={pairing}
-                      food={products.find(p => p.id === pairing.food_product_id)}
-                      wine={products.find(p => p.id === pairing.wine_product_id)}
-                      onSelect={() => handleSelectPairing(pairing)}
-                    />
-                  ))}
-                </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+                gap: 14
+              }}>
+                {pairings.filter(p => p.is_active).map(pairing => (
+                  <PairingCard
+                    key={pairing.id}
+                    pairing={pairing}
+                    food={products.find(p => p.id === pairing.food_product_id)}
+                    wine={products.find(p => p.id === pairing.wine_product_id)}
+                    onSelect={() => handleSelectPairing(pairing)}
+                  />
+                ))}
               </div>
             ) : loading ? (
               <div style={{
@@ -645,44 +629,23 @@ export default function POSPage() {
               </div>
             ) : (
               <div>
-                {/* Featured Pairings Banner when 'all' is selected and no search active */}
+                {/* Featured Pairings when 'all' is selected and no search active */}
                 {selectedCategory === 'all' && !searchQuery && pairings.filter(p => p.is_active).length > 0 && (
-                  <div style={{ marginBottom: 18, padding: '12px 14px', borderRadius: 16, background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(35,64,168,0.12)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(176,34,56,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Wine size={15} style={{ color: '#b02238' }} />
-                        </div>
-                        <div>
-                          <h4 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#1A2660' }}>
-                            🍷 เซ็ตคู่แนะนำ: อาหาร & Wine ลดราคาพิเศษ
-                          </h4>
-                          <span style={{ fontSize: 11, color: '#4A5899' }}>สั่งเป็นคู่พร้อมส่วนลดข้างๆ</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setSelectedCategory('pairings')}
-                        style={{ background: 'none', border: 'none', color: '#2340A8', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-                      >
-                        ดูทั้งหมด ({pairings.filter(p => p.is_active).length}) →
-                      </button>
-                    </div>
-
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 330px), 1fr))',
-                      gap: 12
-                    }}>
-                      {pairings.filter(p => p.is_active).slice(0, 3).map(pairing => (
-                        <PairingCard
-                          key={pairing.id}
-                          pairing={pairing}
-                          food={products.find(p => p.id === pairing.food_product_id)}
-                          wine={products.find(p => p.id === pairing.wine_product_id)}
-                          onSelect={() => handleSelectPairing(pairing)}
-                        />
-                      ))}
-                    </div>
+                  <div style={{
+                    marginBottom: 16,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 330px), 1fr))',
+                    gap: 12
+                  }}>
+                    {pairings.filter(p => p.is_active).map(pairing => (
+                      <PairingCard
+                        key={pairing.id}
+                        pairing={pairing}
+                        food={products.find(p => p.id === pairing.food_product_id)}
+                        wine={products.find(p => p.id === pairing.wine_product_id)}
+                        onSelect={() => handleSelectPairing(pairing)}
+                      />
+                    ))}
                   </div>
                 )}
 
@@ -1026,25 +989,6 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Toast Notification when Pairing Added */}
-      {pairingToast && (
-        <div style={{
-          position: 'fixed', bottom: 75, right: 20, zIndex: 120,
-          background: '#1A2660', color: '#FFFFFF',
-          padding: '12px 18px', borderRadius: 14,
-          boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(74,222,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CheckCircle2 size={20} style={{ color: '#4ade80' }} />
-          </div>
-          <div>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800 }}>เพิ่มเซ็ตคู่ลงตะกร้าแล้ว!</p>
-            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#93c5fd' }}>{pairingToast.title} (ได้รับส่วนลด {formatCurrency(pairingToast.discount)})</p>
-          </div>
-        </div>
-      )}
     </>
   )
 }
@@ -1202,6 +1146,7 @@ function PairingCard({
   wine?: Product
   onSelect: () => void
 }) {
+  const [adding, setAdding] = useState(false)
   const foodPrice = food?.price || 0
   const winePrice = wine?.price || 0
   const combined = foodPrice + winePrice
@@ -1210,8 +1155,15 @@ function PairingCard({
     : Math.min(pairing.discount_value, combined)
   const finalPrice = Math.max(0, combined - discount)
 
+  const handleCardClick = () => {
+    setAdding(true)
+    onSelect()
+    setTimeout(() => setAdding(false), 450)
+  }
+
   return (
     <div
+      onClick={handleCardClick}
       style={{
         background: '#FFFFFF',
         borderRadius: 18,
@@ -1224,27 +1176,32 @@ function PairingCard({
         gap: 12,
         position: 'relative',
         overflow: 'hidden',
-        transition: 'transform 200ms, box-shadow 200ms',
+        cursor: 'pointer',
+        transform: adding ? 'scale(0.98)' : 'scale(1)',
+        transition: 'transform 150ms, box-shadow 150ms, border-color 150ms',
+        userSelect: 'none',
+      }}
+      onMouseEnter={e => {
+        if (!adding) {
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(35,64,168,0.12)'
+          e.currentTarget.style.borderColor = '#2340A8'
+        }
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(35,64,168,0.06)'
+        e.currentTarget.style.borderColor = 'rgba(35,64,168,0.15)'
       }}
     >
-      {/* Top Banner inside card */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-        <span style={{
-          fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 99,
-          background: 'rgba(176,34,56,0.1)', color: '#b02238', letterSpacing: '0.05em'
-        }}>
-          🍷 แนะนำคู่ไวน์พิเศษ
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1A2660', lineHeight: 1.3 }}>
+          {pairing.title}
+        </h4>
         {pairing.description && (
           <span style={{ fontSize: 11, color: '#4A5899', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {pairing.description}
           </span>
         )}
       </div>
-
-      <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1A2660', lineHeight: 1.3 }}>
-        {pairing.title}
-      </h4>
 
       {/* Side-by-side Images + Discount Tag Beside (ข้างๆ) */}
       <div style={{
@@ -1336,21 +1293,31 @@ function PairingCard({
 
       {/* Button to add pair to cart */}
       <button
-        onClick={onSelect}
+        type="button"
         style={{
           width: '100%', padding: '10px 14px', borderRadius: 12,
-          background: 'linear-gradient(135deg, #2340A8 0%, #3D56C4 100%)',
-          color: '#FFFFFF', border: 'none', cursor: 'pointer',
+          background: adding
+            ? 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)'
+            : 'linear-gradient(135deg, #2340A8 0%, #3D56C4 100%)',
+          color: '#FFFFFF', border: 'none',
           fontSize: 13, fontWeight: 800,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           boxShadow: '0 4px 12px rgba(35,64,168,0.25)',
-          transition: 'all 150ms'
+          transition: 'all 150ms',
+          pointerEvents: 'none',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
       >
-        <ShoppingBag size={15} />
-        สั่งคู่นี้ (+ ลงตะกร้าพร้อมลด {formatCurrency(discount)})
+        {adding ? (
+          <>
+            <Check size={16} />
+            เพิ่มลงตะกร้าแล้ว!
+          </>
+        ) : (
+          <>
+            <ShoppingBag size={15} />
+            เพิ่มคู่นี้ลงตะกร้า (ลด {formatCurrency(discount)})
+          </>
+        )}
       </button>
     </div>
   )
