@@ -69,13 +69,13 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         <Link href="/cashier" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            overflow: 'hidden',
-            border: '1.5px solid rgba(255,255,255,0.3)',
+            background: '#FFFFFF', overflow: 'hidden',
+            border: '1.5px solid rgba(255,255,255,0.4)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0
           }}>
-            <img src="/logo.jpg" alt="The Bottle Club Cashier" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src="/cashier_logo.png" alt="The Bottle Club Cashier" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>Cashier Display</h1>
