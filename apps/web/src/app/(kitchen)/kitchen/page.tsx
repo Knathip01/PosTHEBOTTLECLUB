@@ -544,11 +544,18 @@ export default function KitchenDisplayPage() {
       }}>
         {/* Left */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', flexShrink: 0 }}>
-            <ChefHat size={18} />
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: '#0a0b0d', overflow: 'hidden',
+            border: '1.5px solid rgba(255,255,255,0.3)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img src="/kitchen_logo.png" alt="The Bottle Club Kitchen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Kitchen Display 👨‍🍳</h1>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Kitchen Display</h1>
             <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>The Bottle Club</p>
           </div>
         </div>
