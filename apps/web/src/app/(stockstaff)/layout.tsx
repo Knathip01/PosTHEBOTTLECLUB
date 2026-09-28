@@ -78,7 +78,7 @@ export default function StockStaffLayout({ children }: { children: React.ReactNo
             <img src="/stock_logo.png" alt="The Bottle Club Stock" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>Stock Staff</h1>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>Stockstaff Display</h1>
             <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600, whiteSpace: 'nowrap' }}>The Bottle Club</p>
           </div>
         </Link>
