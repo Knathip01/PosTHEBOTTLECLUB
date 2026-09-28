@@ -67,10 +67,19 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
       }}>
         {/* Logo */}
         <Link href="/cashier" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
-          <div className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>The Bottle Club</p>
-            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', fontWeight: 800 }}>CASHIER</p>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            overflow: 'hidden',
+            border: '1.5px solid rgba(255,255,255,0.3)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img src="/logo.jpg" alt="The Bottle Club Cashier" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>Cashier Display</h1>
+            <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600, whiteSpace: 'nowrap' }}>The Bottle Club</p>
           </div>
         </Link>
 
