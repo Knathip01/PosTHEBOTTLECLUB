@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Sale } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -304,12 +305,7 @@ export default function CashierQueuePage() {
         .cq-shell { display:flex; flex-direction:column; height:100dvh; background:var(--bg-primary); overflow:hidden; }
         .cq-main  { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 12px calc(12px + env(safe-area-inset-bottom)); }
         @media(min-width:768px){ .cq-main { padding:20px; } }
-        .cq-bnav  { display:flex; flex-shrink:0; }
-        @media(min-width:768px){ .cq-bnav { display:none !important; } }
-        .cq-dtabs { display:none; }
-        @media(min-width:768px){ .cq-dtabs { display:flex; } }
-        /* Tap target minimum 48px */
-        .cq-nav-btn { min-height:56px; }
+
         /* Card hover on desktop */
         @media(min-width:768px){ .cq-card:hover { transform:translateY(-2px); } }
         .cq-card { transition: transform 200ms, box-shadow 200ms; }
@@ -326,64 +322,143 @@ export default function CashierQueuePage() {
 
       <div className="cq-shell">
 
-        {/* ── TOP HEADER ── */}
-        <header style={{
-          flexShrink:0, zIndex:40,
-          background:'#2340A8', borderBottom:'1px solid rgba(255,255,255,0.15)',
-          backdropFilter:'blur(20px)', padding:'0 14px',
-          display:'flex', alignItems:'center', justifyContent:'space-between',
-          height:54, gap:10,
+        {/* ── Sub Navigation / Filter Bar (designed like the reference image) ── */}
+        <div style={{
+          padding: '10px 14px',
+          background: 'rgba(237,227,200,0.95)',
+          borderBottom: '1.5px solid rgba(35,64,168,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          flexShrink: 0,
         }}>
-          {/* Left: title */}
-          <div style={{display:'flex',alignItems:'center',gap:10,minWidth:0}}>
-            <div style={{width:32,height:32,borderRadius:9,background:'rgba(255,255,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <CheckCircle2 size={16} color="white"/>
-            </div>
-            <div style={{minWidth:0}}>
-              <p style={{margin:0,fontSize:14,fontWeight:800,color:'white',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                {tab==='queue'?'คิวเตรียมของ 💳':tab==='history'?'ประวัติออเดอร์ 📖':'รายงานร้าน 📝'}
-              </p>
-              <p style={{margin:0,fontSize:11,color:'rgba(255,255,255,0.75)',fontWeight:600}}>
-                {tab==='queue' ? `${sales.length} รายการรอ` : tab==='history' ? `ล่าสุด ${sales.length} บิล` : 'ส่งรายงานประจำวัน'}
-              </p>
-            </div>
+          {/* Pills scroll container */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            flex: 1
+          }}>
+            {/* คิวเตรียมของ */}
+            <button
+              onClick={() => switchTab('queue')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 999, flexShrink: 0,
+                border: tab === 'queue' ? '1.5px solid #1E3A8A' : '1.5px solid rgba(35,64,168,0.25)',
+                background: tab === 'queue' ? '#1E3A8A' : '#FFFFFF',
+                color: tab === 'queue' ? '#FFFFFF' : '#1E293B',
+                fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: tab === 'queue' ? '0 2px 8px rgba(30,58,138,0.25)' : 'none',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span>คิวเตรียมของ</span>
+              <span style={{
+                background: tab === 'queue' ? 'rgba(255,255,255,0.25)' : 'rgba(35,64,168,0.1)',
+                color: tab === 'queue' ? '#FFFFFF' : '#1E3A8A',
+                borderRadius: 999, padding: '1px 8px', fontSize: 11, fontWeight: 900
+              }}>
+                {totalQueueCount}
+              </span>
+            </button>
+
+            {/* ประวัติออเดอร์ */}
+            <button
+              onClick={() => switchTab('history')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 999, flexShrink: 0,
+                border: tab === 'history' ? '1.5px solid #1E3A8A' : '1.5px solid rgba(35,64,168,0.25)',
+                background: tab === 'history' ? '#1E3A8A' : '#FFFFFF',
+                color: tab === 'history' ? '#FFFFFF' : '#1E293B',
+                fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: tab === 'history' ? '0 2px 8px rgba(30,58,138,0.25)' : 'none',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span>ประวัติออเดอร์</span>
+              {tab === 'history' && (
+                <span style={{
+                  background: 'rgba(255,255,255,0.25)',
+                  color: '#FFFFFF',
+                  borderRadius: 999, padding: '1px 8px', fontSize: 11, fontWeight: 900
+                }}>
+                  {sales.length}
+                </span>
+              )}
+            </button>
+
+            {/* รายงานร้าน */}
+            <button
+              onClick={() => switchTab('report')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 999, flexShrink: 0,
+                border: tab === 'report' ? '1.5px solid #1E3A8A' : '1.5px solid rgba(35,64,168,0.25)',
+                background: tab === 'report' ? '#1E3A8A' : '#FFFFFF',
+                color: tab === 'report' ? '#FFFFFF' : '#1E293B',
+                fontSize: 13, fontWeight: 800, cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: tab === 'report' ? '0 2px 8px rgba(30,58,138,0.25)' : 'none',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span>ส่งรายงานร้าน</span>
+            </button>
+
+            {/* ขายสินค้า POS */}
+            <Link
+              href="/pos"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 999, flexShrink: 0,
+                border: '1.5px solid rgba(35,64,168,0.25)',
+                background: '#FFFFFF',
+                color: '#1E3A8A',
+                fontSize: 13, fontWeight: 800, textDecoration: 'none',
+                transition: 'all 150ms',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span>🛒 ขายสินค้า POS</span>
+            </Link>
           </div>
 
-          {/* Right: desktop tabs + refresh + ready badge */}
-          <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-            {/* Kitchen ready badge */}
+          {/* Right: ready badge + refresh */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {readyCount > 0 && (
               <div style={{
-                display:'flex', alignItems:'center', gap:5,
-                background:'rgba(16,185,129,0.2)', border:'1.5px solid #34d399',
-                borderRadius:999, padding:'4px 10px 4px 7px',
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: '#DCFCE7', border: '1.5px solid #86EFAC',
+                borderRadius: 999, padding: '5px 12px',
                 animation: 'pulse 1.5s ease-in-out infinite'
               }}>
-                <span style={{fontSize:14}}>🍳</span>
-                <span style={{fontSize:11,fontWeight:900,color:'#ecfdf5'}}>{readyCount} พร้อมเสิร์ฟ</span>
+                <span style={{ fontSize: 14 }}>🍳</span>
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#15803D' }}>{readyCount} พร้อมเสิร์ฟ</span>
               </div>
             )}
-            {refreshing && <RefreshCw size={13} className="animate-spin" style={{color:'#FFFFFF'}}/>}
-            <div className="cq-dtabs" style={{gap:3,background:'rgba(255,255,255,0.15)',borderRadius:10,padding:3}}>
-              {NAV_ITEMS.map(n=>(
-                <button key={n.id} onClick={()=>switchTab(n.id)} style={{
-                  padding:'6px 14px',borderRadius:7,border:'none',fontSize:12,fontWeight:800,cursor:'pointer',
-                  background:tab===n.id?'#FFFFFF':'transparent',
-                  color:tab===n.id?'#1E3A8A':'rgba(255,255,255,0.85)', transition:'all 150ms', position:'relative',whiteSpace:'nowrap',
-                  boxShadow:tab===n.id?'0 2px 6px rgba(0,0,0,0.15)':'none',
-                }}>
-                  {n.emoji} {n.label}
-                  {n.badge>0 && <span style={{position:'absolute',top:2,right:2,width:15,height:15,background:'#ef4444',borderRadius:'50%',fontSize:9,fontWeight:900,color:'white',display:'flex',alignItems:'center',justifyContent:'center'}}>{n.badge>9?'9+':n.badge}</span>}
-                </button>
-              ))}
-            </div>
-            {tab!=='report' && (
-              <button onClick={()=>loadData(tab as any,false)} style={{width:32,height:32,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.25)',background:'rgba(255,255,255,0.15)',color:'#FFFFFF',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <RefreshCw size={13}/>
+            {refreshing && <RefreshCw size={14} className="animate-spin" style={{ color: '#1E3A8A' }} />}
+            {tab !== 'report' && (
+              <button
+                onClick={() => loadData(tab as any, false)}
+                title="รีเฟรชข้อมูล"
+                style={{
+                  width: 34, height: 34, borderRadius: '50%',
+                  border: '1.5px solid rgba(35,64,168,0.25)',
+                  background: '#FFFFFF', color: '#1E3A8A',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+                }}
+              >
+                <RefreshCw size={14} />
               </button>
             )}
           </div>
-        </header>
+        </div>
 
         {/* ── MAIN SCROLL AREA ── */}
         <main className="cq-main">
@@ -759,39 +834,6 @@ export default function CashierQueuePage() {
           )}
         </main>
 
-        {/* ── MOBILE BOTTOM NAV (fixed, safe area aware) ── */}
-        <nav className="cq-bnav" style={{
-          background:'rgba(237,227,200,0.98)', borderTop:'1.5px solid rgba(35,64,168,0.2)',
-          backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)',
-          paddingBottom:'env(safe-area-inset-bottom)', flexShrink:0, zIndex:50,
-        }}>
-          {NAV_ITEMS.map(n=>(
-            <button key={n.id} onClick={()=>switchTab(n.id)} className="cq-nav-btn" style={{
-              flex:1, border:'none', cursor:'pointer',
-              background:tab===n.id?'rgba(35,64,168,0.12)':'transparent',
-              color:tab===n.id?'#1E3A8A':'#475569',
-              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-              gap:2, fontSize:11, fontWeight:tab===n.id?900:700,
-              borderTop:`3px solid ${tab===n.id?'#1E3A8A':'transparent'}`,
-              transition:'all 150ms', position:'relative', paddingTop:10, paddingBottom:8,
-            }}>
-              <span style={{fontSize:22,lineHeight:1}}>{n.emoji}</span>
-              <span>{n.label}</span>
-              {n.badge>0 && (
-                <span style={{
-                  position:'absolute', top:7, right:'calc(50% - 18px)',
-                  minWidth:17, height:17, borderRadius:999,
-                  background:'#ef4444', color:'white',
-                  fontSize:9, fontWeight:900,
-                  display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px',
-                  border:'2px solid white',
-                }}>
-                  {n.badge>99?'99+':n.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
 
       </div>
     </>
