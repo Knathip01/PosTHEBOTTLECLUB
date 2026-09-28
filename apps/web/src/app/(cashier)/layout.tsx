@@ -59,8 +59,8 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         position: 'sticky', top: 0, zIndex: 50,
         height: 56, display: 'flex', alignItems: 'center',
         padding: '0 16px', gap: 12,
-        background: 'rgba(10,12,16,0.94)',
-        borderBottom: '1px solid var(--border-color)',
+        background: '#2340A8',
+        borderBottom: '1px solid rgba(255,255,255,0.15)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         flexShrink: 0
@@ -69,13 +69,13 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         <Link href="/cashier" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
           <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
           <div className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>The Bottle Club</p>
-            <p style={{ margin: 0, fontSize: 9, color: 'var(--wine-300)', letterSpacing: '0.1em', fontWeight: 700 }}>CASHIER</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>The Bottle Club</p>
+            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', fontWeight: 800 }}>CASHIER</p>
           </div>
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-1" style={{ flex: 1 }}>
+        <nav className="hidden md:flex items-center gap-1.5" style={{ flex: 1 }}>
           {navLinks.map(link => {
             const Icon = link.icon
             const active = pathname === link.href
@@ -84,11 +84,11 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
                 key={link.href} href={link.href}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 12px', borderRadius: 8,
-                  textDecoration: 'none', fontSize: 13, fontWeight: 600,
-                  color: active ? 'var(--wine-200)' : 'var(--text-secondary)',
-                  background: active ? 'rgba(22,163,155,0.1)' : 'transparent',
-                  border: `1px solid ${active ? 'rgba(22,163,155,0.2)' : 'transparent'}`,
+                  padding: '6px 14px', borderRadius: 8,
+                  textDecoration: 'none', fontSize: 13, fontWeight: 800,
+                  color: active ? '#1E3A8A' : 'rgba(255,255,255,0.9)',
+                  background: active ? '#FFFFFF' : 'transparent',
+                  boxShadow: active ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
                   transition: 'all 150ms'
                 }}
               >
@@ -102,32 +102,33 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         <div style={{ flex: 1 }} className="md:hidden" />
 
         {/* Clock desktop */}
-        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'var(--text-muted)', fontSize: 12, flexShrink: 0 }}>
+        <div className="hidden lg:flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
           <Clock size={13} />
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</span>
         </div>
 
         {/* User + Logout desktop */}
-        <div className="hidden md:flex items-center gap-2" style={{ flexShrink: 0 }}>
+        <div className="hidden md:flex items-center gap-4" style={{ flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
               width: 30, height: 30, borderRadius: 9,
-              background: 'linear-gradient(135deg, var(--wine-700), var(--wine-500))',
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, color: 'white'
+              fontSize: 12, fontWeight: 900, color: 'white'
             }}>{userInitial}</div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{userName}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>{userName}</span>
           </div>
           <button
             onClick={handleLogout}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', color: '#f87171',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
-              padding: '6px 10px', borderRadius: 8, transition: 'background 150ms'
+              background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
+              color: '#FFFFFF', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+              padding: '6px 12px', borderRadius: 8, transition: 'all 150ms'
             }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.35)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.2)'}
           >
             <LogOut size={14} />
             ออกระบบ
@@ -140,8 +141,8 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
           onClick={() => setShowMenu(true)}
           style={{
             width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-card)', color: 'var(--text-secondary)'
+            border: '1px solid rgba(255,255,255,0.3)',
+            background: 'rgba(255,255,255,0.15)', color: '#FFFFFF'
           }}
         >
           <Menu size={16} />
@@ -152,36 +153,36 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
       {showMenu && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 80 }}>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
             onClick={() => setShowMenu(false)}
           />
           <div
             className="animate-slide-up"
             style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
-              background: 'var(--bg-secondary)',
+              background: '#FFFFFF',
               borderRadius: '20px 20px 0 0',
-              border: '1px solid var(--border-color)',
+              border: '1.5px solid rgba(35, 64, 168, 0.2)',
               paddingBottom: 'env(safe-area-inset-bottom)'
             }}
           >
-            <div style={{ width: 40, height: 4, background: 'var(--border-strong)', borderRadius: 999, margin: '10px auto 0' }} />
+            <div style={{ width: 40, height: 4, background: '#CBD5E1', borderRadius: 999, margin: '10px auto 0' }} />
 
             {/* User */}
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(35, 64, 168, 0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: 'linear-gradient(135deg, var(--wine-700), var(--wine-500))',
+                background: 'linear-gradient(135deg, #1E3A8A, #2340A8)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, fontWeight: 700, color: 'white'
+                fontSize: 18, fontWeight: 900, color: 'white'
               }}>{userInitial}</div>
               <div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{userName}</p>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>{userName}</p>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
-                  background: 'rgba(22,163,155,0.1)', color: 'var(--wine-300)',
-                  border: '1px solid rgba(22,163,155,0.2)',
-                  borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 3
+                  background: 'rgba(35, 64, 168, 0.1)', color: '#1E3A8A',
+                  border: '1px solid rgba(35, 64, 168, 0.2)',
+                  borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800, marginTop: 3
                 }}>
                   Cashier
                 </span>
@@ -189,14 +190,15 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
             </div>
 
             {/* Clock */}
-            <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={14} style={{ color: 'var(--text-muted)' }} />
-              <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(35, 64, 168, 0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Clock size={14} style={{ color: '#64748B' }} />
+              <span style={{ fontSize: 14, color: '#1E293B', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{time}</span>
             </div>
 
             {/* Nav */}
             {navLinks.map(link => {
               const Icon = link.icon
+              const active = pathname === link.href
               return (
                 <Link
                   key={link.href} href={link.href}
@@ -204,13 +206,15 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '14px 20px', textDecoration: 'none',
-                    borderBottom: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)', fontSize: 15, fontWeight: 600
+                    borderBottom: '1px solid rgba(35, 64, 168, 0.12)',
+                    color: active ? '#1E3A8A' : '#0F172A',
+                    fontSize: 15, fontWeight: active ? 800 : 700,
+                    background: active ? 'rgba(35, 64, 168, 0.06)' : 'transparent'
                   }}
                 >
-                  <Icon size={18} style={{ color: 'var(--wine-400)' }} />
+                  <Icon size={18} style={{ color: active ? '#1E3A8A' : '#2340A8' }} />
                   {link.label}
-                  <ChevronRight size={16} style={{ color: 'var(--text-muted)', marginLeft: 'auto' }} />
+                  <ChevronRight size={16} style={{ color: '#94A3B8', marginLeft: 'auto' }} />
                 </Link>
               )
             })}
@@ -220,8 +224,8 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
               onClick={handleLogout}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                padding: '14px 20px', background: 'none', border: 'none',
-                fontSize: 15, fontWeight: 700, color: '#f87171', cursor: 'pointer'
+                padding: '16px 20px', background: 'none', border: 'none',
+                fontSize: 15, fontWeight: 800, color: '#DC2626', cursor: 'pointer'
               }}
             >
               <LogOut size={18} />
@@ -231,56 +235,8 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* ── Mobile Bottom Tab Bar ── */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        zIndex: 60, height: 60,
-        background: 'rgba(10,12,16,0.96)',
-        borderTop: '1px solid var(--border-color)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        paddingBottom: 'env(safe-area-inset-bottom)'
-      }} className="flex md:hidden">
-        {navLinks.map(link => {
-          const Icon = link.icon
-          const active = pathname === link.href
-          return (
-            <Link
-              key={link.href} href={link.href}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 3, textDecoration: 'none',
-                color: active ? 'var(--wine-300)' : 'var(--text-muted)',
-                fontSize: 10, fontWeight: 600, transition: 'color 150ms'
-              }}
-            >
-              <div style={{
-                width: 36, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: active ? 'rgba(22,163,155,0.15)' : 'transparent'
-              }}>
-                <Icon size={19} />
-              </div>
-              {link.label.split(' ')[0]}
-            </Link>
-          )
-        })}
-        <button
-          onClick={() => setShowMenu(true)}
-          style={{
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', gap: 3, background: 'none', border: 'none',
-            color: 'var(--text-muted)', fontSize: 10, fontWeight: 600, cursor: 'pointer'
-          }}
-        >
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, var(--wine-700), var(--wine-500))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white' }}>
-            {userInitial}
-          </div>
-          บัญชี
-        </button>
-      </nav>
-
-      {/* ── Content — add padding-bottom on mobile for tab bar ── */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingBottom: 0 }} className="md:pb-0 pb-[60px]">
+      {/* ── Content ── */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Heartbeat />
         {children}
       </main>
