@@ -532,8 +532,15 @@ export default function BarDisplayPage() {
       }}>
         {/* Left */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', flexShrink: 0 }}>
-            <Wine size={18} />
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: '#FFFFFF', overflow: 'hidden',
+            border: '1.5px solid rgba(255,255,255,0.4)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img src="/bar_logo.png" alt="The Bottle Club" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Bar Display 🍸</h1>
