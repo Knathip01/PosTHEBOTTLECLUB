@@ -198,7 +198,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen w-full relative flex items-center justify-center lg:justify-end overflow-x-hidden p-4 sm:p-8"
+      className="min-h-screen w-full relative flex items-center justify-center overflow-x-hidden p-4 sm:p-8"
       style={{
         backgroundImage: `url('/login_bg.jpg')`,
         backgroundSize: 'cover',
@@ -211,7 +211,7 @@ export default function LoginPage() {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.45) 0%, rgba(237,227,200,0.15) 100%)',
+          background: 'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.35) 0%, rgba(237,227,200,0.1) 100%)',
         }}
       />
 
@@ -235,7 +235,7 @@ export default function LoginPage() {
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 w-full max-w-[430px] my-auto lg:mr-12 xl:mr-24">
+      <div className="relative z-10 w-full max-w-[430px] mx-auto my-auto">
         {/* Frosted Glass Login Card */}
         <div
           className="rounded-3xl p-7 sm:p-9"
