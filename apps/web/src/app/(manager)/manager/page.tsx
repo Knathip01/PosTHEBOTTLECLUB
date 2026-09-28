@@ -1856,29 +1856,33 @@ export default function ManagerDashboard() {
 
       {/* SHOP REPORTS TAB */}
       {activeTab === 'shop_reports' && (() => {
-        const cashierReports = shopReports.filter(r => (r.profiles as any)?.role === 'cashier' || (!(r.profiles as any)?.role && (r.profiles as any)?.role !== 'bar' && (r.profiles as any)?.role !== 'kitchen'))
+        const isOtherRole = (r: any) => ['bar', 'kitchen', 'stock_staff', 'stockstaff'].includes((r.profiles as any)?.role)
+        const cashierReports = shopReports.filter(r => (r.profiles as any)?.role === 'cashier' || (!(r.profiles as any)?.role && !isOtherRole(r)))
         const barReports = shopReports.filter(r => (r.profiles as any)?.role === 'bar')
         const kitchenReports = shopReports.filter(r => (r.profiles as any)?.role === 'kitchen')
+        const stockReports = shopReports.filter(r => (r.profiles as any)?.role === 'stock_staff' || (r.profiles as any)?.role === 'stockstaff')
         return (
-          <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-3 gap-5" : "grid grid-cols-1 lg:grid-cols-3 gap-5"}>
+          <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-4 gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"}>
             {/* If selectedReport is set, we stack them in Column 1 (lg:col-span-1) */}
             {selectedReport ? (
-              <div className="lg:col-span-1 space-y-5 hidden lg:block">
-                {renderReportCard("รายงานความเรียบร้อยจาก Cashier", cashierReports, "#38bdf8", "linear-gradient(135deg,#0c4a6e,#38bdf8)", 200)}
-                {renderReportCard("รายงานความเรียบร้อยจาก Bar", barReports, "#f59e0b", "linear-gradient(135deg,#78350f,#f59e0b)", 200)}
-                {renderReportCard("รายงานความเรียบร้อยจาก Kitchen", kitchenReports, "#10b981", "linear-gradient(135deg,#064e3b,#10b981)", 200)}
+              <div className="lg:col-span-1 space-y-4 hidden lg:block">
+                {renderReportCard("รายงานความเรียบร้อยจาก Cashier", cashierReports, "#38bdf8", "linear-gradient(135deg,#0c4a6e,#38bdf8)", 160)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Bar", barReports, "#f59e0b", "linear-gradient(135deg,#78350f,#f59e0b)", 160)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Kitchen", kitchenReports, "#10b981", "linear-gradient(135deg,#064e3b,#10b981)", 160)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Stock Staff", stockReports, "#8b5cf6", "linear-gradient(135deg,#4c1d95,#8b5cf6)", 160)}
               </div>
             ) : (
               <>
                 {renderReportCard("รายงานความเรียบร้อยจาก Cashier", cashierReports, "#38bdf8", "linear-gradient(135deg,#0c4a6e,#38bdf8)", 600)}
                 {renderReportCard("รายงานความเรียบร้อยจาก Bar", barReports, "#f59e0b", "linear-gradient(135deg,#78350f,#f59e0b)", 600)}
                 {renderReportCard("รายงานความเรียบร้อยจาก Kitchen", kitchenReports, "#10b981", "linear-gradient(135deg,#064e3b,#10b981)", 600)}
+                {renderReportCard("รายงานความเรียบร้อยจาก Stock Staff", stockReports, "#8b5cf6", "linear-gradient(135deg,#4c1d95,#8b5cf6)", 600)}
               </>
             )}
 
             {/* Report detail panel (takes remaining space) */}
             {selectedReport && (
-              <div className="lg:col-span-2" style={{ display: 'flex' }}>
+              <div className="lg:col-span-3" style={{ display: 'flex' }}>
                 <div className="glass-card w-full" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   {/* Detail header */}
                   <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -1923,7 +1927,24 @@ export default function ManagerDashboard() {
                     <div style={{ display: 'flex', gap: 12 }}>
                       <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: '#F8FAFC', border: '1px solid rgba(35,64,168,0.15)' }}>
                         <p style={{ margin: '0 0 3px', fontSize: 10, color: '#64748B', fontWeight: 600 }}>ส่งโดย</p>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{selectedReport.profiles?.full_name || 'ไม่ทราบชื่อ'}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{selectedReport.profiles?.full_name || 'ไม่ทราบชื่อ'}</span>
+                          {selectedReport.profiles?.role && (
+                            <span style={{
+                              fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
+                              background: selectedReport.profiles.role === 'stock_staff' || selectedReport.profiles.role === 'stockstaff' ? 'rgba(139,92,246,0.12)' :
+                                          selectedReport.profiles.role === 'bar' ? 'rgba(245,158,11,0.12)' :
+                                          selectedReport.profiles.role === 'kitchen' ? 'rgba(16,185,129,0.12)' : 'rgba(56,189,248,0.12)',
+                              color: selectedReport.profiles.role === 'stock_staff' || selectedReport.profiles.role === 'stockstaff' ? '#7c3aed' :
+                                     selectedReport.profiles.role === 'bar' ? '#b45309' :
+                                     selectedReport.profiles.role === 'kitchen' ? '#047857' : '#0284c7',
+                            }}>
+                              {selectedReport.profiles.role === 'stock_staff' || selectedReport.profiles.role === 'stockstaff' ? 'Stock Staff' :
+                               selectedReport.profiles.role === 'bar' ? 'Bar' :
+                               selectedReport.profiles.role === 'kitchen' ? 'Kitchen' : 'Cashier'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div style={{ flex: 1, padding: '12px 14px', borderRadius: 11, background: '#F8FAFC', border: '1px solid rgba(35,64,168,0.15)' }}>
                         <p style={{ margin: '0 0 3px', fontSize: 10, color: '#64748B', fontWeight: 600 }}>เวลาที่ส่ง</p>
