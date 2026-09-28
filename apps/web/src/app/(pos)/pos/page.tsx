@@ -212,11 +212,13 @@ export default function POSPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: '#2340A8',
+              background: '#FFFFFF',
+              border: '1.5px solid rgba(35,64,168,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(35,64,168,0.3)'
+              boxShadow: '0 2px 8px rgba(35,64,168,0.15)',
+              overflow: 'hidden'
             }}>
-              <ShoppingBag size={17} style={{ color: '#FFFFFF' }} />
+              <img src="/cart_logo.png" alt="Cart" style={{ width: 24, height: 24, objectFit: 'contain' }} />
             </div>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
@@ -252,7 +254,13 @@ export default function POSPage() {
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', flex: 1, gap: 12, paddingTop: 40
           }}>
-            <ShoppingBag size={56} className="bag-float" style={{ color: 'var(--text-muted)' }} />
+            <div className="bag-float" style={{ width: 84, height: 84, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img
+                src="/cart_logo.png"
+                alt="The Bottle Club Cart"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
             <div style={{ textAlign: 'center' }}>
               <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)' }}>ยังไม่มีรายการ</p>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>แตะสินค้าเพื่อเพิ่มลงตะกร้า</p>
@@ -737,7 +745,11 @@ export default function POSPage() {
         className="cart-fab"
         onClick={() => setShowMobileCart(true)}
       >
-        <ShoppingBag size={22} />
+        <img
+          src="/cart_logo.png"
+          alt="Cart"
+          style={{ width: 32, height: 32, objectFit: 'contain' }}
+        />
         {itemCount > 0 && (
           <span style={{
             position: 'absolute', top: 8, right: 8,

@@ -661,12 +661,34 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   background: #FFFFFF !important;
 }
 
-/* Cart empty state pulse */
+/* Cart empty state animation - playful walking & floating bob */
 @keyframes float-bag {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.15; }
-  50%       { transform: translateY(-8px) scale(1.04); opacity: 0.22; }
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.95;
+    filter: drop-shadow(0 4px 10px rgba(35, 64, 168, 0.15));
+  }
+  25% {
+    transform: translateY(-8px) rotate(-3.5deg);
+    opacity: 1;
+    filter: drop-shadow(0 8px 16px rgba(35, 64, 168, 0.25));
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.95;
+    filter: drop-shadow(0 4px 10px rgba(35, 64, 168, 0.15));
+  }
+  75% {
+    transform: translateY(-8px) rotate(3.5deg);
+    opacity: 1;
+    filter: drop-shadow(0 8px 16px rgba(35, 64, 168, 0.25));
+  }
 }
-.bag-float { animation: float-bag 3s ease-in-out infinite; }
+.bag-float {
+  animation: float-bag 2.4s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+}
 
 /* Product add flash */
 @keyframes add-flash {
@@ -775,6 +797,7 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   box-shadow: 0 8px 30px rgba(30,64,175,0.5);
   cursor: pointer;
   transition: transform 200ms ease, box-shadow 200ms ease;
+  animation: float-bag 3.2s ease-in-out infinite;
 }
 
 .cart-fab:active { transform: scale(0.93); }
