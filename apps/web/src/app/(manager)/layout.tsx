@@ -67,10 +67,19 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
       }}>
         {/* Logo */}
         <Link href="/manager" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
-          <div className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.2 }}>The Bottle Club</p>
-            <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', fontWeight: 800 }}>MANAGER</p>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            overflow: 'hidden',
+            border: '1.5px solid rgba(255,255,255,0.3)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img src="/logo.jpg" alt="The Bottle Club Manager" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>Manager</h1>
+            <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600, whiteSpace: 'nowrap' }}>The Bottle Club</p>
           </div>
         </Link>
 
@@ -161,29 +170,29 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             className="animate-slide-up"
             style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
-              background: 'var(--bg-secondary)',
+              background: '#FFFFFF',
               borderRadius: '20px 20px 0 0',
-              border: '1px solid var(--border-color)',
+              border: '1.5px solid rgba(35, 64, 168, 0.2)',
               paddingBottom: 'env(safe-area-inset-bottom)'
             }}
           >
-            <div style={{ width: 40, height: 4, background: 'var(--border-strong)', borderRadius: 999, margin: '10px auto 0' }} />
+            <div style={{ width: 40, height: 4, background: '#CBD5E1', borderRadius: 999, margin: '10px auto 0' }} />
 
             {/* User info */}
-            <div style={{ padding: '14px 20px 14px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ padding: '14px 20px 14px', borderBottom: '1px solid rgba(35, 64, 168, 0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12,
-                background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                background: 'linear-gradient(135deg, #1E3A8A, #2340A8)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, fontWeight: 700, color: 'white', flexShrink: 0
+                fontSize: 18, fontWeight: 900, color: 'white', flexShrink: 0
               }}>{userInitial}</div>
               <div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{userName}</p>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>{userName}</p>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
-                  background: 'rgba(192,132,252,0.12)', color: '#c084fc',
-                  border: '1px solid rgba(192,132,252,0.25)',
-                  borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 3
+                  background: 'rgba(35, 64, 168, 0.1)', color: '#1E3A8A',
+                  border: '1px solid rgba(35, 64, 168, 0.2)',
+                  borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800, marginTop: 3
                 }}>
                   Manager
                 </span>
@@ -191,9 +200,9 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
             </div>
 
             {/* Clock */}
-            <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={14} style={{ color: 'var(--text-muted)' }} />
-              <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(35, 64, 168, 0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Clock size={14} style={{ color: '#64748B' }} />
+              <span style={{ fontSize: 14, color: '#1E293B', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{time}</span>
             </div>
 
             {/* Nav links */}
@@ -206,14 +215,14 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '14px 20px', textDecoration: 'none',
-                    borderBottom: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)', fontSize: 15, fontWeight: 600,
+                    borderBottom: '1px solid rgba(35, 64, 168, 0.12)',
+                    color: '#0F172A', fontSize: 15, fontWeight: 700,
                     transition: 'background 150ms'
                   }}
                 >
-                  <Icon size={18} style={{ color: '#c084fc' }} />
+                  <Icon size={18} style={{ color: '#1E3A8A' }} />
                   {link.label}
-                  <ChevronRight size={16} style={{ color: 'var(--text-muted)', marginLeft: 'auto' }} />
+                  <ChevronRight size={16} style={{ color: '#94A3B8', marginLeft: 'auto' }} />
                 </Link>
               )
             })}
@@ -224,7 +233,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 12,
                 padding: '14px 20px', background: 'none', border: 'none',
-                fontSize: 15, fontWeight: 700, color: '#f87171', cursor: 'pointer'
+                fontSize: 15, fontWeight: 700, color: '#dc2626', cursor: 'pointer'
               }}
             >
               <LogOut size={18} />
