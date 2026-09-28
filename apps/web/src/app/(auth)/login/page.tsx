@@ -236,15 +236,13 @@ export default function LoginPage() {
 
       {/* Main Container */}
       <div className="relative z-10 w-full max-w-[430px] mx-auto my-auto">
-        {/* Frosted Glass Login Card */}
+        {/* Solid White Login Card */}
         <div
           className="rounded-3xl p-7 sm:p-9"
           style={{
-            background: 'rgba(255, 255, 255, 0.94)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '2px solid rgba(255, 255, 255, 0.95)',
-            boxShadow: '0 24px 60px rgba(35, 64, 168, 0.18), 0 4px 16px rgba(0, 0, 0, 0.06)',
+            background: '#FFFFFF',
+            border: '2px solid rgba(35, 64, 168, 0.15)',
+            boxShadow: '0 24px 70px rgba(27, 43, 107, 0.2), 0 4px 20px rgba(0, 0, 0, 0.08)',
           }}
         >
           {/* Card Header */}
