@@ -528,11 +528,7 @@ export default function KitchenDisplayPage() {
   return (
     <div style={{ minHeight: '100dvh', background: '#EDE3C8', color: '#0F172A', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── CSS ── */}
-      <style>{`
-        .kitchen-bottom-nav { display: flex !important; }
-        @media (min-width: 768px) { .kitchen-bottom-nav { display: none !important; } }
-      `}</style>
+
 
       {/* ── Header ── */}
       <header style={{
@@ -678,41 +674,7 @@ export default function KitchenDisplayPage() {
         )}
       </main>
 
-      {/* ── Bottom Nav (Mobile only) ── */}
-      <div className="kitchen-bottom-nav" style={{
-        position: 'sticky', bottom: 0, zIndex: 30,
-        background: 'rgba(237,227,200,0.98)', borderTop: '1.5px solid rgba(35,64,168,0.2)',
-        backdropFilter: 'blur(20px)', gap: 4,
-        padding: '8px 12px', paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
-        flexShrink: 0
-      }}>
-        {tabs.map(tab => {
-          const isActive = filter === tab.key
-          return (
-            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
-              flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-              background: isActive ? 'rgba(35,64,168,0.12)' : 'transparent',
-              color: isActive ? '#1E3A8A' : '#475569',
-              fontSize: 11, fontWeight: isActive ? 900 : 700, cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              borderTop: `2.5px solid ${isActive ? '#1E3A8A' : 'transparent'}`,
-              transition: 'all 150ms'
-            }}>
-              <span style={{ fontSize: 18 }}>{tab.emoji}</span>
-              <span style={{ fontSize: 10 }}>{tab.count > 0 ? `(${tab.count})` : tab.label}</span>
-            </button>
-          )
-        })}
-        <button onClick={() => setShowReport(true)} style={{
-          flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-          background: 'transparent', color: '#1E3A8A',
-          fontSize: 11, fontWeight: 700, cursor: 'pointer',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2
-        }}>
-          <span style={{ fontSize: 18 }}>📋</span>
-          <span style={{ fontSize: 10, fontWeight: 800 }}>รายงาน</span>
-        </button>
-      </div>
+
 
       {/* ── Report Modal ── */}
       {showReport && <ReportModal onClose={() => setShowReport(false)} />}
