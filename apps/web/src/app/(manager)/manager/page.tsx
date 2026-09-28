@@ -787,12 +787,12 @@ export default function ManagerDashboard() {
 
   return (
     <>
-      <div className="animate-in" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      <div className="animate-in" style={{ padding: '16px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h1 className="font-display text-2xl font-black" style={{ color: '#0F172A' }}>แผงควบคุมหลักผู้จัดการ (Manager Console)</h1>
-          <p style={{ color: '#475569', fontSize: 13, fontWeight: 500 }}>ระบบวิเคราะห์ผลประกอบการ บริหารสต๊อก และสิทธิ์การอนุมัติร้าน</p>
+          <h1 className="font-display text-lg md:text-2xl font-black" style={{ color: '#0F172A' }}>แผงควบคุมผู้จัดการ</h1>
+          <p className="hidden sm:block" style={{ color: '#475569', fontSize: 13, fontWeight: 500 }}>ระบบวิเคราะห์ผลประกอบการ บริหารสต๊อก และสิทธิ์การอนุมัติร้าน</p>
         </div>
       </div>
 
@@ -835,33 +835,33 @@ export default function ManagerDashboard() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="glass-card p-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>TODAY SALES (ยอดขายวันนี้)</span>
-              <h3 className="text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(todaySales)}</h3>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(todaySales)}</h3>
               <p className="text-xs mt-2 font-bold" style={{ color: '#059669' }}>สะสมรวม {todayOrders} ออเดอร์</p>
             </div>
-            <div className="glass-card p-5">
+            <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>MONTH SALES (ยอดขายเดือนนี้)</span>
-              <h3 className="text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(monthSales)}</h3>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(monthSales)}</h3>
               <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>ตั้งแต่วันที่ 1 ของเดือน</p>
             </div>
-            <div className="glass-card p-5">
+            <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>LOW STOCK ALERTS</span>
-              <h3 className="text-2xl font-black mt-1" style={{ color: lowStockCount > 0 ? '#B45309' : '#0F172A' }}>{lowStockCount} รายการ</h3>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: lowStockCount > 0 ? '#B45309' : '#0F172A' }}>{lowStockCount} รายการ</h3>
               <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>สินค้ามีของน้อยกว่าจุดวิกฤต</p>
             </div>
-            <div className="glass-card p-5">
+            <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>PENDING DISCOUNTS</span>
-              <h3 className="text-2xl font-black mt-1" style={{ color: discountRequests.length > 0 ? '#BE123C' : '#0F172A' }}>{discountRequests.length} คำขอ</h3>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: discountRequests.length > 0 ? '#BE123C' : '#0F172A' }}>{discountRequests.length} คำขอ</h3>
               <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>รอผู้จัดการตรวจสอบ</p>
             </div>
           </div>
 
           {/* Chart Area */}
-          <div className="glass-card p-6">
-            <h3 className="text-sm font-black mb-4" style={{ color: '#0F172A' }}>กราฟแสดงยอดขายสะสมรายวัน (ย้อนหลัง 7 วัน)</h3>
-            <div style={{ height: 260 }}>
+          <div className="glass-card p-4 md:p-6">
+            <h3 className="text-xs md:text-sm font-black mb-3 md:mb-4" style={{ color: '#0F172A' }}>กราฟแสดงยอดขายสะสมรายวัน (7 วัน)</h3>
+            <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
                   <defs>
@@ -1196,7 +1196,7 @@ export default function ManagerDashboard() {
           {/* New Stock Receipts Table */}
           <div className="glass-card p-5">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <h3 className="text-sm font-bold text-white font-display flex items-center gap-2" style={{ margin: 0 }}>
+              <h3 className="text-sm font-bold font-display flex items-center gap-2" style={{ margin: 0, color: '#0F172A' }}>
                 <Warehouse size={16} style={{ color: '#fbbf24' }} />
                 รายงานข้อมูลสินค้าเข้าใหม่ (คีย์โดยพนักงานคลังสินค้า)
               </h3>
@@ -1374,10 +1374,10 @@ export default function ManagerDashboard() {
 
       {/* DISCOUNTS TAB */}
       {activeTab === 'discounts' && (
-        <div className="glass-card p-6">
+        <div className="glass-card p-4 md:p-6">
           <div className="flex items-center gap-2 mb-2">
             <Key size={18} style={{ color: '#1E3A8A' }} />
-            <h3 className="text-base font-black" style={{ color: '#0F172A' }}>ตั้งค่าปุ่มส่วนลดสำหรับพนักงานแคชเชียร์ (POS Preset Discounts Config)</h3>
+            <h3 className="text-sm md:text-base font-black" style={{ color: '#0F172A' }}>ตั้งค่าปุ่มส่วนลด (POS Preset)</h3>
           </div>
           <p style={{ color: '#334155', fontSize: 13, marginBottom: 24, fontWeight: 500 }}>
             เลือกเปิดใช้งานเปอร์เซ็นต์ส่วนลดมาตรฐาน เพื่อให้พนักงานหน้าร้านกดเลือกใช้งานบนเครื่อง POS ได้โดยตรง ไม่ต้องพิมพ์ระบุเอง
@@ -1392,7 +1392,7 @@ export default function ManagerDashboard() {
           )}
 
           {/* Preset list selection */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 12, marginBottom: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 8, marginBottom: 20 }}>
             {[10, 20, 30, 40, 50, 60, 70, 80, 90].map(pct => {
               const active = allowedDiscounts.includes(pct)
               return (
@@ -1408,9 +1408,9 @@ export default function ManagerDashboard() {
                     setAllowedDiscounts(updated)
                   }}
                   style={{
-                    padding: '14px',
-                    borderRadius: 14,
-                    fontSize: 14,
+                    padding: '12px 8px',
+                    borderRadius: 12,
+                    fontSize: 13,
                     fontWeight: 800,
                     cursor: 'pointer',
                     transition: 'all 0.15s',
@@ -1989,7 +1989,7 @@ export default function ManagerDashboard() {
                 <Wine size={24} style={{ color: '#2340A8' }} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800" style={{ margin: 0 }}>🍷 จับคู่อาหาร & Wine (Food & Wine Pairings)</h3>
+                <h3 className="text-base md:text-xl font-bold text-slate-800" style={{ margin: 0 }}>🍷 จับคู่อาหาร & Wine</h3>
                 <p className="text-xs text-slate-500" style={{ margin: '3px 0 0' }}>กำหนดและอนุมัติเซ็ตเมนูคู่ไวน์พร้อมมอบส่วนลดพิเศษ จะแสดงผลบนหน้าขาย POS ทันที</p>
               </div>
             </div>
@@ -2004,18 +2004,18 @@ export default function ManagerDashboard() {
           </div>
 
           {/* Stat Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF' }}>
               <span className="text-xs text-slate-500 font-semibold">การจับคู่ทั้งหมด</span>
-              <p className="text-2xl font-bold text-slate-800 mt-1">{pairings.length} รายการ</p>
+              <p className="text-lg md:text-2xl font-bold text-slate-800 mt-1">{pairings.length} รายการ</p>
             </div>
             <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF', borderLeft: '4px solid #22c55e' }}>
               <span className="text-xs text-emerald-600 font-semibold">อนุมัติแล้ว / เปิดขายหน้าร้าน</span>
-              <p className="text-2xl font-bold text-emerald-700 mt-1">{pairings.filter(p => p.is_active).length} รายการ</p>
+              <p className="text-lg md:text-2xl font-bold text-emerald-700 mt-1">{pairings.filter(p => p.is_active).length} รายการ</p>
             </div>
             <div className="glass-card p-4 text-center" style={{ background: '#FFFFFF', borderLeft: '4px solid #94a3b8' }}>
               <span className="text-xs text-slate-400 font-semibold">ปิดใช้งาน / ยังไม่อนุมัติ</span>
-              <p className="text-2xl font-bold text-slate-500 mt-1">{pairings.filter(p => !p.is_active).length} รายการ</p>
+              <p className="text-lg md:text-2xl font-bold text-slate-500 mt-1">{pairings.filter(p => !p.is_active).length} รายการ</p>
             </div>
           </div>
 
@@ -2375,73 +2375,77 @@ export default function ManagerDashboard() {
       {/* Mobile Bottom Tab Bar for Manager Console */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        zIndex: 60, height: 60,
-        background: 'rgba(237,227,200,0.97)',
-        borderTop: '1px solid rgba(35,64,168,0.15)',
+        zIndex: 60,
+        background: 'rgba(255,255,255,0.97)',
+        borderTop: '1.5px solid rgba(35,64,168,0.12)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        alignItems: 'center',
-        justifyContent: 'space-around',
       }} className="flex md:hidden">
-        {[
-          { key: 'overview',      label: 'ยอดขาย',     icon: <TrendingUp size={18} /> },
-          { key: 'products',      label: 'สินค้า',       icon: <Package size={18} /> },
-          { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={18} /> },
-          { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={18} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
-          { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={18} />, badge: discountRequests.length || null },
-          { key: 'pairings',      label: 'คู่ไวน์',      icon: <Wine size={18} />, badge: pairings.filter(p => p.is_active).length || null },
-          { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={18} /> },
-          { key: 'shop_reports',  label: 'รายงานร้าน',    icon: <ClipboardList size={18} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
-        ].map(tab => {
-          const active = activeTab === tab.key
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 3, background: 'none', border: 'none',
-                color: active ? '#1E3A8A' : '#64748B',
-                fontSize: 9, fontWeight: 800, cursor: 'pointer', transition: 'color 150ms',
-                position: 'relative',
-                padding: '4px 0'
-              }}
-            >
-              <div style={{
-                width: 36, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: active ? 'rgba(35,64,168,0.12)' : 'transparent',
-                transition: 'background 150ms'
-              }}>
+        <div style={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+          width: '100%',
+          gap: 2,
+          padding: '6px 8px',
+        }}>
+          {[
+            { key: 'overview',      label: 'ยอดขาย',     icon: <TrendingUp size={18} /> },
+            { key: 'products',      label: 'สินค้า',       icon: <Package size={18} /> },
+            { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={18} /> },
+            { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={18} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
+            { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={18} />, badge: discountRequests.length || null },
+            { key: 'pairings',      label: 'คู่ไวน์',      icon: <Wine size={18} />, badge: pairings.filter(p => p.is_active).length || null },
+            { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={18} /> },
+            { key: 'shop_reports',  label: 'รายงาน',    icon: <ClipboardList size={18} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
+          ].map(tab => {
+            const active = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                style={{
+                  flex: '0 0 auto',
+                  display: 'flex', alignItems: 'center',
+                  gap: 5, background: active ? '#2340A8' : 'transparent',
+                  border: 'none',
+                  color: active ? '#FFFFFF' : '#475569',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  transition: 'all 150ms',
+                  position: 'relative',
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {tab.icon}
-              </div>
-              <span>{tab.label}</span>
-              
-              {/* Notification Badges */}
-              {tab.badge && (
-                <span style={{
-                  position: 'absolute',
-                  top: 2,
-                  right: '18%',
-                  background: '#f43f5e',
-                  color: 'white',
-                  borderRadius: '50%',
-                  minWidth: 14,
-                  height: 14,
-                  fontSize: 8,
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 0 8px rgba(244,63,94,0.4)',
-                  padding: '0 3px'
-                }}>
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          )
-        })}
+                <span>{tab.label}</span>
+                
+                {/* Notification Badges */}
+                {tab.badge && (
+                  <span style={{
+                    background: active ? '#FFFFFF' : '#f43f5e',
+                    color: active ? '#2340A8' : 'white',
+                    borderRadius: 999,
+                    minWidth: 18,
+                    height: 18,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 5px',
+                    marginLeft: 2,
+                  }}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </nav>
     </>
   )
