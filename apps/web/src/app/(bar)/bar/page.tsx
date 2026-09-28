@@ -347,11 +347,11 @@ function ReportModal({ onClose }: { onClose: () => void }) {
                     {images.length < 5 && (<>
                       <button onClick={startCamera} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(35,64,168,0.4)', background: 'rgba(35,64,168,0.05)', color: '#1E3A8A', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontWeight: 800 }}>
                         <Camera size={20} />
-                        <span style={{ fontSize: 10, fontWeight: 800 }}>กล้อง</span>
+                        <span style={{ fontSize: 12, fontWeight: 800 }}>กล้อง</span>
                       </button>
                       <button onClick={() => fileRef.current?.click()} style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px dashed rgba(35,64,168,0.3)', background: '#F8FAFC', color: '#334155', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', fontWeight: 800 }}>
                         <ImageIcon size={20} />
-                        <span style={{ fontSize: 10, fontWeight: 800 }}>อัปโหลด</span>
+                        <span style={{ fontSize: 12, fontWeight: 800 }}>อัปโหลด</span>
                       </button>
                     </>)}
                     <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFile} style={{ display: 'none' }} />

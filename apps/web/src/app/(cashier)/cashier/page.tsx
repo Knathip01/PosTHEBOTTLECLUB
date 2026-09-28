@@ -726,10 +726,10 @@ export default function CashierQueuePage() {
                             {rImages.length<5 && (
                               <>
                                 <button onClick={startCam} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(35,64,168,0.4)',background:'rgba(35,64,168,0.05)',color:'#1E3A8A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer',fontWeight:700}}>
-                                  <Camera size={22}/><span style={{fontSize:10,fontWeight:800}}>กล้อง</span>
+                                  <Camera size={22}/><span style={{fontSize:12,fontWeight:800}}>กล้อง</span>
                                 </button>
                                 <button onClick={()=>fileRef.current?.click()} style={{aspectRatio:'1',borderRadius:10,border:'2px dashed rgba(35,64,168,0.3)',background:'#FFFFFF',color:'#334155',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,cursor:'pointer',fontWeight:700}}>
-                                  <ImageIcon size={22}/><span style={{fontSize:10,fontWeight:800}}>อัปโหลด</span>
+                                  <ImageIcon size={22}/><span style={{fontSize:12,fontWeight:800}}>อัปโหลด</span>
                                 </button>
                               </>
                             )}

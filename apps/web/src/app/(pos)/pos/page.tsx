@@ -320,9 +320,8 @@ export default function POSPage() {
                   </button>
                 </div>
                 <span style={{
-                  fontSize: 15, fontWeight: 800,
-                  color: 'var(--gold-400)',
-                  textShadow: '0 0 20px rgba(242,198,92,0.3)'
+                  fontSize: 16, fontWeight: 900,
+                  color: '#1E3A8A',
                 }}>
                   {formatCurrency(item.line_total)}
                 </span>
@@ -1251,10 +1250,10 @@ function PairingCard({
                 <span style={{ fontSize: 26 }}>🍽️</span>
               )}
             </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#1A2660', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {food?.name || 'อาหาร'}
             </span>
-            <span style={{ fontSize: 9, color: '#4A5899', fontWeight: 600, display: 'block' }}>
+            <span style={{ fontSize: 11, color: '#1E293B', fontWeight: 700, display: 'block' }}>
               {formatCurrency(foodPrice)}
             </span>
           </div>
@@ -1283,10 +1282,10 @@ function PairingCard({
                 <span style={{ fontSize: 26 }}>🍷</span>
               )}
             </div>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#1A2660', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {wine?.name || 'ไวน์'}
             </span>
-            <span style={{ fontSize: 9, color: '#4A5899', fontWeight: 600, display: 'block' }}>
+            <span style={{ fontSize: 11, color: '#1E293B', fontWeight: 700, display: 'block' }}>
               {formatCurrency(winePrice)}
             </span>
           </div>
@@ -1306,13 +1305,13 @@ function PairingCard({
           }}>
             🏷️ ลด {pairing.discount_type === 'percent' ? `${pairing.discount_value}%` : formatCurrency(pairing.discount_value)}
           </span>
-          <span style={{ fontSize: 11, color: '#8A95BC', textDecoration: 'line-through', fontWeight: 600, marginTop: 2 }}>
+          <span style={{ fontSize: 11, color: '#475569', textDecoration: 'line-through', fontWeight: 700, marginTop: 2 }}>
             {formatCurrency(combined)}
           </span>
-          <span style={{ fontSize: 17, fontWeight: 900, color: '#b02238', lineHeight: 1 }}>
+          <span style={{ fontSize: 18, fontWeight: 900, color: '#991B1B', lineHeight: 1 }}>
             {formatCurrency(finalPrice)}
           </span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#16a34a' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#15803d' }}>
             ประหยัด {formatCurrency(discount)}
           </span>
         </div>
