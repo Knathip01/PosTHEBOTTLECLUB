@@ -215,24 +215,6 @@ export default function LoginPage() {
         }}
       />
 
-      {/* Brand Badge (Top-left on tablet/desktop) */}
-      <div
-        className="absolute top-6 left-6 z-10 hidden sm:flex items-center gap-2.5"
-        style={{
-          background: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1.5px solid rgba(35, 64, 168, 0.2)',
-          borderRadius: 999,
-          padding: '8px 18px',
-          boxShadow: '0 4px 16px rgba(35, 64, 168, 0.08)',
-        }}
-      >
-        <span style={{ fontSize: 16 }}>🍷</span>
-        <span style={{ fontSize: 12, fontWeight: 900, color: '#1E3A8A', letterSpacing: '0.04em' }}>
-          THE BOTTLE CLUB POS
-        </span>
-      </div>
 
       {/* Main Container */}
       <div className="relative z-10 w-full max-w-[430px] mx-auto my-auto">
@@ -298,9 +280,6 @@ export default function LoginPage() {
             >
               เข้าสู่ระบบพนักงาน
             </h1>
-            <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: '#475569' }}>
-              ระบบจัดการร้านขายเครื่องดื่ม & POS
-            </p>
           </div>
 
           {/* Lockout Banner */}
@@ -563,25 +542,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Footer inside card */}
-          <div
-            style={{
-              marginTop: 22,
-              paddingTop: 16,
-              borderTop: '1px solid rgba(35, 64, 168, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#64748B',
-            }}
-          >
-            <span>🔒</span>
-            <span>ระบบรักษาความปลอดภัย The Bottle Club POS</span>
-          </div>
         </div>
       </div>
     </div>
