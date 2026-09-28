@@ -438,6 +438,21 @@ export default function ManagerDashboard() {
   useEffect(() => {
     loadData(true)
 
+    // Listen for tab switch events from layout header
+    const handleSetTab = (e: any) => {
+      if (e.detail?.tab) setActiveTab(e.detail.tab)
+    }
+    window.addEventListener('set-manager-tab', handleSetTab)
+
+    // Check search params on load
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const t = params.get('tab')
+      if (t && ['overview', 'products', 'stock', 'discounts', 'reports', 'shop_reports', 'payments', 'pairings'].includes(t)) {
+        setActiveTab(t as any)
+      }
+    }
+
     // Auto-polling all dashboard data every 15 seconds
     const interval = setInterval(() => {
       loadData(false)
@@ -445,6 +460,7 @@ export default function ManagerDashboard() {
 
     return () => {
       clearInterval(interval)
+      window.removeEventListener('set-manager-tab', handleSetTab)
     }
   }, [loadData])
 
