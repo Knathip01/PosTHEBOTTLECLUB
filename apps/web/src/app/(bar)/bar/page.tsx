@@ -543,7 +543,7 @@ export default function BarDisplayPage() {
             <img src="/bar_logo.png" alt="The Bottle Club" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Bar Display 🍸</h1>
+            <h1 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Bar Display</h1>
             <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>The Bottle Club</p>
           </div>
         </div>
@@ -667,47 +667,7 @@ export default function BarDisplayPage() {
         )}
       </main>
 
-      {/* ── Bottom Nav (Mobile only) ── */}
-      <style>{`
-        .bar-bottom-nav { display: flex !important; }
-        @media (min-width: 768px) { .bar-bottom-nav { display: none !important; } }
-      `}</style>
-      <div className="bar-bottom-nav" style={{
-        position: 'sticky', bottom: 0, zIndex: 30,
-        background: 'rgba(237,227,200,0.98)', borderTop: '1.5px solid rgba(35,64,168,0.2)',
-        backdropFilter: 'blur(20px)', gap: 4,
-        padding: '8px 12px', paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
-        flexShrink: 0
-      }}>
-        {tabs.map(tab => {
-          const isActive = filter === tab.key
-          return (
-            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
-              flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-              background: isActive ? 'rgba(35,64,168,0.12)' : 'transparent',
-              color: isActive ? '#1E3A8A' : '#475569',
-              fontSize: 11, fontWeight: isActive ? 900 : 700, cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-              borderTop: `2.5px solid ${isActive ? '#1E3A8A' : 'transparent'}`,
-              transition: 'all 150ms'
-            }}>
-              <span style={{ fontSize: 16 }}>
-                {tab.key === 'all' ? '🍸' : tab.key === 'pending' ? '⏳' : tab.key === 'preparing' ? '🔥' : '✅'}
-              </span>
-              <span style={{ fontSize: 10 }}>{tab.count > 0 ? `(${tab.count})` : ''}</span>
-            </button>
-          )
-        })}
-        <button onClick={() => setShowReport(true)} style={{
-          flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none',
-          background: 'transparent', color: '#1E3A8A',
-          fontSize: 11, fontWeight: 800, cursor: 'pointer',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3
-        }}>
-          <span style={{ fontSize: 16 }}>📋</span>
-          <span style={{ fontSize: 10, fontWeight: 800 }}>รายงาน</span>
-        </button>
-      </div>
+
 
       {/* ── Report Modal ── */}
       {showReport && <ReportModal onClose={() => setShowReport(false)} />}
