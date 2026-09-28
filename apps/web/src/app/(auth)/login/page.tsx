@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { isValidEmail } from '@/lib/sanitize'
-import { Eye, EyeOff, AlertCircle, Loader2, ShieldAlert, Clock } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2, ShieldAlert, Clock, Mail, Lock, LogIn } from 'lucide-react'
 import logoImg from '../../../../public/logo.jpg'
 
 // ─── Rate Limiting Config ─────────────────────────────────────────────────────
@@ -197,81 +197,239 @@ export default function LoginPage() {
   const attemptsLeft = MAX_ATTEMPTS - attempts
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(139,26,44,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(212,175,55,0.08) 0%, transparent 50%), var(--bg-primary)' }}>
+    <div
+      className="min-h-screen w-full relative flex items-center justify-center lg:justify-end overflow-x-hidden p-4 sm:p-8"
+      style={{
+        backgroundImage: `url('/login_bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#EDE3C8',
+      }}
+    >
+      {/* Subtle overlay for optimal contrast and readability */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 80% 50%, rgba(255,255,255,0.45) 0%, rgba(237,227,200,0.15) 100%)',
+        }}
+      />
 
-      {/* Background decorative */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 rounded-full opacity-5"
-          style={{ background: 'radial-gradient(circle, var(--wine-500), transparent)' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full opacity-5"
-          style={{ background: 'radial-gradient(circle, var(--gold-500), transparent)' }} />
-        <div className="absolute top-1/2 left-1/4 text-9xl opacity-5 select-none">🍷</div>
-        <div className="absolute bottom-1/4 right-1/3 text-7xl opacity-5 select-none rotate-12">🍾</div>
+      {/* Brand Badge (Top-left on tablet/desktop) */}
+      <div
+        className="absolute top-6 left-6 z-10 hidden sm:flex items-center gap-2.5"
+        style={{
+          background: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1.5px solid rgba(35, 64, 168, 0.2)',
+          borderRadius: 999,
+          padding: '8px 18px',
+          boxShadow: '0 4px 16px rgba(35, 64, 168, 0.08)',
+        }}
+      >
+        <span style={{ fontSize: 16 }}>🍷</span>
+        <span style={{ fontSize: 12, fontWeight: 900, color: '#1E3A8A', letterSpacing: '0.04em' }}>
+          THE BOTTLE CLUB POS
+        </span>
       </div>
 
-      <div className="relative w-full max-w-md px-6">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <img src={logoImg.src} alt="The Bottle Club Logo"
-            style={{ width: 80, height: 80, borderRadius: 16, objectFit: 'cover', display: 'block', margin: '0 auto 16px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
-          <h1 className="font-display text-3xl font-bold text-white mb-1">The Bottle Club</h1>
-          <p style={{ color: 'var(--text-secondary)' }} className="text-sm">ระบบจัดการร้านขายเครื่องดื่ม</p>
-        </div>
+      {/* Main Container */}
+      <div className="relative z-10 w-full max-w-[430px] my-auto lg:mr-12 xl:mr-24">
+        {/* Frosted Glass Login Card */}
+        <div
+          className="rounded-3xl p-7 sm:p-9"
+          style={{
+            background: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '2px solid rgba(255, 255, 255, 0.95)',
+            boxShadow: '0 24px 60px rgba(35, 64, 168, 0.18), 0 4px 16px rgba(0, 0, 0, 0.06)',
+          }}
+        >
+          {/* Card Header */}
+          <div className="flex flex-col items-center text-center mb-6">
+            <div
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 22,
+                overflow: 'hidden',
+                background: '#FFFFFF',
+                border: '2px solid rgba(35, 64, 168, 0.2)',
+                boxShadow: '0 8px 24px rgba(35, 64, 168, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 14,
+              }}
+            >
+              <img
+                src={logoImg.src}
+                alt="The Bottle Club"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
 
-        {/* Login Card */}
-        <div className="glass-card p-8">
-          <h2 className="font-display text-xl font-semibold text-white mb-6">เข้าสู่ระบบ</h2>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(35, 64, 168, 0.08)',
+                border: '1px solid rgba(35, 64, 168, 0.18)',
+                padding: '3px 12px',
+                borderRadius: 999,
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 900, color: '#1E3A8A', letterSpacing: '0.06em' }}>
+                THE BOTTLE CLUB
+              </span>
+            </div>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 24,
+                fontWeight: 900,
+                color: '#0F172A',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.25,
+              }}
+            >
+              เข้าสู่ระบบพนักงาน
+            </h1>
+            <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: '#475569' }}>
+              ระบบจัดการร้านขายเครื่องดื่ม & POS
+            </p>
+          </div>
 
           {/* Lockout Banner */}
           {isLocked && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px',
-              borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-              marginBottom: 20
-            }}>
-              <ShieldAlert size={20} style={{ color: '#f87171', flexShrink: 0 }} />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                borderRadius: 14,
+                background: '#FFF1F2',
+                border: '1.5px solid #FDA4AF',
+                marginBottom: 18,
+              }}
+            >
+              <ShieldAlert size={22} style={{ color: '#E11D48', flexShrink: 0 }} />
               <div>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f87171' }}>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#9F1239' }}>
                   บัญชีถูกล็อคชั่วคราว
                 </p>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#fca5a5', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Clock size={11} />
-                  ลองใหม่ได้ใน {lockoutRemaining} วินาที
+                <p
+                  style={{
+                    margin: '2px 0 0',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#BE123C',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <Clock size={12} />
+                  กรุณาลองใหม่อีกครั้งใน {lockoutRemaining} วินาที
                 </p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email */}
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-                อีเมล
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#1E293B',
+                  marginBottom: 6,
+                }}
+              >
+                อีเมลพนักงาน
               </label>
-              <input
-                type="email"
-                className="wine-input"
-                placeholder="admin@thebottleclub.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
-                disabled={isLocked || loading}
-                autoComplete="email"
-                maxLength={254}
-              />
+              <div style={{ position: 'relative' }}>
+                <Mail
+                  size={18}
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#64748B',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <input
+                  type="email"
+                  placeholder="staff@thebottleclub.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  disabled={isLocked || loading}
+                  autoComplete="email"
+                  maxLength={254}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px 12px 42px',
+                    borderRadius: 12,
+                    background: '#FFFFFF',
+                    border: '1.5px solid rgba(35, 64, 168, 0.25)',
+                    color: '#0F172A',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    outline: 'none',
+                    transition: 'all 160ms ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#2340A8'
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(35,64,168,0.15)'
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(35,64,168,0.25)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Password */}
+            {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#1E293B',
+                  marginBottom: 6,
+                }}
+              >
                 รหัสผ่าน
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
+                <Lock
+                  size={18}
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#64748B',
+                    pointerEvents: 'none',
+                  }}
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className="wine-input pr-12"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -279,13 +437,46 @@ export default function LoginPage() {
                   disabled={isLocked || loading}
                   autoComplete="current-password"
                   maxLength={128}
+                  style={{
+                    width: '100%',
+                    padding: '12px 42px 12px 42px',
+                    borderRadius: 12,
+                    background: '#FFFFFF',
+                    border: '1.5px solid rgba(35, 64, 168, 0.25)',
+                    color: '#0F172A',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    outline: 'none',
+                    transition: 'all 160ms ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#2340A8'
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(35,64,168,0.15)'
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(35,64,168,0.25)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded transition-colors"
-                  style={{ color: 'var(--text-muted)' }}
                   tabIndex={-1}
+                  style={{
+                    position: 'absolute',
+                    right: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 6,
+                    color: '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -294,39 +485,105 @@ export default function LoginPage() {
 
             {/* Attempts warning */}
             {attempts > 0 && !isLocked && attemptsLeft <= 3 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#fbbf24' }}>
-                <ShieldAlert size={13} />
-                เหลืออีก {attemptsLeft} ครั้ง ก่อนถูกล็อค {LOCKOUT_SECONDS} วินาที
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  background: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  color: '#B45309',
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                <ShieldAlert size={14} style={{ flexShrink: 0 }} />
+                <span>เหลือโอกาสอีก {attemptsLeft} ครั้ง ก่อนระบบล็อค {LOCKOUT_SECONDS} วินาที</span>
               </div>
             )}
 
-            {/* Error */}
+            {/* Error Message */}
             {error && !isLocked && (
-              <div className="flex items-center gap-2 p-3 rounded-lg text-sm"
-                style={{ background: 'rgba(139,26,44,0.15)', border: '1px solid rgba(139,26,44,0.3)', color: '#f5b8c8' }}>
-                <AlertCircle size={16} className="shrink-0" />
-                {error}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '12px 14px',
+                  borderRadius: 12,
+                  background: '#FEF2F2',
+                  border: '1.5px solid #FCA5A5',
+                  color: '#991B1B',
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                <AlertCircle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading || isLocked}
-              className="w-full btn-wine flex items-center justify-center gap-2 py-3 text-base mt-2"
-              style={{ opacity: isLocked ? 0.5 : 1, cursor: isLocked ? 'not-allowed' : 'pointer' }}
+              style={{
+                width: '100%',
+                minHeight: 48,
+                borderRadius: 14,
+                border: 'none',
+                background: isLocked
+                  ? '#94A3B8'
+                  : 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)',
+                color: '#FFFFFF',
+                fontSize: 15,
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                cursor: loading || isLocked ? 'not-allowed' : 'pointer',
+                boxShadow: isLocked ? 'none' : '0 6px 20px rgba(35, 64, 168, 0.35)',
+                transition: 'all 160ms ease',
+                marginTop: 6,
+              }}
             >
               {loading ? (
-                <><Loader2 size={18} className="animate-spin" /> กำลังเข้าสู่ระบบ...</>
+                <>
+                  <Loader2 size={18} className="animate-spin" /> กำลังเข้าสู่ระบบ...
+                </>
               ) : isLocked ? (
-                <><Clock size={18} /> รอ {lockoutRemaining} วินาที...</>
+                <>
+                  <Clock size={18} /> รอสักครู่ ({lockoutRemaining}s)...
+                </>
               ) : (
-                'เข้าสู่ระบบ'
+                <>
+                  <LogIn size={18} /> เข้าสู่ระบบ
+                </>
               )}
             </button>
           </form>
 
-
+          {/* Footer inside card */}
+          <div
+            style={{
+              marginTop: 22,
+              paddingTop: 16,
+              borderTop: '1px solid rgba(35, 64, 168, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#64748B',
+            }}
+          >
+            <span>🔒</span>
+            <span>ระบบรักษาความปลอดภัย The Bottle Club POS</span>
+          </div>
         </div>
       </div>
     </div>
