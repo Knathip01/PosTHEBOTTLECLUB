@@ -815,14 +815,14 @@ export default function ManagerDashboard() {
       {/* Tabs */}
       <div className="hidden md:flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'rgba(35,64,168,0.15)', scrollbarWidth: 'none' }}>
         {[
-          { key: 'overview',      label: '📊 ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
-          { key: 'products',      label: '📦 จัดการสินค้า',       icon: <Package size={14} /> },
-          { key: 'stock',         label: '⚙️ ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
-          { key: 'payments',      label: '💳 ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
-          { key: 'discounts',     label: '🔑 อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
-          { key: 'pairings',      label: '🍷 จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
-          { key: 'reports',       label: '📈 รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
-          { key: 'shop_reports',  label: '📋 รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
+          { key: 'overview',      label: 'ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
+          { key: 'products',      label: 'จัดการสินค้า',       icon: <Package size={14} /> },
+          { key: 'stock',         label: 'ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
+          { key: 'payments',      label: 'ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
+          { key: 'discounts',     label: 'อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
+          { key: 'pairings',      label: 'จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
+          { key: 'reports',       label: 'รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
+          { key: 'shop_reports',  label: 'รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
         ].map(tab => (
           <button
             key={tab.key}

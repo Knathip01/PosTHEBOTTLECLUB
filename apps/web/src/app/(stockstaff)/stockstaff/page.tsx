@@ -387,9 +387,9 @@ export default function StockStaffDashboard() {
       {/* Tabs */}
       <div className="flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'rgba(35,64,168,0.15)', scrollbarWidth: 'none' }}>
         {[
-          { key: 'receive', label: '📥 รับของนำเข้าคลัง', icon: <Download size={14} /> },
-          { key: 'adjust', label: '🔧 ปรับปรุงสต๊อกสินค้า', icon: <Edit3 size={14} /> },
-          { key: 'check', label: '🔍 ตรวจสอบยอดสต๊อก', icon: <Warehouse size={14} /> },
+          { key: 'receive', label: 'รับของนำเข้าคลัง', icon: <Download size={14} /> },
+          { key: 'adjust', label: 'ปรับปรุงสต๊อกสินค้า', icon: <Edit3 size={14} /> },
+          { key: 'check', label: 'ตรวจสอบยอดสต๊อก', icon: <Warehouse size={14} /> },
         ].map(tab => (
           <button
             key={tab.key}
