@@ -9,7 +9,7 @@ import {
   ArrowUpRight, RefreshCw, BarChart3, Tag, Warehouse, Sparkles, Check, X,
   Search, Edit3, Loader2, Key, ClipboardList, Clock, Image as ImageIcon,
   CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight,
-  Plus, Trash2, Utensils, Percent
+  Plus, Trash2, Utensils, Percent, Calendar
 } from 'lucide-react'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip
@@ -281,13 +281,15 @@ export default function ManagerDashboard() {
         .order('created_at', { ascending: false })
 
       if (reportDateFrom) {
-        query = query.gte('created_at', `${reportDateFrom}T00:00:00`)
+        const fromDate = new Date(`${reportDateFrom}T00:00:00`)
+        query = query.gte('created_at', fromDate.toISOString())
       }
       if (reportDateTo) {
-        query = query.lte('created_at', `${reportDateTo}T23:59:59`)
+        const toDate = new Date(`${reportDateTo}T23:59:59.999`)
+        query = query.lte('created_at', toDate.toISOString())
       } else if (!reportDateFrom) {
         // Only limit if no filter is active
-        query = query.limit(50)
+        query = query.limit(100)
       }
 
       const { data } = await query
@@ -718,13 +720,13 @@ export default function ManagerDashboard() {
             <div>
               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A' }}>{title}</h3>
               <p style={{ margin: 0, fontSize: 11, color: '#64748B', fontWeight: 600 }}>
-                {pendingCount} รายการรอตรวจสอบ
+                {pendingCount} รายการรอตรวจสอบ {list.length > 0 ? `(ทั้งหมด ${list.length})` : ''}
               </p>
             </div>
           </div>
         </div>
 
-        {shopReportsLoading && list.length === 0 ? (
+        {shopReportsLoading && shopReports.length === 0 ? (
           <div style={{ padding: '40px 20px', textAlign: 'center' }}>
             <Loader2 size={24} style={{ color: titleColor, animation: 'spin 1s linear infinite', margin: '0 auto 12px', display: 'block' }} />
             <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>กำลังโหลดรายงาน...</p>
@@ -734,7 +736,9 @@ export default function ManagerDashboard() {
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(35,64,168,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <ClipboardList size={20} style={{ color: 'var(--text-muted)' }} />
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: 0 }}>ไม่มีรายการรายงานในขณะนี้</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: 0 }}>
+              {reportDateFrom || reportDateTo ? 'ไม่มีรายการรายงานในช่วงวันที่เลือก' : 'ไม่มีรายการรายงานในขณะนี้'}
+            </p>
           </div>
         ) : (
           <div style={{ overflowY: 'auto', maxHeight: maxHeight }}>
@@ -1877,8 +1881,223 @@ export default function ManagerDashboard() {
         const barReports = shopReports.filter(r => (r.profiles as any)?.role === 'bar')
         const kitchenReports = shopReports.filter(r => (r.profiles as any)?.role === 'kitchen')
         const stockReports = shopReports.filter(r => (r.profiles as any)?.role === 'stock_staff' || (r.profiles as any)?.role === 'stockstaff')
+        const totalReportsCount = shopReports.length
+        const totalPendingCount = shopReports.filter(r => r.status === 'pending').length
+
         return (
-          <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-4 gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"}>
+          <div className="space-y-4">
+            {/* Date Filter Card */}
+            <div className="glass-card p-4 md:p-5" style={{ borderRadius: 16 }}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Title & Info */}
+                <div className="flex items-center gap-3">
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 10,
+                    background: 'linear-gradient(135deg, #1E3A8A, #2340A8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(30,58,138,0.2)',
+                    flexShrink: 0
+                  }}>
+                    <Calendar size={18} color="white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#0F172A' }}>
+                        เลือกวันที่ตรวจสอบรายงาน
+                      </h3>
+                      {shopReportsLoading && (
+                        <RefreshCw size={13} className="animate-spin" style={{ color: '#1E3A8A' }} />
+                      )}
+                    </div>
+                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748B', fontWeight: 600 }}>
+                      รายงานทั้งหมด {totalReportsCount} รายการ ({totalPendingCount > 0 ? `รอตรวจสอบ ${totalPendingCount} รายการ` : 'ตรวจสอบครบแล้วทุกรายการ'})
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date Inputs + Actions */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={reportDateFrom}
+                      onChange={e => setReportDateFrom(e.target.value)}
+                      className="wine-input font-bold"
+                      style={{
+                        fontSize: 12,
+                        padding: '7px 10px',
+                        borderRadius: 10,
+                        background: '#FFFFFF',
+                        border: '1.5px solid rgba(35,64,168,0.25)',
+                        color: '#0F172A',
+                        outline: 'none'
+                      }}
+                    />
+                    <span style={{ fontSize: 12, color: '#64748B', fontWeight: 700 }}>ถึง</span>
+                    <input
+                      type="date"
+                      value={reportDateTo}
+                      onChange={e => setReportDateTo(e.target.value)}
+                      className="wine-input font-bold"
+                      style={{
+                        fontSize: 12,
+                        padding: '7px 10px',
+                        borderRadius: 10,
+                        background: '#FFFFFF',
+                        border: '1.5px solid rgba(35,64,168,0.25)',
+                        color: '#0F172A',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => loadShopReports()}
+                    title="โหลดข้อมูลรายงานใหม่"
+                    style={{
+                      padding: '7px 11px',
+                      borderRadius: 10,
+                      background: '#F1F5F9',
+                      border: '1.5px solid rgba(35,64,168,0.2)',
+                      color: '#1E3A8A',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12,
+                      fontWeight: 800
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
+                  >
+                    <RefreshCw size={13} className={shopReportsLoading ? "animate-spin" : ""} />
+                    รีเฟรช
+                  </button>
+
+                  {(reportDateFrom || reportDateTo) && (
+                    <button
+                      onClick={() => { setReportDateFrom(''); setReportDateTo('') }}
+                      style={{
+                        fontSize: 12,
+                        padding: '7px 12px',
+                        borderRadius: 10,
+                        background: '#FFFFFF',
+                        border: '1.5px solid rgba(239,68,68,0.3)',
+                        color: '#DC2626',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                    >
+                      <X size={13} />
+                      ล้างวันที่
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t overflow-x-auto" style={{ borderColor: 'rgba(35,64,168,0.1)', scrollbarWidth: 'none' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', marginRight: 4, whiteSpace: 'nowrap' }}>
+                  เลือกด่วน:
+                </span>
+                {[
+                  {
+                    id: 'today',
+                    label: 'วันนี้',
+                    action: () => {
+                      const t = new Date().toISOString().slice(0, 10)
+                      setReportDateFrom(t)
+                      setReportDateTo(t)
+                    }
+                  },
+                  {
+                    id: 'yesterday',
+                    label: 'เมื่อวาน',
+                    action: () => {
+                      const d = new Date()
+                      d.setDate(d.getDate() - 1)
+                      const y = d.toISOString().slice(0, 10)
+                      setReportDateFrom(y)
+                      setReportDateTo(y)
+                    }
+                  },
+                  {
+                    id: '7days',
+                    label: '7 วันล่าสุด',
+                    action: () => {
+                      const d = new Date()
+                      const to = d.toISOString().slice(0, 10)
+                      d.setDate(d.getDate() - 6)
+                      const from = d.toISOString().slice(0, 10)
+                      setReportDateFrom(from)
+                      setReportDateTo(to)
+                    }
+                  },
+                  {
+                    id: 'month',
+                    label: 'เดือนนี้',
+                    action: () => {
+                      const now = new Date()
+                      const to = now.toISOString().slice(0, 10)
+                      const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+                      setReportDateFrom(from)
+                      setReportDateTo(to)
+                    }
+                  },
+                  {
+                    id: 'all',
+                    label: 'ทั้งหมด',
+                    action: () => {
+                      setReportDateFrom('')
+                      setReportDateTo('')
+                    }
+                  },
+                ].map(p => {
+                  const isActive = (p.id === 'all' && !reportDateFrom && !reportDateTo) ||
+                    (p.id === 'today' && reportDateFrom === new Date().toISOString().slice(0, 10) && reportDateTo === new Date().toISOString().slice(0, 10))
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={p.action}
+                      style={{
+                        padding: '4px 11px',
+                        borderRadius: 8,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: isActive ? '#1E3A8A' : '#F1F5F9',
+                        border: '1px solid #CBD5E1',
+                        color: isActive ? '#FFFFFF' : '#334155',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 150ms'
+                      }}
+                      onMouseEnter={e => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = '#E2E8F0'
+                          e.currentTarget.style.color = '#1E3A8A'
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = '#F1F5F9'
+                          e.currentTarget.style.color = '#334155'
+                        }
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className={selectedReport ? "grid grid-cols-1 lg:grid-cols-4 gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"}>
             {/* If selectedReport is set, we stack them in Column 1 (lg:col-span-1) */}
             {selectedReport ? (
               <div className="lg:col-span-1 space-y-4 hidden lg:block">
@@ -2013,8 +2232,9 @@ export default function ManagerDashboard() {
               </div>
             )}
           </div>
-        )
-      })()}
+        </div>
+      )
+    })()}
 
       {/* PAIRINGS TAB */}
       {activeTab === 'pairings' && (
