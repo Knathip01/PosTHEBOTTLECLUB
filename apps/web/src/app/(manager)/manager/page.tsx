@@ -908,8 +908,8 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ position: 'relative', marginBottom: 24 }}>
+      {/* Tabs (แสดงเฉพาะ Desktop เท่านั้น — บนมือถือซ่อนแถบนี้ และใช้ Floating Glass Dock ด้านล่างแทน) */}
+      <div className="hidden md:block" style={{ position: 'relative', marginBottom: 24 }}>
         <style>{`
           .manager-tabs-scroll {
             scrollbar-width: none;
@@ -2954,11 +2954,11 @@ export default function ManagerDashboard() {
         style={{
           position: 'fixed',
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
-          left: 12,
-          right: 12,
-          zIndex: 60,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)',
           maxWidth: 620,
-          margin: '0 auto',
+          zIndex: 60,
           background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.55) 100%)',
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
