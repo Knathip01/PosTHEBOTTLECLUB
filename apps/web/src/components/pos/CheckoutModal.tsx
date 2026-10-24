@@ -7,20 +7,16 @@ import { formatCurrency, generateReceiptNo } from '@/lib/utils'
 import { QRCodeSVG } from 'qrcode.react'
 import generatePayload from 'promptpay-qr'
 import {
-  X, Banknote, QrCode, ArrowLeftRight,
+  X, Banknote, QrCode,
   CheckCircle2, Loader2, Printer, ChevronRight,
-  Sparkles, Hash, RefreshCw, AlertTriangle, Copy, Check,
+  Sparkles, Hash, RefreshCw, AlertTriangle,
   Camera, Image as ImageIcon, Clock
 } from 'lucide-react'
 
 // PromptPay config
 const PROMPTPAY_PHONE = '0922809619'
 
-// SCB bank config
-const SCB_ACCOUNT_NO = '429-0-90093-3'
-const SCB_ACCOUNT_NAME = 'ร้าน The Bottle Club'
-
-type PaymentMethod = 'cash' | 'transfer' | 'qr'
+type PaymentMethod = 'cash' | 'qr'
 
 interface CheckoutModalProps {
   onClose: () => void
@@ -33,32 +29,6 @@ const NUMPAD_KEYS = ['1','2','3','4','5','6','7','8','9','.','0','⌫']
 /* ─── QR Countdown minutes:seconds ─── */
 function formatTimer(sec: number) {
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
-}
-
-/* ─── Copy to clipboard helper ─── */
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-  return (
-    <button onClick={handleCopy} style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '5px 12px', borderRadius: 8,
-      border: copied ? '1.5px solid #16A34A' : '1.5px solid #38BDF8',
-      background: copied ? '#DCFCE7' : '#FFFFFF',
-      color: copied ? '#15803D' : '#0284C7',
-      fontSize: 11, fontWeight: 800, cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-    }}>
-      {copied ? <Check size={12} /> : <Copy size={12} />}
-      {copied ? 'คัดลอกแล้ว' : 'คัดลอก'}
-    </button>
-  )
 }
 
 interface ReceiptItemSnapshot {
@@ -259,7 +229,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       const cleanNote = cart.note || ''
       const finalNote = cleanNote ? `${cleanNote}${slipNoteSuffix}` : (uploadedSlipUrl ? `SLIP:${uploadedSlipUrl}` : null)
 
-      const isPending = paymentMethod === 'qr' || paymentMethod === 'transfer'
+      const isPending = paymentMethod === 'qr'
 
       // 3. Insert sale
       const { data: sale, error: saleError } = await supabase
@@ -405,7 +375,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       </tr>` : ''}
     `).join('')
 
-    const payLabel = receipt.payment_method === 'qr' ? 'PromptPay QR' : receipt.payment_method === 'transfer' ? 'โอนเงิน (SCB)' : 'เงินสด'
+    const payLabel = receipt.payment_method === 'qr' ? 'PromptPay QR' : 'เงินสด'
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -552,13 +522,6 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
       icon: <QrCode size={22} />,
       color: '#4338ca', glow: 'rgba(67,56,202,0.3)',
       gradient: 'linear-gradient(135deg,#4338ca 0%,#6366f1 100%)',
-    },
-    {
-      key: 'transfer',
-      label: 'โอนเงิน', labelEn: 'Transfer',
-      icon: <ArrowLeftRight size={22} />,
-      color: '#1e3a8a', glow: 'rgba(30,58,138,0.3)',
-      gradient: 'linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%)',
     },
   ]
 
@@ -780,12 +743,12 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             )}
           </div>
 
-          {/* Payment method tabs — 3 methods */}
+          {/* Payment method tabs — 2 methods */}
           <div style={{ padding: '16px 20px 0' }}>
             <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 900, letterSpacing: '0.5px', textTransform: 'uppercase', color: '#0F172A' }}>
               วิธีชำระเงิน
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
               {METHODS.map(m => {
                 const active = paymentMethod === m.key
                 return (
@@ -1026,113 +989,15 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               </div>
             )}
 
-            {/* ── TRANSFER SCB ── */}
-            {paymentMethod === 'transfer' && (
-              <div style={{ animation: 'fadeIn 0.2s ease' }}>
-                <div style={{
-                  borderRadius: 18, overflow: 'hidden',
-                  border: '2px solid rgba(35,64,168,0.22)', marginBottom: 14,
-                  boxShadow: '0 2px 8px rgba(35,64,168,0.06)',
-                }}>
-                  {/* SCB Bank card */}
-                  <div style={{
-                    padding: '18px 20px',
-                    background: 'linear-gradient(135deg,#4a148c 0%,#7b1fa2 50%,#9c27b0 100%)',
-                    position: 'relative', overflow: 'hidden',
-                    boxShadow: '0 4px 16px rgba(107,33,168,0.25)',
-                  }}>
-                    {/* Decorative circles */}
-                    <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-                    <div style={{ position: 'absolute', bottom: -10, right: 40, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                      {/* SCB logo placeholder */}
-                      <div style={{
-                        width: 40, height: 40, borderRadius: 10,
-                        background: 'rgba(255,255,255,0.2)',
-                        backdropFilter: 'blur(8px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: '1.5px solid rgba(255,255,255,0.3)',
-                        fontWeight: 900, fontSize: 14, color: '#FFFFFF', letterSpacing: '-0.5px',
-                      }}>SCB</div>
-                      <div>
-                        <p style={{ margin: 0, fontWeight: 900, color: '#FFFFFF', fontSize: 15 }}>ธนาคารไทยพาณิชย์</p>
-                        <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>Siam Commercial Bank</p>
-                      </div>
-                    </div>
-
-                    {/* Account number */}
-                    <p style={{ margin: '0 0 4px', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.6px', fontWeight: 700 }}>เลขที่บัญชี</p>
-                    <p style={{
-                      margin: '0 0 4px', fontSize: 24, fontWeight: 900, color: '#FFFFFF',
-                      letterSpacing: 3, fontVariantNumeric: 'tabular-nums',
-                      fontFamily: 'monospace',
-                    }}>{SCB_ACCOUNT_NO}</p>
-                    <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.95)', fontWeight: 700 }}>{SCB_ACCOUNT_NAME}</p>
-                  </div>
-
-                  {/* Amount row */}
-                  <div style={{
-                    padding: '14px 20px',
-                    background: '#F0F9FF',
-                    borderBottom: '1px solid #BAE6FD',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  }}>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 11, color: '#0369A1', fontWeight: 800 }}>ยอดที่ต้องโอน</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                        <span style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
-                          {formatCurrency(total)}
-                        </span>
-                        <CopyButton text={total.toFixed(2)} />
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ margin: 0, fontSize: 11, color: '#0369A1', fontWeight: 800 }}>เลขบัญชี</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                        <CopyButton text={SCB_ACCOUNT_NO.replace(/-/g, '')} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Info row */}
-                  <div style={{
-                    padding: '10px 20px',
-                    background: '#F8FAFC',
-                    borderTop: '1px solid rgba(35,64,168,0.1)',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0284C7', flexShrink: 0, animation: 'blink 1.5s infinite' }} />
-                    <span style={{ fontSize: 12, color: '#475569', fontWeight: 700 }}>
-                      โอนแล้วกรุณากรอกเลข ref ด้านล่าง แล้วกดยืนยัน
-                    </span>
-                  </div>
-                </div>
-
-                {/* Ref input */}
-                <label style={labelStyle}>เลขอ้างอิงการโอน (ไม่บังคับ)</label>
-                <div style={{ position: 'relative' }}>
-                  <Hash size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
-                  <input
-                    type="text"
-                    placeholder="เช่น Ref. 202507150001..."
-                    value={referenceNo}
-                    onChange={e => setReferenceNo(e.target.value)}
-                    style={{ ...inputStyle, paddingLeft: 40 }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Camera / Slip Capture for QR and Transfer methods */}
-            {(paymentMethod === 'qr' || paymentMethod === 'transfer') && (
+            {/* Camera / Slip Capture for QR method */}
+            {paymentMethod === 'qr' && (
               <div style={{
                 marginTop: 16, background: '#F8FAFC',
                 border: '2px solid rgba(35,64,168,0.18)', borderRadius: 18,
                 padding: 16, boxShadow: '0 2px 8px rgba(35,64,168,0.05)',
               }}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 900, color: '#0F172A', marginBottom: 12 }}>
-                  📸 ถ่ายภาพสลิปจากลูกค้า (โอนเงิน / สแกน QR)
+                  📸 ถ่ายภาพสลิปจากลูกค้า (สแกน QR)
                 </label>
 
                 {isCameraActive ? (
