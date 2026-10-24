@@ -138,27 +138,38 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           font-size: 13px; font-weight: 600;
           color: var(--text-secondary); font-variant-numeric: tabular-nums;
         }
-        .hamburger-btn {
-          width: 40px; height: 40px; border-radius: 12px;
-          border: 1.5px solid rgba(255, 255, 255, 0.45);
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%);
-          backdrop-filter: blur(16px) saturate(180%);
-          -webkit-backdrop-filter: blur(16px) saturate(180%);
-          color: #FFFFFF; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 4px 14px 0 rgba(10, 25, 65, 0.28), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.08);
-        }
-        .hamburger-btn:hover {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.16) 100%);
-          border-color: rgba(255, 255, 255, 0.75);
-          color: #FFFFFF;
-          box-shadow: 0 6px 18px 0 rgba(10, 25, 65, 0.35), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.9);
-          transform: translateY(-1px);
-        }
-        .hamburger-btn:active {
-          transform: scale(0.92);
-          box-shadow: 0 2px 6px rgba(10, 25, 65, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+        .hamburger-btn {
+          position: relative;
+          overflow: hidden;
+          width: 42px; height: 42px; border-radius: 13px;
+          border: 1.5px solid rgba(255, 255, 255, 0.95);
+          background: linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.76) 100%);
+          backdrop-filter: blur(24px) saturate(200%);
+          -webkit-backdrop-filter: blur(24px) saturate(200%);
+          color: #1E3A8A; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 10px 24px -3px rgba(10, 25, 65, 0.40), 0 4px 10px -1px rgba(0, 0, 0, 0.12), inset 0 2px 2.5px 0 #FFFFFF, inset 0 -2px 3px 0 rgba(35, 64, 168, 0.16);
+        }
+        .hamburger-btn::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 48%;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.15) 100%);
+          border-radius: 11px 11px 50px 50px / 11px 11px 16px 16px;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .hamburger-btn:hover {
+          background: linear-gradient(145deg, #FFFFFF 0%, rgba(255, 255, 255, 0.86) 100%);
+          border-color: #FFFFFF;
+          box-shadow: 0 14px 30px -4px rgba(10, 25, 65, 0.45), 0 6px 14px -2px rgba(0, 0, 0, 0.15), inset 0 2.5px 3px 0 #FFFFFF, inset 0 -2.5px 3.5px 0 rgba(35, 64, 168, 0.22);
+          transform: translateY(-1px) scale(1.03);
+        }
+        .hamburger-btn:active {
+          transform: scale(0.92);
+          box-shadow: 0 4px 10px rgba(10, 25, 65, 0.25), inset 0 1.5px 3px rgba(0, 0, 0, 0.15);
         }
         .brand-logo-wrap {
           display: flex; align-items: center; gap: 10px;
@@ -298,12 +309,21 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile hamburger */}
-        <button
-          className="hamburger-btn hidden-md"
-          onClick={() => setShowMobileMenu(true)}
-          aria-label="เปิดเมนู"
-        >
-          <Menu size={20} strokeWidth={2.4} color="#FFFFFF" style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }} />
+        <button
+          className="hamburger-btn hidden-md"
+          onClick={() => setShowMobileMenu(true)}
+          aria-label="เปิดเมนู"
+        >
+          <Menu
+            size={21}
+            strokeWidth={2.6}
+            color="#1E3A8A"
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              filter: 'drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))'
+            }}
+          />
         </button>
       </header>
 

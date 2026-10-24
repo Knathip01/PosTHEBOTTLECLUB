@@ -150,18 +150,45 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
           onClick={() => setShowMenu(true)}
           aria-label="เปิดเมนู"
           style={{
-            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-            border: '1.5px solid rgba(255, 255, 255, 0.45)',
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%)',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-            color: '#FFFFFF',
-            boxShadow: '0 4px 14px 0 rgba(10, 25, 65, 0.28), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.08)',
+            position: 'relative',
+            overflow: 'hidden',
+            width: 42,
+            height: 42,
+            borderRadius: 13,
+            flexShrink: 0,
+            border: '1.5px solid rgba(255, 255, 255, 0.95)',
+            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.76) 100%)',
+            backdropFilter: 'blur(24px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+            color: '#1E3A8A',
+            boxShadow: '0 10px 24px -3px rgba(10, 25, 65, 0.40), 0 4px 10px -1px rgba(0, 0, 0, 0.12), inset 0 2px 2.5px 0 #FFFFFF, inset 0 -2px 3px 0 rgba(35, 64, 168, 0.16)',
             cursor: 'pointer',
-            transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)'
+            transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         >
-          <Menu size={20} strokeWidth={2.4} color="#FFFFFF" style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }} />
+          <span
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '48%',
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.15) 100%)',
+              borderRadius: '11px 11px 50px 50px / 11px 11px 16px 16px',
+              pointerEvents: 'none',
+              zIndex: 1
+            }}
+          />
+          <Menu
+            size={21}
+            strokeWidth={2.6}
+            color="#1E3A8A"
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              filter: 'drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))'
+            }}
+          />
         </button>
       </header>
 
