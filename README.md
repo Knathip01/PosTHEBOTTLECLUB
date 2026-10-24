@@ -55,12 +55,16 @@ flowchart TD
         C5["Storage Buckets (Slips & Products)"]
     end
 
-    A1 -->|Order via Anon RLS| B1
-    A2 & A3 & A4 & A5 & A6 -->|Staff Bearer Token| B1
-    B1 -->|@supabase/ssr| C1
-    B1 -->|Direct SQL via SDK| C2
-    C2 -->|Auto-fire on Insert| C3
-    C2 -->|Broadcast Events| C4
+    A1 -->|"Order via Anon RLS"| B1
+    A2 -->|"Staff Bearer Token"| B1
+    A3 -->|"Staff Bearer Token"| B1
+    A4 -->|"Staff Bearer Token"| B1
+    A5 -->|"Staff Bearer Token"| B1
+    A6 -->|"Staff Bearer Token"| B1
+    B1 -->|"Supabase SSR Auth"| C1
+    B1 -->|"Direct SQL via SDK"| C2
+    C2 -->|"Auto-fire on Insert"| C3
+    C2 -->|"Broadcast Events"| C4
 ```
 
 ---
@@ -80,11 +84,11 @@ sequenceDiagram
     participant DB as 🗄️ Supabase DB
 
     Note over Customer,DB: 1. สั่งอาหารด้วยตัวเอง (QR Menu Flow)
-    Customer->>DB: สแกน QR โต๊ะ -> เลือกเมนู -> ส่งออเดอร์ (Status: pending)
+    Customer->>DB: สแกน QR โต๊ะ → เลือกเมนู → ส่งออเดอร์ (Status: pending)
     DB-->>Kitchen: แจ้งเตือนออเดอร์เข้า KDS หน้าครัว/บาร์ทันที
-    Kitchen->>DB: ปรุงเสร็จ -> อัปเดตสถานะอาหาร
+    Kitchen->>DB: ปรุงเสร็จ → อัปเดตสถานะอาหาร
     Customer->>Cashier: เช็คบิลที่เคาน์เตอร์
-    Cashier->>DB: ดึงบิลโต๊ะ -> ชำระเงิน (เงินสด/PromptPay/บัตร) -> Status: paid
+    Cashier->>DB: ดึงบิลโต๊ะ → ชำระเงิน (เงินสด/PromptPay/บัตร) → Status: paid
     DB->>DB: Trigger: ตัดสต็อกสินค้าคงเหลืออัตโนมัติ
 
     Note over Stock,DB: 2. รับของและปรับปรุงสต็อก (Inventory Flow)
