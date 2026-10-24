@@ -161,6 +161,10 @@ export default function ManagerDashboard() {
   const [stockDateFrom, setStockDateFrom] = useState('')
   const [stockDateTo, setStockDateTo] = useState('')
 
+  // Stock adjustments date filters
+  const [adjustDateFrom, setAdjustDateFrom] = useState('')
+  const [adjustDateTo, setAdjustDateTo] = useState('')
+
   // Payment Verification Tab
   const [paymentsSales, setPaymentsSales] = useState<any[]>([])
   const [paymentsLoading, setPaymentsLoading] = useState(false)
@@ -306,13 +310,13 @@ export default function ManagerDashboard() {
         .eq('movement_type', 'adjust')
         .order('created_at', { ascending: false })
 
-      if (stockDateFrom) {
-        adjustmentsQuery = adjustmentsQuery.gte('created_at', `${stockDateFrom}T00:00:00`)
+      if (adjustDateFrom) {
+        adjustmentsQuery = adjustmentsQuery.gte('created_at', `${adjustDateFrom}T00:00:00`)
       }
-      if (stockDateTo) {
-        adjustmentsQuery = adjustmentsQuery.lte('created_at', `${stockDateTo}T23:59:59`)
-      } else if (!stockDateFrom) {
-        adjustmentsQuery = adjustmentsQuery.limit(10)
+      if (adjustDateTo) {
+        adjustmentsQuery = adjustmentsQuery.lte('created_at', `${adjustDateTo}T23:59:59`)
+      } else if (!adjustDateFrom) {
+        adjustmentsQuery = adjustmentsQuery.limit(20)
       }
 
       const { data: adjustments } = await adjustmentsQuery
@@ -330,7 +334,7 @@ export default function ManagerDashboard() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [supabase, reportDateFrom, reportDateTo, stockDateFrom, stockDateTo])
+  }, [supabase, reportDateFrom, reportDateTo, stockDateFrom, stockDateTo, adjustDateFrom, adjustDateTo])
 
   const loadDiscountRequests = async () => {
     const { data } = await supabase
@@ -1550,9 +1554,70 @@ export default function ManagerDashboard() {
                 <Edit3 size={16} style={{ color: '#1E3A8A' }} />
                 รายงานการปรับปรุงสต๊อกสินค้า (คีย์โดยพนักงานคลังสินค้า)
               </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {/* Start Date */}
+                <input
+                  type="date"
+                  value={adjustDateFrom}
+                  onChange={e => setAdjustDateFrom(e.target.value)}
+                  className="wine-input"
+                  style={{
+                    fontSize: 12,
+                    padding: '6px 10px',
+                    borderRadius: 10,
+                    background: '#FFFFFF',
+                    border: '1.5px solid rgba(35,64,168,0.25)',
+                    color: '#0F172A',
+                    fontWeight: 700,
+                    outline: 'none'
+                  }}
+                />
+                <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>ถึง</span>
+                {/* End Date */}
+                <input
+                  type="date"
+                  value={adjustDateTo}
+                  onChange={e => setAdjustDateTo(e.target.value)}
+                  className="wine-input"
+                  style={{
+                    fontSize: 12,
+                    padding: '6px 10px',
+                    borderRadius: 10,
+                    background: '#FFFFFF',
+                    border: '1.5px solid rgba(35,64,168,0.25)',
+                    color: '#0F172A',
+                    fontWeight: 700,
+                    outline: 'none'
+                  }}
+                />
+                {(adjustDateFrom || adjustDateTo) && (
+                  <button
+                    onClick={() => { setAdjustDateFrom(''); setAdjustDateTo('') }}
+                    style={{
+                      fontSize: 12,
+                      padding: '6px 12px',
+                      borderRadius: 10,
+                      background: '#FFFFFF',
+                      border: '1.5px solid rgba(35,64,168,0.25)',
+                      color: '#334155',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+                  >
+                    ล้างตัวกรอง
+                  </button>
+                )}
+              </div>
             </div>
             {stockAdjustments.length === 0 ? (
-              <p className="text-xs py-6 text-center font-medium" style={{ color: 'var(--text-muted)' }}>ยังไม่มีข้อมูลการปรับปรุงยอดสต๊อกในระบบ</p>
+              <p className="text-xs py-6 text-center font-medium" style={{ color: 'var(--text-muted)' }}>
+                {adjustDateFrom || adjustDateTo
+                  ? 'ไม่พบข้อมูลการปรับปรุงยอดสต๊อกในช่วงเวลาที่เลือก'
+                  : 'ยังไม่มีข้อมูลการปรับปรุงยอดสต๊อกในระบบ'}
+              </p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
