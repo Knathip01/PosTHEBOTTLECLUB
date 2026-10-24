@@ -110,9 +110,10 @@ export default function SalesHistoryPage() {
     const items: SaleItem[] = sale.sale_items || []
     const itemsHtml = items.map(item => `
       <tr>
-        <td style="padding:4px 0;font-size:12px;vertical-align:top;line-height:1.3;">${item.product_name}</td>
-        <td style="padding:4px 0;font-size:12px;text-align:center;vertical-align:top;white-space:nowrap;">x${item.quantity}</td>
-        <td style="padding:4px 0;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;font-weight:600;">${formatCurrency(item.line_total)}</td>
+        <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;line-height:1.3;">${item.product_name}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:center;vertical-align:top;white-space:nowrap;">x${item.quantity}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;color:#555;">${formatCurrency(item.unit_price)}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;font-weight:600;">${formatCurrency(item.line_total)}</td>
       </tr>
       ${item.discount_amount > 0 ? `
       <tr>
@@ -183,9 +184,10 @@ export default function SalesHistoryPage() {
           <table>
             <thead>
               <tr style="border-bottom: 1px solid #000; font-size: 11px;">
-                <th style="text-align:left; padding-bottom: 4px;">รายการ</th>
-                <th style="text-align:center; padding-bottom: 4px; width: 35px;">จน.</th>
-                <th style="text-align:right; padding-bottom: 4px; width: 65px;">รวม</th>
+                <th style="text-align:left; padding-bottom: 4px;">รายการสินค้า</th>
+                <th style="text-align:center; padding-bottom: 4px; width: 30px;">จน.</th>
+                <th style="text-align:right; padding-bottom: 4px; width: 55px;">ราคา</th>
+                <th style="text-align:right; padding-bottom: 4px; width: 60px;">รวม</th>
               </tr>
             </thead>
             <tbody>
