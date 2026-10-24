@@ -262,8 +262,8 @@ export default function POSPage() {
               />
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: 'var(--text-secondary)' }}>ยังไม่มีรายการ</p>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted)' }}>แตะสินค้าเพื่อเพิ่มลงตะกร้า</p>
+              <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 900, color: '#000000', letterSpacing: '-0.01em' }}>ยังไม่มีรายการ</p>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#000000' }}>แตะสินค้าเพื่อเพิ่มลงตะกร้า</p>
             </div>
           </div>
         ) : (

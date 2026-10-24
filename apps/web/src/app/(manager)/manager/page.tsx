@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product, Category, FoodWinePairing } from '@/lib/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -8,7 +8,7 @@ import {
   TrendingUp, ShoppingBag, Users, Package, AlertTriangle, Wine,
   ArrowUpRight, RefreshCw, BarChart3, Tag, Warehouse, Sparkles, Check, X,
   Search, Edit3, Loader2, Key, ClipboardList, Clock, Image as ImageIcon,
-  CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight,
+  CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight, ChevronLeft,
   Plus, Trash2, Utensils, Percent, Calendar
 } from 'lucide-react'
 import {
@@ -20,6 +20,94 @@ export default function ManagerDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'stock' | 'discounts' | 'reports' | 'shop_reports' | 'payments' | 'pairings'>('overview')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+
+  // Tab horizontal scroll & drag state
+  const tabsScrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+  const isDraggingRef = useRef(false)
+  const startXRef = useRef(0)
+  const scrollLeftStartRef = useRef(0)
+  const hasDraggedRef = useRef(false)
+
+  const updateScrollButtons = useCallback(() => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }, [])
+
+  useEffect(() => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    updateScrollButtons()
+    const timer = setTimeout(updateScrollButtons, 300)
+
+    const onScroll = () => updateScrollButtons()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+
+    // Mouse wheel: scroll horizontally when cursor is over the tabs bar
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth > el.clientWidth) {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaY !== 0) {
+          e.preventDefault()
+          el.scrollLeft += e.deltaY
+        }
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+
+    return () => {
+      clearTimeout(timer)
+      el.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      el.removeEventListener('wheel', onWheel)
+    }
+  }, [updateScrollButtons])
+
+  const scrollTabs = (dir: 'left' | 'right') => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    const step = 260
+    el.scrollBy({ left: dir === 'left' ? -step : step, behavior: 'smooth' })
+  }
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    const activeBtn = el.querySelector<HTMLElement>('[data-active="true"]')
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+    }
+  }, [activeTab])
+
+  const onTabsMouseDown = (e: React.MouseEvent) => {
+    const el = tabsScrollRef.current
+    if (!el) return
+    isDraggingRef.current = true
+    hasDraggedRef.current = false
+    startXRef.current = e.pageX - el.offsetLeft
+    scrollLeftStartRef.current = el.scrollLeft
+  }
+
+  const onTabsMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return
+    const el = tabsScrollRef.current
+    if (!el) return
+    e.preventDefault()
+    const x = e.pageX - el.offsetLeft
+    const dist = (x - startXRef.current) * 1.2
+    if (Math.abs(dist) > 5) {
+      hasDraggedRef.current = true
+    }
+    el.scrollLeft = scrollLeftStartRef.current - dist
+  }
+
+  const onTabsMouseUp = () => {
+    isDraggingRef.current = false
+  }
 
   // Overview Stats
   const [todaySales, setTodaySales] = useState(0)
@@ -817,38 +905,170 @@ export default function ManagerDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="hidden md:flex gap-2 border-b mb-6 overflow-x-auto" style={{ borderColor: 'rgba(35,64,168,0.15)', scrollbarWidth: 'none' }}>
-        {[
-          { key: 'overview',      label: 'ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
-          { key: 'products',      label: 'จัดการสินค้า',       icon: <Package size={14} /> },
-          { key: 'stock',         label: 'ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
-          { key: 'payments',      label: 'ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
-          { key: 'discounts',     label: 'อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
-          { key: 'pairings',      label: 'จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
-          { key: 'reports',       label: 'รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
-          { key: 'shop_reports',  label: 'รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className="flex items-center gap-2 px-4 py-3 text-sm font-extrabold transition-all relative shrink-0"
-            style={{
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === tab.key ? '3px solid #1E3A8A' : '3px solid transparent',
-              color: activeTab === tab.key ? '#1E3A8A' : '#334155',
-              cursor: 'pointer'
-            }}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-            {tab.badge && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: '#f43f5e' }}>
-                {tab.badge}
-              </span>
-            )}
-          </button>
-        ))}
+      <div style={{ position: 'relative', marginBottom: 24 }}>
+        <style>{`
+          .manager-tabs-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(35, 64, 168, 0.35) transparent;
+          }
+          .manager-tabs-scroll::-webkit-scrollbar {
+            height: 5px;
+          }
+          .manager-tabs-scroll::-webkit-scrollbar-track {
+            background: rgba(35, 64, 168, 0.06);
+            border-radius: 99px;
+          }
+          .manager-tabs-scroll::-webkit-scrollbar-thumb {
+            background: rgba(35, 64, 168, 0.35);
+            border-radius: 99px;
+          }
+          .manager-tabs-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(35, 64, 168, 0.6);
+          }
+        `}</style>
+
+        {/* Left Arrow Button with subtle gradient mask */}
+        {canScrollLeft && (
+          <div style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            background: 'linear-gradient(to right, #EDE3C8 65%, transparent)',
+            pointerEvents: 'none',
+          }}>
+            <button
+              type="button"
+              onClick={() => scrollTabs('left')}
+              aria-label="Scroll left"
+              style={{
+                pointerEvents: 'auto',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1.5px solid rgba(35,64,168,0.25)',
+                boxShadow: '0 2px 8px rgba(35,64,168,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#1E3A8A',
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* Right Arrow Button with subtle gradient mask */}
+        {canScrollRight && (
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            background: 'linear-gradient(to left, #EDE3C8 65%, transparent)',
+            pointerEvents: 'none',
+          }}>
+            <button
+              type="button"
+              onClick={() => scrollTabs('right')}
+              aria-label="Scroll right"
+              style={{
+                pointerEvents: 'auto',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1.5px solid rgba(35,64,168,0.25)',
+                boxShadow: '0 2px 8px rgba(35,64,168,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#1E3A8A',
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* Scrollable Tabs */}
+        <div
+          ref={tabsScrollRef}
+          onMouseDown={onTabsMouseDown}
+          onMouseMove={onTabsMouseMove}
+          onMouseUp={onTabsMouseUp}
+          onMouseLeave={onTabsMouseUp}
+          className="manager-tabs-scroll flex gap-2 border-b overflow-x-auto select-none"
+          style={{
+            borderColor: 'rgba(35,64,168,0.18)',
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch',
+            cursor: 'grab',
+            paddingBottom: 2,
+          }}
+        >
+          {[
+            { key: 'overview',      label: 'ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
+            { key: 'products',      label: 'จัดการสินค้า',       icon: <Package size={14} /> },
+            { key: 'stock',         label: 'ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
+            { key: 'payments',      label: 'ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
+            { key: 'discounts',     label: 'อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
+            { key: 'pairings',      label: 'จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
+            { key: 'reports',       label: 'รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
+            { key: 'shop_reports',  label: 'รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
+          ].map(tab => {
+            const isActive = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                data-active={isActive ? 'true' : 'false'}
+                onClick={() => {
+                  if (hasDraggedRef.current) {
+                    hasDraggedRef.current = false
+                    return
+                  }
+                  setActiveTab(tab.key as any)
+                }}
+                className="flex items-center gap-2 px-4 py-3 text-sm font-extrabold transition-all relative shrink-0"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isActive ? '3px solid #1E3A8A' : '3px solid transparent',
+                  color: isActive ? '#1E3A8A' : '#334155',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: '#f43f5e' }}>
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* OVERVIEW TAB */}
