@@ -389,7 +389,7 @@ export default function POSPage() {
       {cart.items.length > 0 && (
         <div style={{
           padding: '16px 18px',
-          paddingBottom: isMobileSheet ? 'calc(env(safe-area-inset-bottom, 0px) + 18px)' : '16px',
+          paddingBottom: isMobileSheet ? 'calc(env(safe-area-inset-bottom, 0px) + 20px)' : '16px',
           flexShrink: 0,
           background: 'rgba(237,227,200,0.95)',
           borderTop: '1.5px solid rgba(35,64,168,0.2)',
@@ -677,7 +677,7 @@ export default function POSPage() {
           </div>
 
           {/* Product Grid */}
-          <div className="no-scrollbar" style={{ flex: 1, overflow: 'auto', padding: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)' }}>
+          <div className="no-scrollbar" style={{ flex: 1, overflow: 'auto', padding: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)' }}>
             {/* If Pairings category is selected */}
             {selectedCategory === 'pairings' ? (
               <div style={{
@@ -780,20 +780,23 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* ── Mobile Floating Cart Bar (แสดงลอยเหนือ Dock เมื่อมีสินค้าในตะกร้า) ── */}
-      {itemCount > 0 && (
+      {/* ── Mobile Floating Cart Controls (ตระกร้าลอย) ── */}
+      {itemCount === 0 ? (
+        <button
+          className="cart-fab"
+          onClick={() => setShowMobileCart(true)}
+          aria-label="เปิดตะกร้าสินค้า"
+        >
+          <img
+            src="/cart_logo.png"
+            alt="Cart"
+            style={{ width: 32, height: 32, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+          />
+        </button>
+      ) : (
         <aside
           aria-label="ตะกร้าสินค้าด่วน"
-          className="hidden-md"
-          style={{
-            position: 'fixed',
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 78px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'calc(100% - 24px)',
-            maxWidth: 480,
-            zIndex: 65,
-          }}
+          className="cart-mobile-bar"
         >
           <button
             onClick={() => setShowMobileCart(true)}
@@ -814,13 +817,17 @@ export default function POSPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
-                width: 34, height: 34, borderRadius: 10,
+                width: 36, height: 36, borderRadius: 10,
                 background: 'rgba(255, 255, 255, 0.22)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.4)',
                 flexShrink: 0
               }}>
-                <ShoppingBag size={18} color="#FFFFFF" />
+                <img
+                  src="/cart_logo.png"
+                  alt="Cart"
+                  style={{ width: 22, height: 22, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+                />
               </div>
               <div style={{ textAlign: 'left' }}>
                 <span style={{ fontSize: 13, fontWeight: 900, display: 'block', lineHeight: 1.1 }}>
@@ -864,7 +871,7 @@ export default function POSPage() {
             <div className="cart-sheet-handle" />
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '10px 18px 12px', borderBottom: '1px solid rgba(35,64,168,0.12)', flexShrink: 0
+              padding: '12px 18px 12px', borderBottom: '1px solid rgba(35,64,168,0.12)', flexShrink: 0
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
