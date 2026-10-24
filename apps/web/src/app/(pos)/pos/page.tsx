@@ -195,102 +195,56 @@ export default function POSPage() {
   }
 
   // ── Cart Panel ──────────────────────────────────────────────────
-  const CartPanel = ({ isMobileSheet = false }: { isMobileSheet?: boolean }) => {
+  const CartPanel = () => {
     const isPairingDiscount = Boolean(cart.discount_amount > 0 && cart.discount_note && (cart.discount_note.startsWith('โปรคู่') || cart.discount_note.includes('คู่')))
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      {/* Cart Header (แสดงบน Desktop เท่านั้น — บน Mobile Sheet มี Header ด้านบนแล้ว) */}
-      {!isMobileSheet && (
-        <div style={{
-          padding: '16px 18px 14px',
-          borderBottom: '1px solid rgba(35,64,168,0.18)',
-          flexShrink: 0,
-          background: 'rgba(237,227,200,0.9)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: '#FFFFFF',
-                border: '1.5px solid rgba(35,64,168,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(35,64,168,0.15)',
-                overflow: 'hidden'
-              }}>
-                <img src="/cart_logo.png" alt="Cart" style={{ width: 24, height: 24, objectFit: 'contain' }} />
-              </div>
-              <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  รายการสั่งซื้อ
-                </p>
-                <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 600 }}>
-                  {itemCount > 0 ? `${itemCount} รายการ` : 'ยังไม่มีสินค้า'}
-                </p>
-              </div>
-            </div>
-            {cart.items.length > 0 && (
-              <button
-                onClick={cart.clearCart}
-                style={{
-                  fontSize: 11, fontWeight: 800, padding: '6px 12px', borderRadius: 8,
-                  border: '1.5px solid #FCA5A5', background: '#FEE2E2',
-                  color: '#DC2626', cursor: 'pointer', transition: 'all 150ms',
-                  boxShadow: '0 1px 4px rgba(220,38,38,0.1)'
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FECACA' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FEE2E2' }}
-              >
-                ล้างทั้งหมด
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Customer Bar */}
+      {/* Cart Header */}
       <div style={{
-        padding: '10px 18px',
-        background: cart.customer ? 'rgba(217,119,6,0.08)' : 'rgba(35,64,168,0.04)',
-        borderBottom: '1px solid rgba(35,64,168,0.12)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0
+        padding: '16px 18px 14px',
+        borderBottom: '1px solid rgba(35,64,168,0.18)',
+        flexShrink: 0,
+        background: 'rgba(237,227,200,0.9)',
       }}>
-        <button
-          onClick={() => setShowCustomerSearch(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            background: 'none', border: 'none', padding: 0,
-            cursor: 'pointer', textAlign: 'left',
-          }}
-        >
-          <User size={15} color={cart.customer ? '#B45309' : '#1E3A8A'} />
-          <span style={{ fontSize: 12, fontWeight: 800, color: cart.customer ? '#B45309' : '#1E3A8A' }}>
-            {cart.customer ? `ลูกค้า: ${cart.customer.full_name}` : '+ เลือกลูกค้า / สะสมแต้ม'}
-          </span>
-        </button>
-        {cart.customer ? (
-          <button
-            onClick={() => cart.setCustomer(null)}
-            style={{
-              background: 'none', border: 'none', color: '#64748B',
-              fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '2px 6px'
-            }}
-          >
-            ✕ ยกเลิก
-          </button>
-        ) : isMobileSheet && cart.items.length > 0 ? (
-          <button
-            onClick={cart.clearCart}
-            style={{
-              fontSize: 11, fontWeight: 800, color: '#DC2626',
-              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px'
-            }}
-          >
-            ล้างทั้งหมด
-          </button>
-        ) : null}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: '#FFFFFF',
+              border: '1.5px solid rgba(35,64,168,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(35,64,168,0.15)',
+              overflow: 'hidden'
+            }}>
+              <img src="/cart_logo.png" alt="Cart" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                รายการสั่งซื้อ
+              </p>
+              <p style={{ margin: 0, fontSize: 11, color: '#475569', fontWeight: 600 }}>
+                {itemCount > 0 ? `${itemCount} รายการ` : 'ยังไม่มีสินค้า'}
+              </p>
+            </div>
+          </div>
+          {cart.items.length > 0 && (
+            <button
+              onClick={cart.clearCart}
+              style={{
+                fontSize: 11, fontWeight: 800, padding: '6px 12px', borderRadius: 8,
+                border: '1.5px solid #FCA5A5', background: '#FEE2E2',
+                color: '#DC2626', cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: '0 1px 4px rgba(220,38,38,0.1)'
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FECACA' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FEE2E2' }}
+            >
+              ล้างทั้งหมด
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cart Items */}
@@ -389,7 +343,6 @@ export default function POSPage() {
       {cart.items.length > 0 && (
         <div style={{
           padding: '16px 18px',
-          paddingBottom: isMobileSheet ? 'calc(env(safe-area-inset-bottom, 0px) + 20px)' : '16px',
           flexShrink: 0,
           background: 'rgba(237,227,200,0.95)',
           borderTop: '1.5px solid rgba(35,64,168,0.2)',
@@ -604,9 +557,8 @@ export default function POSPage() {
               </div>
               <button
                 onClick={() => router.push('/cashier')}
-                className="hidden sm:flex"
                 style={{
-                  alignItems: 'center', gap: 6,
+                  display: 'flex', alignItems: 'center', gap: 6,
                   padding: '0 16px', height: 40, fontSize: 13, fontWeight: 800,
                   borderRadius: 99, whiteSpace: 'nowrap', flexShrink: 0,
                   background: 'linear-gradient(135deg, #1E3A8A 0%, #2340A8 100%)',
@@ -677,7 +629,7 @@ export default function POSPage() {
           </div>
 
           {/* Product Grid */}
-          <div className="no-scrollbar" style={{ flex: 1, overflow: 'auto', padding: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)' }}>
+          <div className="no-scrollbar" style={{ flex: 1, overflow: 'auto', padding: '14px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)' }}>
             {/* If Pairings category is selected */}
             {selectedCategory === 'pairings' ? (
               <div style={{
@@ -696,7 +648,11 @@ export default function POSPage() {
                 ))}
               </div>
             ) : loading ? (
-              <div className="pos-products-grid" style={{ gap: 10 }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gap: 12
+              }}>
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} style={{ borderRadius: 18, overflow: 'hidden' }}>
                     <div className="skeleton" style={{ aspectRatio: '1', marginBottom: 0 }} />
@@ -754,7 +710,11 @@ export default function POSPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="pos-products-grid" style={{ gap: 10 }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                    gap: 12
+                  }}>
                     {filteredProducts.map(product => (
                       <ProductCard key={product.id} product={product} onAdd={() => cart.addItem(product)} />
                     ))}
@@ -780,127 +740,53 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* ── Mobile Floating Cart Controls (ตระกร้าลอย) ── */}
-      {itemCount === 0 ? (
-        <button
-          className="cart-fab"
-          onClick={() => setShowMobileCart(true)}
-          aria-label="เปิดตะกร้าสินค้า"
-        >
-          <img
-            src="/cart_logo.png"
-            alt="Cart"
-            style={{ width: 32, height: 32, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-          />
-        </button>
-      ) : (
-        <aside
-          aria-label="ตะกร้าสินค้าด่วน"
-          className="cart-mobile-bar"
-        >
-          <button
-            onClick={() => setShowMobileCart(true)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 18px',
-              borderRadius: 22,
-              background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)',
-              border: '1.5px solid rgba(255, 255, 255, 0.45)',
-              boxShadow: '0 12px 32px rgba(37, 99, 235, 0.42), inset 0 1px 1.5px rgba(255, 255, 255, 0.7)',
-              color: '#FFFFFF',
-              cursor: 'pointer',
-              transition: 'transform 150ms ease',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: 'rgba(255, 255, 255, 0.22)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.4)',
-                flexShrink: 0
-              }}>
-                <img
-                  src="/cart_logo.png"
-                  alt="Cart"
-                  style={{ width: 22, height: 22, objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-                />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <span style={{ fontSize: 13, fontWeight: 900, display: 'block', lineHeight: 1.1 }}>
-                  {itemCount} รายการ
-                </span>
-                <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.85)', fontWeight: 700 }}>
-                  ยอดรวม {formatCurrency(total)}
-                </span>
-              </div>
-            </div>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontSize: 13, fontWeight: 900,
-              background: 'rgba(255, 255, 255, 0.2)',
-              padding: '6px 14px', borderRadius: 999,
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-            }}>
-              <span>ดูตะกร้า</span>
-              <ChevronRight size={15} />
-            </div>
-          </button>
-        </aside>
-      )}
+      {/* ── Mobile Cart FAB ── */}
+      <button
+        className="cart-fab"
+        onClick={() => setShowMobileCart(true)}
+      >
+        <img
+          src="/cart_logo.png"
+          alt="Cart"
+          style={{ width: 32, height: 32, objectFit: 'contain' }}
+        />
+        {itemCount > 0 && (
+          <span style={{
+            position: 'absolute', top: 8, right: 8,
+            width: 20, height: 20, borderRadius: '50%',
+            background: 'linear-gradient(135deg,#d8a93c,#f2c65c)',
+            color: '#1a0f00',
+            fontSize: 10, fontWeight: 900,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(216,169,60,0.5)'
+          }}>
+            {itemCount > 9 ? '9+' : itemCount}
+          </span>
+        )}
+      </button>
 
       {/* ── Mobile Cart Sheet ── */}
       {showMobileCart && (
         <div className="cart-sheet" style={{ display: 'block' }}>
           <div className="cart-sheet-backdrop" onClick={() => setShowMobileCart(false)} />
-          <div
-            className="cart-sheet-panel"
-            style={{
-              background: '#FFFFFF',
-              borderTopLeftRadius: 26,
-              borderTopRightRadius: 26,
-              border: '1.5px solid rgba(35,64,168,0.2)',
-              borderBottom: 'none',
-              boxShadow: '0 -20px 60px rgba(15,23,42,0.3)',
-              maxHeight: '90dvh',
-            }}
-          >
+          <div className="cart-sheet-panel">
             <div className="cart-sheet-handle" />
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 18px 12px', borderBottom: '1px solid rgba(35,64,168,0.12)', flexShrink: 0
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 10,
-                  background: 'rgba(35,64,168,0.08)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <ShoppingBag size={17} color="#1E3A8A" />
-                </div>
-                <div>
-                  <span style={{ fontWeight: 900, fontSize: 16, color: '#0F172A' }}>ตะกร้าสินค้า</span>
-                  <span style={{ fontSize: 12, color: '#475569', marginLeft: 8, fontWeight: 700 }}>({itemCount} รายการ)</span>
-                </div>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px 0', flexShrink: 0 }}>
+              <span style={{ fontWeight: 800, fontSize: 16 }}>🛒 ตะกร้าสินค้า</span>
               <button
                 onClick={() => setShowMobileCart(false)}
                 style={{
-                  width: 34, height: 34, borderRadius: '50%',
-                  background: 'rgba(35,64,168,0.08)', border: 'none',
-                  color: '#1E3A8A', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 150ms'
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.06)', border: 'none',
+                  color: 'var(--text-muted)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
-                <X size={17} />
+                <X size={16} />
               </button>
             </div>
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <CartPanel isMobileSheet />
+              <CartPanel />
             </div>
           </div>
         </div>

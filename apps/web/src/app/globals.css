@@ -784,42 +784,30 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   display: none;
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
-  right: 18px;
-  z-index: 70;
-  width: 58px;
-  height: 58px;
+  right: 16px;
+  z-index: 75;
+  width: 60px;
+  height: 60px;
   border-radius: 999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  border: none;
+  background: var(--gradient-primary);
   color: white;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 28px rgba(30,64,175,0.45), 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 30px rgba(30,64,175,0.5);
   cursor: pointer;
   transition: transform 200ms ease, box-shadow 200ms ease;
+  animation: float-bag 3.2s ease-in-out infinite;
 }
 
 .cart-fab:active { transform: scale(0.93); }
-
-/* Mobile Floating Cart Bar */
-.cart-mobile-bar {
-  display: none;
-  position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 24px);
-  max-width: 480px;
-  z-index: 70;
-  animation: slide-in-up 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
 
 /* Mobile cart bottom sheet */
 .cart-sheet {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 85;
 }
 
 .cart-sheet-backdrop {
@@ -834,48 +822,22 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
-  border-radius: 24px 24px 0 0;
-  border-top: 1.5px solid rgba(35, 64, 168, 0.2);
-  box-shadow: 0 -20px 60px rgba(15, 23, 42, 0.25);
-  max-height: 90dvh;
+  background: var(--bg-secondary);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border-color);
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
   animation: slide-in-up 320ms cubic-bezier(0.32,0.72,0,1) both;
 }
 
 .cart-sheet-handle {
-  width: 44px;
-  height: 5px;
-  background: rgba(35, 64, 168, 0.2);
+  width: 40px;
+  height: 4px;
+  background: var(--border-strong);
   border-radius: 999px;
-  margin: 12px auto 0;
+  margin: 10px auto 0;
   flex-shrink: 0;
-}
-
-/* POS Products responsive grid */
-.pos-products-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-@media (min-width: 480px) {
-  .pos-products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-    gap: 12px;
-  }
-}
-@media (min-width: 768px) {
-  .pos-products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-    gap: 12px;
-  }
-}
-@media (min-width: 1280px) {
-  .pos-products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 14px;
-  }
 }
 
 /* ═══════════════════════════════════════════
@@ -891,10 +853,6 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   }
 
   .cart-fab {
-    display: flex;
-  }
-
-  .cart-mobile-bar {
     display: flex;
   }
 
@@ -915,9 +873,6 @@ select.wine-input option { background: #FFFFFF; color: #0F172A; }
   .cart-fab {
     bottom: 24px;
     right: 24px;
-  }
-  .cart-mobile-bar {
-    bottom: 24px;
   }
 }
 
