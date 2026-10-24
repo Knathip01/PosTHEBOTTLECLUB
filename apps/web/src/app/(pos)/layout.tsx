@@ -139,17 +139,26 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           color: var(--text-secondary); font-variant-numeric: tabular-nums;
         }
         .hamburger-btn {
-          width: 38px; height: 38px; border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
-          color: var(--text-secondary); flex-shrink: 0;
+          width: 40px; height: 40px; border-radius: 12px;
+          border: 1.5px solid rgba(255, 255, 255, 0.45);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%);
+          backdrop-filter: blur(16px) saturate(180%);
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          color: #FFFFFF; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all 200ms;
+          cursor: pointer; transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 14px 0 rgba(10, 25, 65, 0.28), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.08);
         }
         .hamburger-btn:hover {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.14);
-          color: var(--text-primary);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.16) 100%);
+          border-color: rgba(255, 255, 255, 0.75);
+          color: #FFFFFF;
+          box-shadow: 0 6px 18px 0 rgba(10, 25, 65, 0.35), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.9);
+          transform: translateY(-1px);
+        }
+        .hamburger-btn:active {
+          transform: scale(0.92);
+          box-shadow: 0 2px 6px rgba(10, 25, 65, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
         }
         .brand-logo-wrap {
           display: flex; align-items: center; gap: 10px;
@@ -289,8 +298,12 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile hamburger */}
-        <button className="hamburger-btn hidden-md" onClick={() => setShowMobileMenu(true)}>
-          <Menu size={17} />
+        <button
+          className="hamburger-btn hidden-md"
+          onClick={() => setShowMobileMenu(true)}
+          aria-label="เปิดเมนู"
+        >
+          <Menu size={20} strokeWidth={2.4} color="#FFFFFF" style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }} />
         </button>
       </header>
 

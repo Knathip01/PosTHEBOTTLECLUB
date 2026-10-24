@@ -148,13 +148,20 @@ export default function CashierLayout({ children }: { children: React.ReactNode 
         <button
           className="flex md:hidden items-center justify-center"
           onClick={() => setShowMenu(true)}
+          aria-label="เปิดเมนู"
           style={{
-            width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-            border: '1px solid rgba(255,255,255,0.3)',
-            background: 'rgba(255,255,255,0.15)', color: '#FFFFFF'
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            border: '1.5px solid rgba(255, 255, 255, 0.45)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%)',
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            color: '#FFFFFF',
+            boxShadow: '0 4px 14px 0 rgba(10, 25, 65, 0.28), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.08)',
+            cursor: 'pointer',
+            transition: 'all 180ms cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         >
-          <Menu size={16} />
+          <Menu size={20} strokeWidth={2.4} color="#FFFFFF" style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25))' }} />
         </button>
       </header>
 
