@@ -147,9 +147,19 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           backdrop-filter: blur(24px) saturate(200%);
           -webkit-backdrop-filter: blur(24px) saturate(200%);
           color: #1E3A8A; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
           cursor: pointer; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 10px 24px -3px rgba(10, 25, 65, 0.40), 0 4px 10px -1px rgba(0, 0, 0, 0.12), inset 0 2px 2.5px 0 #FFFFFF, inset 0 -2px 3px 0 rgba(35, 64, 168, 0.16);
+        }
+        .hamburger-btn svg {
+          display: block !important;
+          margin: auto !important;
+          flex-shrink: 0 !important;
         }
         .hamburger-btn::before {
           content: '';
@@ -233,7 +243,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           </div>
         </Link>
 
-        <style>{`.sm-brand { display: none; } @media (min-width: 480px) { .sm-brand { display: block !important; } } .hidden-md { display: block; } @media (min-width: 768px) { .hidden-md { display: none !important; } } .show-md { display: none; } @media (min-width: 768px) { .show-md { display: flex !important; } } .show-lg { display: none; } @media (min-width: 1024px) { .show-lg { display: flex !important; } }`}</style>
+        <style>{`.sm-brand { display: none; } @media (min-width: 480px) { .sm-brand { display: block !important; } } @media (min-width: 768px) { .hidden-md { display: none !important; } } .show-md { display: none; } @media (min-width: 768px) { .show-md { display: flex !important; } } .show-lg { display: none; } @media (min-width: 1024px) { .show-lg { display: flex !important; } }`}</style>
 
         <div className="nav-divider show-md" style={{ background: 'rgba(255,255,255,0.2)' }} />
 
@@ -313,15 +323,26 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
           className="hamburger-btn hidden-md"
           onClick={() => setShowMobileMenu(true)}
           aria-label="เปิดเมนู"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            margin: 0,
+            boxSizing: 'border-box',
+          }}
         >
           <Menu
-            size={21}
+            size={22}
             strokeWidth={2.6}
             color="#1E3A8A"
             style={{
               position: 'relative',
               zIndex: 2,
-              filter: 'drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))'
+              filter: 'drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))',
+              display: 'block',
+              margin: 'auto',
+              flexShrink: 0,
             }}
           />
         </button>
