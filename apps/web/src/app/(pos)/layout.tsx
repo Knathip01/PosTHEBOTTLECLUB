@@ -300,32 +300,73 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* ── Mobile Bottom Tab Bar ── */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        zIndex: 60,
-        background: 'rgba(8,10,14,0.97)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }} className="hidden-md">
-        <div className="bottom-bar-glow" />
-        <div style={{ display: 'flex', height: 60 }}>
+      {/* ── Mobile Bottom Tab Bar (White Glassmorphic Dock) ── */}
+      <nav
+        className="hidden-md"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)',
+          maxWidth: 480,
+          zIndex: 60,
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.65) 100%)',
+          backdropFilter: 'blur(28px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          borderRadius: 26,
+          border: '1.5px solid rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 10px 24px -5px rgba(35, 64, 168, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -1.5px 2px 0 rgba(35, 64, 168, 0.04)',
+          padding: '6px 8px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: 6 }}>
           {[
-            { href: '/pos', icon: ShoppingCart, label: 'ขาย', color: '#60a5fa' },
-            { href: '/pos/history', icon: History, label: 'ประวัติ', color: '#a78bfa' },
-            { href: '/cashier', icon: Package, label: 'เตรียมของ', color: '#34d399' },
-            ...(mounted && canAccessAdmin ? [{ href: adminHref, icon: LayoutDashboard, label: 'หลังบ้าน', color: '#f59e0b' }] : []),
+            { href: '/pos', icon: ShoppingCart, label: 'ขาย' },
+            { href: '/pos/history', icon: History, label: 'ประวัติ' },
+            { href: '/cashier', icon: Package, label: 'เตรียมของ' },
+            ...(mounted && canAccessAdmin ? [{ href: adminHref, icon: LayoutDashboard, label: 'หลังบ้าน' }] : []),
           ].map(tab => {
             const Icon = tab.icon
             const active = isActive(tab.href)
             return (
-              <Link key={tab.href} href={tab.href} className="mobile-tab" style={{ color: active ? tab.color : 'var(--text-muted)' }}>
-                <div className="mobile-tab-pill" style={{ background: active ? `${tab.color}22` : 'transparent' }}>
-                  <Icon size={20} />
-                </div>
-                <span className="mobile-tab-label">{tab.label}</span>
+              <Link
+                key={tab.href}
+                href={tab.href}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 3,
+                  textDecoration: 'none',
+                  padding: '7px 4px',
+                  borderRadius: 20,
+                  background: active
+                    ? 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)'
+                    : 'transparent',
+                  color: active ? '#FFFFFF' : '#475569',
+                  boxShadow: active
+                    ? '0 4px 14px rgba(37, 99, 235, 0.38), inset 0 1px 1.5px rgba(255, 255, 255, 0.65)'
+                    : 'none',
+                  border: active
+                    ? '1px solid rgba(255, 255, 255, 0.4)'
+                    : '1px solid transparent',
+                  transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                <Icon size={19} color={active ? '#FFFFFF' : '#475569'} />
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: active ? 800 : 700,
+                    letterSpacing: '0.01em',
+                    color: active ? '#FFFFFF' : '#475569',
+                  }}
+                >
+                  {tab.label}
+                </span>
               </Link>
             )
           })}
