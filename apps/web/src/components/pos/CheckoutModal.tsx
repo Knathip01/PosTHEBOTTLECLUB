@@ -61,6 +61,33 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
+interface ReceiptItemSnapshot {
+  name: string
+  quantity: number
+  unit_price: number
+  discount_amount: number
+  line_total: number
+}
+
+interface ReceiptSnapshot {
+  receipt_no: string
+  items: ReceiptItemSnapshot[]
+  subtotal: number
+  discount_amount: number
+  discount_note?: string
+  total: number
+  change: number
+  payment_method: PaymentMethod
+  cash_received?: number
+  reference_no?: string
+  customer_name?: string
+  customer_phone?: string
+  points_earned?: number
+  cashier_name?: string
+  date: string
+  isPending?: boolean
+}
+
 export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps) {
   const supabase = createClient()
   const cart = useCartStore()
@@ -70,7 +97,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
   const [referenceNo, setReferenceNo] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [receipt, setReceipt] = useState<{ receipt_no: string; total: number; change: number; isPending?: boolean } | null>(null)
+  const [receipt, setReceipt] = useState<ReceiptSnapshot | null>(null)
   const [qrTimer, setQrTimer] = useState(300)
   const [qrExpired, setQrExpired] = useState(false)
   const [qrKey, setQrKey] = useState(0) // force re-generate QR
@@ -314,8 +341,42 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
         }
       }
 
-      // 6. Set receipt state to trigger checkout success screen
-      setReceipt({ receipt_no: receiptNo, total: totalAmount, change, isPending })
+      // 6. Fetch cashier profile name
+      let cashierName = user.email || 'Cashier'
+      try {
+        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+        if (profile?.full_name) cashierName = profile.full_name
+      } catch {
+        // fallback
+      }
+
+      // 7. Snapshot items & pricing for receipt printing BEFORE clearing cart
+      const receiptSnapshot: ReceiptSnapshot = {
+        receipt_no: receiptNo,
+        items: cart.items.map(item => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          unit_price: item.unit_price || item.product.price,
+          discount_amount: item.discount_amount || 0,
+          line_total: item.line_total,
+        })),
+        subtotal,
+        discount_amount: discountAmount,
+        discount_note: cart.discount_note || undefined,
+        total: totalAmount,
+        change,
+        payment_method: paymentMethod,
+        cash_received: paymentMethod === 'cash' ? cashAmount : undefined,
+        reference_no: referenceNo || undefined,
+        customer_name: cart.customer?.full_name,
+        customer_phone: cart.customer?.phone,
+        points_earned: Math.floor(totalAmount / 100),
+        cashier_name: cashierName,
+        date: new Date().toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }),
+        isPending
+      }
+
+      setReceipt(receiptSnapshot)
       cart.clearCart()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด กรุณาลองใหม่')
@@ -327,37 +388,144 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
   /* ─── Print receipt ─── */
   const handlePrintReceipt = () => {
     if (!receipt) return
-    const printWindow = window.open('', '_blank', 'width=350,height=600')
-    if (!printWindow) { alert('กรุณาอนุญาตป๊อปอัป'); return }
-    const itemsHtml = cart.items.map(item => `
+    const printWindow = window.open('', '_blank', 'width=380,height=650')
+    if (!printWindow) { alert('กรุณาอนุญาตป๊อปอัป (Pop-up) เพื่อพิมพ์ใบเสร็จ'); return }
+
+    const itemsHtml = receipt.items.map(item => `
       <tr>
-        <td style="padding:4px 0;font-size:13px">${item.product.name} x${item.quantity}</td>
-        <td style="padding:4px 0;text-align:right;font-size:13px">${formatCurrency(item.line_total)}</td>
-      </tr>`).join('')
-    const payLabel = paymentMethod === 'qr' ? 'PromptPay QR' : paymentMethod === 'transfer' ? 'โอน SCB' : 'เงินสด'
+        <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;line-height:1.3;">${item.name}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:center;vertical-align:top;white-space:nowrap;">x${item.quantity}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;color:#444;">${formatCurrency(item.unit_price)}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;font-weight:bold;">${formatCurrency(item.line_total)}</td>
+      </tr>
+      ${item.discount_amount > 0 ? `
+      <tr>
+        <td colspan="3" style="padding:0 0 3px;font-size:10px;color:#c00;">- ส่วนลดรายการ</td>
+        <td style="padding:0 0 3px;font-size:10px;text-align:right;color:#c00;">-${formatCurrency(item.discount_amount)}</td>
+      </tr>` : ''}
+    `).join('')
+
+    const payLabel = receipt.payment_method === 'qr' ? 'PromptPay QR' : receipt.payment_method === 'transfer' ? 'โอนเงิน (SCB)' : 'เงินสด'
+
     printWindow.document.write(`
-      <html><head><title>ใบเสร็จ #${receipt.receipt_no}</title>
-      <style>body{font-family:'Courier New',monospace;width:280px;margin:0 auto;padding:10px;color:#000}
-      h2,p{text-align:center;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:10px}
-      .dash{border-top:1px dashed #000;margin:8px 0}</style></head><body>
-      <h2>The Bottle Club</h2>
-      <p style="font-size:10px;color:#555">วันที่: ${new Date().toLocaleString('th-TH')}</p>
-      <p style="font-size:10px;color:#555">เลขบิล: ${receipt.receipt_no}</p>
-      <div class="dash"></div>
-      <table><tbody>${itemsHtml}</tbody></table>
-      <div class="dash"></div>
-      <table><tbody>
-        <tr><td>รวม</td><td style="text-align:right">${formatCurrency(cart.getSubtotal())}</td></tr>
-        ${cart.discount_amount > 0 ? `<tr><td>ส่วนลด</td><td style="text-align:right">-${formatCurrency(cart.discount_amount)}</td></tr>` : ''}
-        <tr style="font-weight:bold"><td>ยอดสุทธิ</td><td style="text-align:right">${formatCurrency(receipt.total)}</td></tr>
-        <tr><td>ชำระด้วย</td><td style="text-align:right">${payLabel}</td></tr>
-        ${paymentMethod === 'cash' ? `<tr><td>รับเงิน</td><td style="text-align:right">${formatCurrency(cashAmount)}</td></tr><tr><td>เงินทอน</td><td style="text-align:right">${formatCurrency(receipt.change)}</td></tr>` : ''}
-        ${referenceNo ? `<tr><td>เลข ref</td><td style="text-align:right">${referenceNo}</td></tr>` : ''}
-      </tbody></table>
-      <div class="dash"></div>
-      <p style="font-size:10px;margin-top:15px">ขอบคุณที่ใช้บริการ / Thank you</p>
-      <script>window.onload=function(){window.print();setTimeout(function(){window.close()},500)}</script>
-      </body></html>`)
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>ใบเสร็จ #${receipt.receipt_no}</title>
+          <style>
+            @page { size: 80mm auto; margin: 0; }
+            body {
+              font-family: 'Courier New', 'Sarabun', Tahoma, monospace;
+              width: 76mm;
+              margin: 0 auto;
+              padding: 14px 10px;
+              color: #000;
+              background: #fff;
+              box-sizing: border-box;
+            }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .fw-bold { font-weight: bold; }
+            h2 { margin: 0 0 4px; font-size: 16px; text-align: center; letter-spacing: 0.5px; }
+            p { margin: 2px 0; font-size: 11px; }
+            .dash { border-top: 1px dashed #000; margin: 8px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            td, th { font-size: 12px; }
+            @media print {
+              body { padding: 4px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="text-center">
+            <h2>THE BOTTLE CLUB</h2>
+            <p style="font-size:11px;color:#555;margin-top:2px;">ใบเสร็จรับเงิน / Tax Receipt</p>
+          </div>
+          <div class="dash"></div>
+          <table style="font-size:11px;">
+            <tbody>
+              <tr>
+                <td style="color:#555;padding:2px 0;">เลขที่บิล:</td>
+                <td class="text-right fw-bold" style="padding:2px 0;">#${receipt.receipt_no}</td>
+              </tr>
+              <tr>
+                <td style="color:#555;padding:2px 0;">วันที่:</td>
+                <td class="text-right" style="padding:2px 0;">${receipt.date}</td>
+              </tr>
+              ${receipt.cashier_name ? `<tr><td style="color:#555;padding:2px 0;">พนักงาน:</td><td class="text-right" style="padding:2px 0;">${receipt.cashier_name}</td></tr>` : ''}
+              ${receipt.customer_name ? `<tr><td style="color:#555;padding:2px 0;">ลูกค้า/สมาชิก:</td><td class="text-right fw-bold" style="padding:2px 0;">${receipt.customer_name}</td></tr>` : ''}
+            </tbody>
+          </table>
+          <div class="dash"></div>
+          <table>
+            <thead>
+              <tr style="border-bottom:1px solid #000;font-size:11px;">
+                <th style="text-align:left;padding-bottom:4px;">รายการสินค้า</th>
+                <th style="text-align:center;padding-bottom:4px;width:30px;">จน.</th>
+                <th style="text-align:right;padding-bottom:4px;width:55px;">ราคา</th>
+                <th style="text-align:right;padding-bottom:4px;width:60px;">รวม</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <div class="dash"></div>
+          <table>
+            <tbody>
+              <tr>
+                <td style="padding:2px 0;">ยอดรวมสินค้า</td>
+                <td class="text-right" style="padding:2px 0;">${formatCurrency(receipt.subtotal)}</td>
+              </tr>
+              ${receipt.discount_amount > 0 ? `
+              <tr>
+                <td style="padding:2px 0;color:#c00;">ส่วนลด ${receipt.discount_note ? `(${receipt.discount_note})` : ''}</td>
+                <td class="text-right" style="padding:2px 0;color:#c00;">-${formatCurrency(receipt.discount_amount)}</td>
+              </tr>` : ''}
+              <tr class="fw-bold" style="font-size:13px;border-top:1px solid #000;border-bottom:1px solid #000;">
+                <td style="padding:6px 0;">ยอดสุทธิ</td>
+                <td class="text-right" style="padding:6px 0;">${formatCurrency(receipt.total)}</td>
+              </tr>
+              <tr>
+                <td style="padding-top:5px;">ชำระด้วย</td>
+                <td class="text-right fw-bold" style="padding-top:5px;">${payLabel}</td>
+              </tr>
+              ${receipt.payment_method === 'cash' && receipt.cash_received ? `
+              <tr>
+                <td style="padding:2px 0;">รับเงินสด</td>
+                <td class="text-right" style="padding:2px 0;">${formatCurrency(receipt.cash_received)}</td>
+              </tr>
+              <tr>
+                <td style="padding:2px 0;font-weight:bold;">เงินทอน</td>
+                <td class="text-right fw-bold" style="padding:2px 0;">${formatCurrency(receipt.change)}</td>
+              </tr>` : ''}
+              ${receipt.reference_no ? `
+              <tr>
+                <td style="padding:2px 0;color:#555;">เลขอ้างอิง</td>
+                <td class="text-right" style="padding:2px 0;">${receipt.reference_no}</td>
+              </tr>` : ''}
+              ${receipt.points_earned ? `
+              <tr>
+                <td style="padding:2px 0;color:#92400e;">แต้มสะสมที่ได้รับ</td>
+                <td class="text-right fw-bold" style="padding:2px 0;color:#92400e;">+${receipt.points_earned} แต้ม</td>
+              </tr>` : ''}
+            </tbody>
+          </table>
+          <div class="dash"></div>
+          <div class="text-center" style="margin-top:10px;">
+            <p style="font-size:11px;font-weight:bold;margin:2px 0;">ขอบคุณที่ใช้บริการ / Thank you</p>
+            <p style="font-size:10px;color:#777;margin:2px 0;">THE BOTTLE CLUB POS</p>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 800);
+            }
+          </script>
+        </body>
+      </html>
+    `)
     printWindow.document.close()
   }
 
@@ -436,6 +604,33 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
             }}>
               <SummaryRow label="วิธีชำระ" value={currentMethod.label} />
               <SummaryRow label="ยอดชำระ" value={formatCurrency(receipt.total)} bold />
+
+              {/* Items Breakdown Preview in Modal */}
+              {receipt.items && receipt.items.length > 0 && (
+                <div style={{
+                  margin: '12px 0',
+                  padding: '10px 12px',
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(35,64,168,0.12)',
+                  borderRadius: 12,
+                  maxHeight: 140,
+                  overflowY: 'auto',
+                }}>
+                  <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 800, color: '#1E3A8A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    รายการสินค้า ({receipt.items.length} รายการ)
+                  </p>
+                  {receipt.items.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, padding: '3px 0', borderBottom: idx < receipt.items.length - 1 ? '1px dashed #E2E8F0' : 'none' }}>
+                      <span style={{ color: '#1E293B', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>
+                        {item.name} <span style={{ color: '#64748B', fontWeight: 700 }}>x{item.quantity}</span>
+                      </span>
+                      <span style={{ color: '#0F172A', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                        {formatCurrency(item.line_total)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {isPending && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 13 }}>
                   <span style={{ color: '#475569', fontWeight: 700 }}>สถานะ</span>
@@ -456,10 +651,10 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
               {referenceNo && (
                 <SummaryRow label="เลขอ้างอิง" value={referenceNo} />
               )}
-              {cart.customer && (
+              {receipt.customer_name && (
                 <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 10, background: '#FEF3C7', border: '1.5px solid #FCD34D' }}>
                   <span style={{ fontSize: 12, color: '#92400E', fontWeight: 800 }}>
-                    ✨ {cart.customer.full_name} {isPending ? 'จะได้รับ' : 'ได้รับ'} {Math.floor(receipt.total / 100)} แต้ม
+                    ✨ {receipt.customer_name} {isPending ? 'จะได้รับ' : 'ได้รับ'} {receipt.points_earned || 0} แต้ม
                   </span>
                 </div>
               )}
