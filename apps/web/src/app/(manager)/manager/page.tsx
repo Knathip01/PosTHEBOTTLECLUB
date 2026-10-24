@@ -899,7 +899,7 @@ export default function ManagerDashboard() {
 
   return (
     <>
-      <div className="animate-in" style={{ padding: '16px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      <div className="animate-in" style={{ padding: '16px', paddingBottom: '96px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
@@ -912,37 +912,28 @@ export default function ManagerDashboard() {
       <div style={{ position: 'relative', marginBottom: 24 }}>
         <style>{`
           .manager-tabs-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(35, 64, 168, 0.35) transparent;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
           }
           .manager-tabs-scroll::-webkit-scrollbar {
-            height: 5px;
-          }
-          .manager-tabs-scroll::-webkit-scrollbar-track {
-            background: rgba(35, 64, 168, 0.06);
-            border-radius: 99px;
-          }
-          .manager-tabs-scroll::-webkit-scrollbar-thumb {
-            background: rgba(35, 64, 168, 0.35);
-            border-radius: 99px;
-          }
-          .manager-tabs-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(35, 64, 168, 0.6);
+            display: none;
+            width: 0;
+            height: 0;
           }
         `}</style>
 
-        {/* Left Arrow Button with subtle gradient mask */}
+        {/* Left Arrow Button with glass shadow */}
         {canScrollLeft && (
           <div style={{
             position: 'absolute',
-            left: 0,
+            left: 4,
             top: 0,
             bottom: 0,
-            width: 48,
+            width: 44,
             zIndex: 10,
             display: 'flex',
             alignItems: 'center',
-            background: 'linear-gradient(to right, #EDE3C8 65%, transparent)',
+            background: 'linear-gradient(to right, rgba(237, 227, 200, 0.95) 55%, transparent)',
             pointerEvents: 'none',
           }}>
             <button
@@ -954,9 +945,11 @@ export default function ManagerDashboard() {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                background: '#FFFFFF',
-                border: '1.5px solid rgba(35,64,168,0.25)',
-                boxShadow: '0 2px 8px rgba(35,64,168,0.2)',
+                background: 'rgba(255, 255, 255, 0.88)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1.5px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.95)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -972,19 +965,19 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Right Arrow Button with subtle gradient mask */}
+        {/* Right Arrow Button with glass shadow */}
         {canScrollRight && (
           <div style={{
             position: 'absolute',
-            right: 0,
+            right: 4,
             top: 0,
             bottom: 0,
-            width: 48,
+            width: 44,
             zIndex: 10,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            background: 'linear-gradient(to left, #EDE3C8 65%, transparent)',
+            background: 'linear-gradient(to left, rgba(237, 227, 200, 0.95) 55%, transparent)',
             pointerEvents: 'none',
           }}>
             <button
@@ -996,9 +989,11 @@ export default function ManagerDashboard() {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                background: '#FFFFFF',
-                border: '1.5px solid rgba(35,64,168,0.25)',
-                boxShadow: '0 2px 8px rgba(35,64,168,0.2)',
+                background: 'rgba(255, 255, 255, 0.88)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1.5px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.95)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1014,31 +1009,36 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Scrollable Tabs */}
+        {/* Scrollable Tabs - Glassmorphic Pill Container */}
         <div
           ref={tabsScrollRef}
           onMouseDown={onTabsMouseDown}
           onMouseMove={onTabsMouseMove}
           onMouseUp={onTabsMouseUp}
           onMouseLeave={onTabsMouseUp}
-          className="manager-tabs-scroll flex gap-2 border-b overflow-x-auto select-none"
+          className="manager-tabs-scroll flex gap-1.5 overflow-x-auto select-none"
           style={{
-            borderColor: 'rgba(35,64,168,0.18)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.52) 100%)',
+            backdropFilter: 'blur(24px) saturate(190%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(190%)',
+            borderRadius: 20,
+            border: '1.5px solid rgba(255, 255, 255, 0.85)',
+            boxShadow: '0 12px 32px -4px rgba(15, 23, 42, 0.09), 0 4px 14px -2px rgba(35, 64, 168, 0.08), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -1.5px 2px 0 rgba(35, 64, 168, 0.04)',
+            padding: '6px 8px',
             scrollBehavior: 'smooth',
             WebkitOverflowScrolling: 'touch',
             cursor: 'grab',
-            paddingBottom: 2,
           }}
         >
           {[
-            { key: 'overview',      label: 'ยอดขายและกราฟ',     icon: <TrendingUp size={14} /> },
-            { key: 'products',      label: 'จัดการสินค้า',       icon: <Package size={14} /> },
-            { key: 'stock',         label: 'ตรวจสต๊อก',         icon: <Warehouse size={14} /> },
-            { key: 'payments',      label: 'ตรวจสอบชำระเงิน',    icon: <CreditCard size={14} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
-            { key: 'discounts',     label: 'อนุมัติส่วนลด',     icon: <Key size={14} />, badge: discountRequests.length || null },
-            { key: 'pairings',      label: 'จับคู่อาหาร & Wine', icon: <Wine size={14} />, badge: pairings.filter(p => p.is_active).length || null },
-            { key: 'reports',       label: 'รายงานผลกำไร',      icon: <BarChart3 size={14} /> },
-            { key: 'shop_reports',  label: 'รายงานร้าน',        icon: <ClipboardList size={14} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
+            { key: 'overview',      label: 'ยอดขายและกราฟ',     icon: <TrendingUp size={15} /> },
+            { key: 'products',      label: 'จัดการสินค้า',       icon: <Package size={15} /> },
+            { key: 'stock',         label: 'ตรวจสต๊อก',         icon: <Warehouse size={15} /> },
+            { key: 'payments',      label: 'ตรวจสอบชำระเงิน',    icon: <CreditCard size={15} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
+            { key: 'discounts',     label: 'อนุมัติส่วนลด',     icon: <Key size={15} />, badge: discountRequests.length || null },
+            { key: 'pairings',      label: 'จับคู่อาหาร & Wine', icon: <Wine size={15} />, badge: pairings.filter(p => p.is_active).length || null },
+            { key: 'reports',       label: 'รายงานผลกำไร',      icon: <BarChart3 size={15} /> },
+            { key: 'shop_reports',  label: 'รายงานร้าน',        icon: <ClipboardList size={15} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
           ].map(tab => {
             const isActive = activeTab === tab.key
             return (
@@ -1052,20 +1052,54 @@ export default function ManagerDashboard() {
                   }
                   setActiveTab(tab.key as any)
                 }}
-                className="flex items-center gap-2 px-4 py-3 text-sm font-extrabold transition-all relative shrink-0"
+                className="flex items-center gap-2 px-4 py-2.5 text-xs md:text-sm font-extrabold transition-all relative shrink-0"
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: isActive ? '3px solid #1E3A8A' : '3px solid transparent',
-                  color: isActive ? '#1E3A8A' : '#334155',
+                  background: isActive
+                    ? 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)'
+                    : 'transparent',
+                  border: isActive
+                    ? '1px solid rgba(255, 255, 255, 0.35)'
+                    : '1px solid transparent',
+                  borderRadius: 14,
+                  color: isActive ? '#FFFFFF' : '#334155',
                   cursor: 'pointer',
                   userSelect: 'none',
+                  boxShadow: isActive
+                    ? '0 4px 14px rgba(37, 99, 235, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.6)'
+                    : 'none',
+                  transition: 'all 180ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.55)'
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.borderColor = 'transparent'
+                  }
                 }}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white" style={{ background: '#f43f5e' }}>
+                  <span
+                    className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-black"
+                    style={{
+                      background: isActive
+                        ? '#FFFFFF'
+                        : 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+                      color: isActive ? '#1E3A8A' : '#FFFFFF',
+                      boxShadow: isActive
+                        ? '0 2px 6px rgba(0,0,0,0.15)'
+                        : '0 2px 8px rgba(244, 63, 94, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.6)',
+                      border: isActive
+                        ? '1px solid rgba(255, 255, 255, 0.9)'
+                        : '1px solid rgba(255, 255, 255, 0.5)',
+                    }}
+                  >
                     {tab.badge}
                   </span>
                 )}
@@ -2914,34 +2948,48 @@ export default function ManagerDashboard() {
       )}
       </div>
 
-      {/* Mobile Bottom Tab Bar for Manager Console */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        zIndex: 60,
-        background: 'rgba(255,255,255,0.97)',
-        borderTop: '1.5px solid rgba(35,64,168,0.12)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }} className="flex md:hidden">
-        <div style={{
-          display: 'flex',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch',
-          width: '100%',
-          gap: 2,
-          padding: '6px 8px',
-        }}>
+      {/* Mobile Bottom Tab Bar for Manager Console - Floating Glassmorphic Dock */}
+      <nav
+        className="flex md:hidden"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+          left: 12,
+          right: 12,
+          zIndex: 60,
+          maxWidth: 620,
+          margin: '0 auto',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.55) 100%)',
+          backdropFilter: 'blur(28px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(200%)',
+          borderRadius: 26,
+          border: '1.5px solid rgba(255, 255, 255, 0.88)',
+          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 10px 22px -4px rgba(35, 64, 168, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -1.5px 2px 0 rgba(35, 64, 168, 0.05)',
+          padding: '6px',
+        }}
+      >
+        <div
+          className="manager-tabs-scroll"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+            width: '100%',
+            gap: 4,
+            padding: '2px 4px',
+          }}
+        >
           {[
-            { key: 'overview',      label: 'ยอดขาย',     icon: <TrendingUp size={18} /> },
-            { key: 'products',      label: 'สินค้า',       icon: <Package size={18} /> },
-            { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={18} /> },
-            { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={18} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
-            { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={18} />, badge: discountRequests.length || null },
-            { key: 'pairings',      label: 'คู่ไวน์',      icon: <Wine size={18} />, badge: pairings.filter(p => p.is_active).length || null },
-            { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={18} /> },
-            { key: 'shop_reports',  label: 'รายงาน',    icon: <ClipboardList size={18} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
+            { key: 'overview',      label: 'ยอดขาย',     icon: <TrendingUp size={16} /> },
+            { key: 'products',      label: 'สินค้า',       icon: <Package size={16} /> },
+            { key: 'stock',         label: 'สต๊อก',       icon: <Warehouse size={16} /> },
+            { key: 'payments',      label: 'ชำระเงิน',     icon: <CreditCard size={16} />, badge: paymentsSales.filter(r => r.status === 'pending').length || null },
+            { key: 'discounts',     label: 'อนุมัติ',       icon: <Key size={16} />, badge: discountRequests.length || null },
+            { key: 'pairings',      label: 'คู่ไวน์',      icon: <Wine size={16} />, badge: pairings.filter(p => p.is_active).length || null },
+            { key: 'reports',       label: 'กำไร',        icon: <BarChart3 size={16} /> },
+            { key: 'shop_reports',  label: 'รายงาน',    icon: <ClipboardList size={16} />, badge: shopReports.filter(r => r.status === 'pending').length || null },
           ].map(tab => {
             const active = activeTab === tab.key
             return (
@@ -2950,37 +2998,58 @@ export default function ManagerDashboard() {
                 onClick={() => setActiveTab(tab.key as any)}
                 style={{
                   flex: '0 0 auto',
-                  display: 'flex', alignItems: 'center',
-                  gap: 5, background: active ? '#2340A8' : 'transparent',
-                  border: 'none',
-                  color: active ? '#FFFFFF' : '#475569',
-                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  transition: 'all 150ms',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: active
+                    ? 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)'
+                    : 'transparent',
+                  border: active
+                    ? '1px solid rgba(255, 255, 255, 0.4)'
+                    : '1px solid transparent',
+                  color: active ? '#FFFFFF' : '#334155',
+                  fontSize: 12,
+                  fontWeight: active ? 800 : 700,
+                  cursor: 'pointer',
+                  transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
                   position: 'relative',
                   padding: '8px 14px',
                   borderRadius: 999,
                   whiteSpace: 'nowrap',
+                  boxShadow: active
+                    ? '0 4px 14px rgba(37, 99, 235, 0.38), inset 0 1px 1.5px rgba(255, 255, 255, 0.65)'
+                    : 'none',
                 }}
               >
                 {tab.icon}
                 <span>{tab.label}</span>
                 
-                {/* Notification Badges */}
+                {/* Notification Badges with glass gloss */}
                 {tab.badge && (
-                  <span style={{
-                    background: active ? '#FFFFFF' : '#f43f5e',
-                    color: active ? '#2340A8' : 'white',
-                    borderRadius: 999,
-                    minWidth: 18,
-                    height: 18,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 5px',
-                    marginLeft: 2,
-                  }}>
+                  <span
+                    style={{
+                      background: active
+                        ? '#FFFFFF'
+                        : 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+                      color: active ? '#1E3A8A' : '#FFFFFF',
+                      borderRadius: 999,
+                      minWidth: 18,
+                      height: 18,
+                      fontSize: 10,
+                      fontWeight: 900,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 5px',
+                      marginLeft: 2,
+                      border: active
+                        ? '1px solid rgba(255, 255, 255, 0.9)'
+                        : '1px solid rgba(255, 255, 255, 0.5)',
+                      boxShadow: active
+                        ? '0 2px 6px rgba(0, 0, 0, 0.15)'
+                        : '0 2px 8px rgba(244, 63, 94, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.6)',
+                    }}
+                  >
                     {tab.badge}
                   </span>
                 )}
