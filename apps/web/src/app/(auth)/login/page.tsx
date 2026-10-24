@@ -124,50 +124,95 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    })
+    try {
+      let authError: { message?: string } | null = null
+      let currentUser: any = null
+      let currentProfile: any = null
 
-    if (authError) {
-      recordFailedAttempt()
-      const remaining = MAX_ATTEMPTS - (getAttempts().count)
-      if (authError.message === 'Invalid login credentials') {
-        setError(
-          remaining > 0
-            ? `อีเมลหรือรหัสผ่านไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`
-            : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
-        )
-      } else if (authError.message === 'Email not confirmed') {
-        setError('บัญชีนี้ยังไม่ได้ยืนยันอีเมล กรุณาติดต่อผู้ดูแลระบบ')
-      } else {
-        setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+      // First attempt: client-side Supabase
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        })
+        if (error) {
+          authError = error
+        } else {
+          currentUser = data?.user
+        }
+      } catch (clientErr) {
+        console.warn('[Login] Client-side Supabase fetch failed, trying server-side fallback...', clientErr)
       }
-      setLoading(false)
-      return
-    }
 
-    // Login success → reset attempts
-    resetAttempts()
+      // If client-side failed with network error or returned no user, try server-side login
+      if (!currentUser && (!authError || authError.message === 'Failed to fetch')) {
+        try {
+          const fallbackRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email.trim().toLowerCase(),
+              password,
+            }),
+          })
+          const fallbackData = await fallbackRes.json()
+          if (!fallbackRes.ok || fallbackData.error) {
+            authError = { message: fallbackData.error || 'Invalid login credentials' }
+          } else {
+            authError = null
+            currentUser = fallbackData.user
+            currentProfile = fallbackData.profile
+          }
+        } catch (serverErr) {
+          console.error('[Login] Server-side login failed:', serverErr)
+          if (!authError) {
+            authError = { message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต' }
+          }
+        }
+      }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    let destination = searchParams.get('redirect') || ''
+      if (authError) {
+        recordFailedAttempt()
+        const remaining = MAX_ATTEMPTS - (getAttempts().count)
+        if (authError.message === 'Invalid login credentials') {
+          setError(
+            remaining > 0
+              ? `อีเมลหรือรหัสผ่านไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`
+              : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'
+          )
+        } else if (authError.message === 'Email not confirmed') {
+          setError('บัญชีนี้ยังไม่ได้ยืนยันอีเมล กรุณาติดต่อผู้ดูแลระบบ')
+        } else if (authError.message === 'Failed to fetch' || authError.message?.includes('fetch')) {
+          setError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ยืนยันตัวตนได้ กรุณาตรวจสอบอินเทอร์เน็ต หรือลองปิด Adblocker')
+        } else {
+          setError(authError.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+        }
+        setLoading(false)
+        return
+      }
 
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, is_active')
-        .eq('id', user.id)
-        .single()
+      // Login success → reset attempts
+      resetAttempts()
 
-      if (profile) {
-        if (profile.is_active === false) {
+      let destination = searchParams.get('redirect') || ''
+
+      if (!currentProfile && currentUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, is_active')
+          .eq('id', currentUser.id)
+          .single()
+        currentProfile = profile
+      }
+
+      if (currentProfile) {
+        if (currentProfile.is_active === false) {
           await supabase.auth.signOut()
           setError('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
           setLoading(false)
           return
         }
-        if (profile.role === 'super_admin') {
+        if (currentProfile.role === 'super_admin') {
           await supabase.auth.signOut()
           setError('บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานระบบนี้')
           setLoading(false)
@@ -181,17 +226,19 @@ export default function LoginPage() {
             kitchen: '/kitchen',
             bar: '/bar',
           }
-          destination = roleRoutes[profile.role] || '/pos'
+          destination = roleRoutes[currentProfile.role] || '/pos'
         }
-      } else {
-        if (!destination) destination = '/pos'
+      } else if (!destination) {
+        destination = '/pos'
       }
-    } else if (!destination) {
-      destination = '/pos'
-    }
 
-    router.push(destination)
-    router.refresh()
+      router.push(destination)
+      router.refresh()
+    } catch (unhandledErr: any) {
+      console.error('[Login] Unhandled error:', unhandledErr)
+      setError(unhandledErr?.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+      setLoading(false)
+    }
   }
 
   const attemptsLeft = MAX_ATTEMPTS - attempts
