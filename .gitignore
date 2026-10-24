@@ -15,3 +15,8 @@ uploads/
 Thumbs.db
 .turbo/
 coverage/
+*.tsbuildinfo
+.eslintcache
+temp/
+*.tmp
+*.bak

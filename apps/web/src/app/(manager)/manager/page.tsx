@@ -3,16 +3,16 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product, Category, FoodWinePairing } from '@/lib/types'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import {
-  TrendingUp, ShoppingBag, Users, Package, AlertTriangle, Wine,
-  ArrowUpRight, RefreshCw, BarChart3, Tag, Warehouse, Sparkles, Check, X,
-  Search, Edit3, Loader2, Key, ClipboardList, Clock, Image as ImageIcon,
+  TrendingUp, Package, Wine,
+  RefreshCw, BarChart3, Warehouse, Check, X,
+  Search, Edit3, Loader2, Key, ClipboardList, Image as ImageIcon,
   CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight, ChevronLeft,
-  Plus, Trash2, Utensils, Percent, Calendar
+  Plus, Trash2, Calendar
 } from 'lucide-react'
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip
+  ResponsiveContainer, AreaChart, Area, XAxis, Tooltip
 } from 'recharts'
 
 export default function ManagerDashboard() {

@@ -6,7 +6,7 @@ import { Sale } from '@/lib/types'
 import {
   Clock, Wine, Play, CheckCircle, RefreshCw, LogOut,
   Loader2, ClipboardList, Camera, X, Image as ImageIcon,
-  AlertTriangle, Bell
+  AlertTriangle
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 

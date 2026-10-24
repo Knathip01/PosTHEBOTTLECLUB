@@ -8,7 +8,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import {
   Clock, CheckCircle2, Loader2, RefreshCw, Wine, ChevronDown,
   Check, Undo, Search, Banknote, CreditCard, QrCode,
-  X, Camera, Send, ClipboardList, Image as ImageIcon, AlertCircle, Bell, UtensilsCrossed
+  X, Camera, Send, ClipboardList, Image as ImageIcon, AlertCircle
 } from 'lucide-react'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

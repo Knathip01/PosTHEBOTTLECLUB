@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Product, Category } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import {
-  TrendingUp, Download, Package, AlertTriangle, RefreshCw,
+  Download,
   Search, Edit3, Loader2, Warehouse, FileText, Plus, Trash2, CheckCircle2,
   X, Image as ImageIcon
 } from 'lucide-react'

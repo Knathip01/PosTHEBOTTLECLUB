@@ -7,7 +7,7 @@ import { Profile } from '@/lib/types'
 import {
   ShoppingCart, History, LayoutDashboard,
   LogOut, Clock, ChevronDown, X, User,
-  Menu, Package, ChefHat, Wine, Zap
+  Menu, Package
 } from 'lucide-react'
 import Link from 'next/link'
 import { getRoleLabel, getRoleColor } from '@/lib/utils'

@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/utils'
 import {
   Search, ShoppingBag, Plus, Minus, Trash2,
   X, ArrowLeft, Loader2, CheckCircle2, ChevronRight,
-  Upload, Star, Key, Sparkles, Package, Shield, QrCode,
+  Upload, Key, Package,
   UtensilsCrossed, Wine
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'

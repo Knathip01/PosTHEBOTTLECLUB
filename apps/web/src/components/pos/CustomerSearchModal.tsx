@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Customer } from '@/lib/types'
-import { Search, X, User, Plus, Loader2, Phone, Star } from 'lucide-react'
-import { getMemberLevelColor, getMemberLevelLabel } from '@/lib/utils'
+import { Search, X, User, Plus, Loader2, Phone } from 'lucide-react'
+import { getMemberLevelLabel } from '@/lib/utils'
 
 interface CustomerSearchModalProps {
   onClose: () => void

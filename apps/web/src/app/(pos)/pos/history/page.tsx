@@ -6,7 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { Sale, SaleItem } from '@/lib/types'
 import {
   Search, ChevronDown, ChevronRight, Loader2, Receipt,
-  RotateCcw, CalendarRange, CreditCard, Banknote, QrCode,
+  RotateCcw, CreditCard, Banknote, QrCode,
   TrendingUp, ShoppingBag, X, Filter, Printer, Eye
 } from 'lucide-react'
 
