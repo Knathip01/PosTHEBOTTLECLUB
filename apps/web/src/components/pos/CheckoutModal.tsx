@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart'
 import { formatCurrency, generateReceiptNo } from '@/lib/utils'
@@ -71,6 +71,42 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
   const [qrTimer, setQrTimer] = useState(300)
   const [qrExpired, setQrExpired] = useState(false)
   const [qrKey, setQrKey] = useState(0) // force re-generate QR
+
+  // Store & Payment Settings
+  const [promptPayPhone, setPromptPayPhone] = useState(PROMPTPAY_PHONE)
+  const [bankAccountName, setBankAccountName] = useState('')
+  const [shopName, setShopName] = useState('THE BOTTLE CLUB')
+  const [shopPhone, setShopPhone] = useState('')
+  const [shopAddress, setShopAddress] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+    supabase
+      .from('settings')
+      .select('key, value')
+      .in('key', ['promptpay_id', 'bank_account_name', 'shop_name', 'shop_phone', 'shop_address'])
+      .then(({ data, error }) => {
+        if (!error && data && isMounted) {
+          const s = (k: string) => data.find(x => x.key === k)?.value
+          const pp = s('promptpay_id')
+          const sp = s('shop_phone')
+          const targetPp = pp?.trim() || sp?.trim()
+          if (targetPp) setPromptPayPhone(targetPp)
+
+          const ban = s('bank_account_name')
+          if (ban?.trim()) setBankAccountName(ban.trim())
+
+          const sn = s('shop_name')
+          if (sn?.trim()) setShopName(sn.trim())
+
+          if (sp?.trim()) setShopPhone(sp.trim())
+
+          const sa = s('shop_address')
+          if (sa?.trim()) setShopAddress(sa.trim())
+        }
+      })
+    return () => { isMounted = false }
+  }, [supabase])
 
   // Camera & Slip Upload
   const [slipImage, setSlipImage] = useState<string | null>(null) // base64 JPEG
@@ -153,7 +189,15 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
     paymentMethod === 'cash' ? cashAmount >= total : true
 
   /* ─── Generate PromptPay payload ─── */
-  const promptPayPayload = generatePayload(PROMPTPAY_PHONE, { amount: total })
+  const cleanPhone = promptPayPhone.replace(/[^0-9]/g, '')
+  const promptPayPayload = useMemo(() => {
+    try {
+      return generatePayload(cleanPhone || promptPayPhone, { amount: total })
+    } catch (e) {
+      console.error('PromptPay payload error:', e)
+      return ''
+    }
+  }, [cleanPhone, promptPayPhone, total])
 
   /* ─── QR countdown ─── */
   useEffect(() => {
@@ -409,7 +453,9 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
         </head>
         <body>
           <div class="text-center">
-            <h2>THE BOTTLE CLUB</h2>
+            <h2>${shopName || 'THE BOTTLE CLUB'}</h2>
+            ${shopAddress ? `<p style="font-size:10px;color:#555;margin:2px 0;">${shopAddress}</p>` : ''}
+            ${shopPhone ? `<p style="font-size:10px;color:#555;margin:2px 0;">โทร: ${shopPhone}</p>` : ''}
             <p style="font-size:11px;color:#555;margin-top:2px;">ใบเสร็จรับเงิน / Tax Receipt</p>
           </div>
           <div class="dash"></div>
@@ -485,7 +531,7 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
           <div class="dash"></div>
           <div class="text-center" style="margin-top:10px;">
             <p style="font-size:11px;font-weight:bold;margin:2px 0;">ขอบคุณที่ใช้บริการ / Thank you</p>
-            <p style="font-size:10px;color:#777;margin:2px 0;">THE BOTTLE CLUB POS</p>
+            <p style="font-size:10px;color:#777;margin:2px 0;">${shopName || 'THE BOTTLE CLUB'} POS</p>
           </div>
           <script>
             window.onload = function() {
@@ -897,17 +943,24 @@ export default function CheckoutModal({ onClose, onSuccess }: CheckoutModalProps
                   boxShadow: '0 2px 8px rgba(99,102,241,0.06)',
                 }}>
                   {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-                    <div style={{
-                      width: 30, height: 30, borderRadius: 8,
-                      background: 'linear-gradient(135deg,#4338ca,#6366f1)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 2px 6px rgba(67,56,202,0.25)',
-                    }}><QrCode size={17} color="white" /></div>
-                    <span style={{ fontWeight: 900, color: '#4338CA', fontSize: 15 }}>PromptPay QR</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#312E81', padding: '3px 10px', borderRadius: 20, background: '#EEF2FF', border: '1.5px solid #C7D2FE' }}>
-                      {PROMPTPAY_PHONE}
-                    </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <div style={{
+                        width: 30, height: 30, borderRadius: 8,
+                        background: 'linear-gradient(135deg,#4338ca,#6366f1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 6px rgba(67,56,202,0.25)',
+                      }}><QrCode size={17} color="white" /></div>
+                      <span style={{ fontWeight: 900, color: '#4338CA', fontSize: 15 }}>PromptPay QR</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: '#312E81', padding: '3px 10px', borderRadius: 20, background: '#EEF2FF', border: '1.5px solid #C7D2FE' }}>
+                        {promptPayPhone}
+                      </span>
+                    </div>
+                    {bankAccountName && (
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#4338CA' }}>
+                        ชื่อบัญชี: {bankAccountName}
+                      </p>
+                    )}
                   </div>
 
                   {/* QR Code */}

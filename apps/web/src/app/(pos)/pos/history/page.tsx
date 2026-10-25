@@ -53,7 +53,27 @@ export default function SalesHistoryPage() {
   // Filters
   const [searchReceipt, setSearchReceipt] = useState('')
   const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  // Shop Settings
+  const [shopName, setShopName] = useState('THE BOTTLE CLUB')
+  const [shopPhone, setShopPhone] = useState('')
+  const [shopAddress, setShopAddress] = useState('')
+
+  useEffect(() => {
+    supabase
+      .from('settings')
+      .select('key, value')
+      .in('key', ['shop_name', 'shop_phone', 'shop_address'])
+      .then(({ data }) => {
+        if (data) {
+          const s = (k: string) => data.find(x => x.key === k)?.value
+          if (s('shop_name')?.trim()) setShopName(s('shop_name')!.trim())
+          if (s('shop_phone')?.trim()) setShopPhone(s('shop_phone')!.trim())
+          if (s('shop_address')?.trim()) setShopAddress(s('shop_address')!.trim())
+        }
+      })
+  }, [supabase])
 
   useEffect(() => { loadSales() }, [])
 
@@ -161,7 +181,9 @@ export default function SalesHistoryPage() {
         </head>
         <body>
           <div class="text-center">
-            <h2>THE BOTTLE CLUB</h2>
+            <h2>${shopName || 'THE BOTTLE CLUB'}</h2>
+            ${shopAddress ? `<p style="font-size:10px;color:#555;margin:2px 0;">${shopAddress}</p>` : ''}
+            ${shopPhone ? `<p style="font-size:10px;color:#555;margin:2px 0;">โทร: ${shopPhone}</p>` : ''}
             <p style="font-size:11px;color:#555;margin-top:2px;">ใบเสร็จรับเงิน</p>
           </div>
           <div class="dash"></div>
@@ -238,7 +260,7 @@ export default function SalesHistoryPage() {
           <div class="dash"></div>
           <div class="text-center" style="margin-top: 12px;">
             <p style="font-size: 11px; font-weight: bold;">ขอบคุณที่ใช้บริการ / Thank You</p>
-            <p style="font-size: 10px; color: #777;">THE BOTTLE CLUB</p>
+            <p style="font-size: 10px; color: #777;">${shopName || 'THE BOTTLE CLUB'}</p>
           </div>
           <script>
             window.onload = function() {
