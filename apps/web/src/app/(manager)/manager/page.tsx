@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product, Category, FoodWinePairing } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
@@ -9,10 +9,11 @@ import {
   RefreshCw, BarChart3, Warehouse, Check, X,
   Search, Edit3, Loader2, Key, ClipboardList, Image as ImageIcon,
   CheckCircle2, Eye, MessageSquare, CreditCard, ChevronRight, ChevronLeft,
-  Plus, Trash2, Calendar
+  Plus, Trash2, Calendar, Calculator, Banknote, QrCode, Coins, Percent,
+  ArrowUpRight, AlertTriangle
 } from 'lucide-react'
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, Tooltip
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend
 } from 'recharts'
 
 export default function ManagerDashboard() {
@@ -114,7 +115,78 @@ export default function ManagerDashboard() {
   const [todayOrders, setTodayOrders] = useState(0)
   const [monthSales, setMonthSales] = useState(0)
   const [lowStockCount, setLowStockCount] = useState(0)
-  const [chartData, setChartData] = useState<{ date: string; sales: number }[]>([])
+  const [chartData, setChartData] = useState<{ date: string; sales: number; profit?: number }[]>([])
+
+  // Additional Overview & Revenue Analytics
+  const [todayCost, setTodayCost] = useState(0)
+  const [todayProfit, setTodayProfit] = useState(0)
+  const [monthOrders, setMonthOrders] = useState(0)
+  const [monthCost, setMonthCost] = useState(0)
+  const [monthProfit, setMonthProfit] = useState(0)
+  const [monthMargin, setMonthMargin] = useState(0)
+  const [monthAvgTicket, setMonthAvgTicket] = useState(0)
+  const [weekSales, setWeekSales] = useState(0)
+  const [allPaidSales, setAllPaidSales] = useState<any[]>([])
+  const [saleItemsCostMap, setSaleItemsCostMap] = useState<Map<string, number>>(new Map())
+
+  // Interactive Revenue & Profit Calculator
+  const [calcPreset, setCalcPreset] = useState<'today' | 'yesterday' | '7days' | '30days' | 'month' | 'all' | 'custom'>('7days')
+  const [calcDateFrom, setCalcDateFrom] = useState('')
+  const [calcDateTo, setCalcDateTo] = useState('')
+
+  // Chart range (7, 14, 30 days)
+  const [chartDaysRange, setChartDaysRange] = useState<7 | 14 | 30>(7)
+  const [chartData7, setChartData7] = useState<any[]>([])
+  const [chartData14, setChartData14] = useState<any[]>([])
+  const [chartData30, setChartData30] = useState<any[]>([])
+
+  // Computed results for the interactive Revenue & Profit Calculator
+  const calcResults = useMemo(() => {
+    let list = allPaidSales
+    const now = new Date()
+
+    if (calcPreset === 'today') {
+      const todayStr = now.toISOString().slice(0, 10)
+      list = list.filter(s => s.created_at?.slice(0, 10) === todayStr)
+    } else if (calcPreset === 'yesterday') {
+      const y = new Date(now)
+      y.setDate(y.getDate() - 1)
+      const yStr = y.toISOString().slice(0, 10)
+      list = list.filter(s => s.created_at?.slice(0, 10) === yStr)
+    } else if (calcPreset === '7days') {
+      const d7 = new Date(now)
+      d7.setDate(d7.getDate() - 7)
+      list = list.filter(s => new Date(s.created_at) >= d7)
+    } else if (calcPreset === '30days') {
+      const d30 = new Date(now)
+      d30.setDate(d30.getDate() - 30)
+      list = list.filter(s => new Date(s.created_at) >= d30)
+    } else if (calcPreset === 'month') {
+      const mStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      list = list.filter(s => new Date(s.created_at) >= mStart)
+    } else if (calcPreset === 'custom') {
+      if (calcDateFrom) list = list.filter(s => s.created_at >= `${calcDateFrom}T00:00:00`)
+      if (calcDateTo) list = list.filter(s => s.created_at <= `${calcDateTo}T23:59:59`)
+    }
+
+    const revenue = list.reduce((sum, s) => sum + (s.total_amount || 0), 0)
+    const cost = list.reduce((sum, s) => sum + (saleItemsCostMap.get(s.id) || 0), 0)
+    const profit = Math.max(0, revenue - cost)
+    const margin = revenue > 0 ? (profit / revenue) * 100 : 0
+    const orders = list.length
+    const avgTicket = orders > 0 ? revenue / orders : 0
+    const discounts = list.reduce((sum, s) => sum + (s.discount_amount || 0), 0)
+
+    // Payment methods breakdown
+    const payMap = { cash: 0, qr: 0, transfer: 0, card: 0 }
+    for (const s of list) {
+      const m = (s.payment_method || 'cash') as keyof typeof payMap
+      if (payMap[m] !== undefined) payMap[m] += s.total_amount || 0
+      else payMap.cash += s.total_amount || 0
+    }
+
+    return { revenue, cost, profit, margin, orders, avgTicket, discounts, payMap }
+  }, [allPaidSales, saleItemsCostMap, calcPreset, calcDateFrom, calcDateTo])
 
   // Products & Stock
   const [products, setProducts] = useState<Product[]>([])
@@ -191,39 +263,88 @@ export default function ManagerDashboard() {
     try {
       const today = new Date().toISOString().slice(0, 10)
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      const sevenDaysAgoISO = sevenDaysAgo.toISOString()
 
-      // Fetch Sales
-      const [{ data: todaySalesData }, { data: monthSalesData }, { data: last7DaysData }] = await Promise.all([
-        supabase.from('sales').select('total_amount').eq('status', 'paid').gte('created_at', `${today}T00:00:00`).lte('created_at', `${today}T23:59:59`),
-        supabase.from('sales').select('total_amount').eq('status', 'paid').gte('created_at', monthStart),
-        supabase.from('sales').select('total_amount, created_at').eq('status', 'paid').gte('created_at', sevenDaysAgoISO)
+      // Fetch Sales and Sale Items for revenue and profit calculation
+      const [
+        { data: todaySalesData },
+        { data: monthSalesData },
+        { data: allPaidData },
+        { data: allSaleItems }
+      ] = await Promise.all([
+        supabase.from('sales').select('id, total_amount, subtotal, discount_amount, payment_method, status, created_at').eq('status', 'paid').gte('created_at', `${today}T00:00:00`).lte('created_at', `${today}T23:59:59`),
+        supabase.from('sales').select('id, total_amount, subtotal, discount_amount, payment_method, status, created_at').eq('status', 'paid').gte('created_at', monthStart),
+        supabase.from('sales').select('id, total_amount, subtotal, discount_amount, payment_method, status, created_at').eq('status', 'paid').order('created_at', { ascending: false }).limit(600),
+        supabase.from('sale_items').select('sale_id, product_name, quantity, unit_price, cost, line_total, created_at').limit(3000)
       ])
 
-      const todayVal = (todaySalesData || []).reduce((s, r) => s + r.total_amount, 0)
+      // Build cost map
+      const costMap = new Map<string, number>()
+      for (const item of allSaleItems || []) {
+        const current = costMap.get(item.sale_id) || 0
+        const itemCost = (item.cost || 0) * (item.quantity || 1)
+        costMap.set(item.sale_id, current + itemCost)
+      }
+      setSaleItemsCostMap(costMap)
+      setAllPaidSales(allPaidData || [])
+
+      const todayVal = (todaySalesData || []).reduce((s, r) => s + (r.total_amount || 0), 0)
       const todayCount = (todaySalesData || []).length
-      const monthVal = (monthSalesData || []).reduce((s, r) => s + r.total_amount, 0)
+      const todayCostVal = (todaySalesData || []).reduce((s, r) => s + (costMap.get(r.id) || 0), 0)
+      const todayProfitVal = Math.max(0, todayVal - todayCostVal)
+
+      const monthVal = (monthSalesData || []).reduce((s, r) => s + (r.total_amount || 0), 0)
+      const monthCount = (monthSalesData || []).length
+      const monthCostVal = (monthSalesData || []).reduce((s, r) => s + (costMap.get(r.id) || 0), 0)
+      const monthProfitVal = Math.max(0, monthVal - monthCostVal)
+      const monthMarginVal = monthVal > 0 ? (monthProfitVal / monthVal) * 100 : 0
+      const monthAvg = monthCount > 0 ? monthVal / monthCount : 0
+
+      // 7-day sales
+      const sevenDaysAgoDate = new Date()
+      sevenDaysAgoDate.setDate(sevenDaysAgoDate.getDate() - 7)
+      const weekSalesList = (allPaidData || []).filter(s => new Date(s.created_at) >= sevenDaysAgoDate)
+      const weekVal = weekSalesList.reduce((s, r) => s + (r.total_amount || 0), 0)
 
       setTodaySales(todayVal)
       setTodayOrders(todayCount)
+      setTodayCost(todayCostVal)
+      setTodayProfit(todayProfitVal)
       setMonthSales(monthVal)
+      setMonthOrders(monthCount)
+      setMonthCost(monthCostVal)
+      setMonthProfit(monthProfitVal)
+      setMonthMargin(monthMarginVal)
+      setMonthAvgTicket(monthAvg)
+      setWeekSales(weekVal)
 
-      // Chart Data
-      const days = []
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        const dateStr = d.toISOString().slice(0, 10)
-        const daySales = (last7DaysData || []).filter(s => s.created_at.slice(0, 10) === dateStr)
-        const totalSalesVal = daySales.reduce((sum, s) => sum + s.total_amount, 0)
-        days.push({
-          date: d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }),
-          sales: totalSalesVal
-        })
+      // Compute chart data for 7, 14, 30 days
+      const makeChartData = (numDays: number) => {
+        const pts = []
+        for (let i = numDays - 1; i >= 0; i--) {
+          const d = new Date()
+          d.setDate(d.getDate() - i)
+          const dateStr = d.toISOString().slice(0, 10)
+          const dayList = (allPaidData || []).filter(s => s.created_at?.slice(0, 10) === dateStr)
+          const salesVal = dayList.reduce((sum, s) => sum + (s.total_amount || 0), 0)
+          const cVal = dayList.reduce((sum, s) => sum + (costMap.get(s.id) || 0), 0)
+          const profitVal = Math.max(0, salesVal - cVal)
+          pts.push({
+            date: d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }),
+            sales: salesVal,
+            profit: profitVal,
+            orders: dayList.length
+          })
+        }
+        return pts
       }
-      setChartData(days)
+
+      const d7 = makeChartData(7)
+      const d14 = makeChartData(14)
+      const d30 = makeChartData(30)
+      setChartData7(d7)
+      setChartData14(d14)
+      setChartData30(d30)
+      setChartData(d7)
 
       // Fetch Products & Categories
       const [{ data: prods }, { data: cats }] = await Promise.all([
@@ -1112,47 +1233,395 @@ export default function ManagerDashboard() {
       {/* OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Stats Cards */}
+          {/* Low stock alert banner (if any) */}
+          {lowStockCount > 0 && (
+            <div
+              onClick={() => setActiveTab('stock')}
+              className="cursor-pointer p-3.5 rounded-2xl flex items-center justify-between border transition-all hover:shadow-md"
+              style={{
+                background: 'rgba(245,158,11,0.08)',
+                borderColor: 'rgba(245,158,11,0.3)',
+                color: '#B45309'
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle size={18} className="shrink-0" />
+                <span className="text-xs md:text-sm font-bold">
+                  แจ้งเตือนสต๊อกต่ำ: มีสินค้า <strong>{lowStockCount} รายการ</strong> เหลือน้อยกว่าจุดวิกฤตที่ต้องสั่งซื้อเพิ่ม
+                </span>
+              </div>
+              <span className="text-xs font-black underline flex items-center gap-1">
+                ตรวจสต๊อกทันที <ChevronRight size={14} />
+              </span>
+            </div>
+          )}
+
+          {/* 4 Main Financial & Sales Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {/* 1. Today Sales */}
             <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>TODAY SALES (ยอดขายวันนี้)</span>
               <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(todaySales)}</h3>
-              <p className="text-xs mt-2 font-bold" style={{ color: '#059669' }}>สะสมรวม {todayOrders} ออเดอร์</p>
+              <p className="text-xs mt-2 font-bold" style={{ color: '#059669' }}>
+                สะสม {todayOrders} ออเดอร์ · กำไร {formatCurrency(todayProfit)}
+              </p>
             </div>
+
+            {/* 2. Month Sales */}
             <div className="glass-card p-3 md:p-5">
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>MONTH SALES (ยอดขายเดือนนี้)</span>
               <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#0F172A' }}>{formatCurrency(monthSales)}</h3>
-              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>ตั้งแต่วันที่ 1 ของเดือน</p>
+              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>
+                สะสม {monthOrders} ออเดอร์ (ตั้งแต่ต้นเดือน)
+              </p>
             </div>
+
+            {/* 3. Estimated Profit */}
             <div className="glass-card p-3 md:p-5">
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>LOW STOCK ALERTS</span>
-              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: lowStockCount > 0 ? '#B45309' : '#0F172A' }}>{lowStockCount} รายการ</h3>
-              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>สินค้ามีของน้อยกว่าจุดวิกฤต</p>
+              <div className="flex items-center justify-between">
+                <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>GROSS PROFIT (กำไรเดือนนี้)</span>
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                  Margin {monthMargin.toFixed(1)}%
+                </span>
+              </div>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#059669' }}>{formatCurrency(monthProfit)}</h3>
+              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>
+                ต้นทุนสินค้า {formatCurrency(monthCost)}
+              </p>
             </div>
+
+            {/* 4. Average Ticket Value */}
             <div className="glass-card p-3 md:p-5">
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>PENDING DISCOUNTS</span>
-              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: discountRequests.length > 0 ? '#BE123C' : '#0F172A' }}>{discountRequests.length} คำขอ</h3>
-              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>รอผู้จัดการตรวจสอบ</p>
+              <span style={{ fontSize: 11, color: '#475569', fontWeight: 800 }}>AVG. TICKET (ยอดเฉลี่ย/บิล)</span>
+              <h3 className="text-lg md:text-2xl font-black mt-1" style={{ color: '#1E3A8A' }}>
+                {formatCurrency(monthAvgTicket)}
+              </h3>
+              <p className="text-xs mt-2 font-semibold" style={{ color: '#64748B' }}>
+                ยอดขาย 7 วันล่าสุด {formatCurrency(weekSales)}
+              </p>
             </div>
           </div>
 
-          {/* Chart Area */}
+          {/* 🧮 Interactive Revenue & Profit Calculator */}
+          <div className="glass-card p-4 md:p-6" style={{ background: '#FFFFFF', border: '1.5px solid rgba(35,64,168,0.18)' }}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Calculator size={20} style={{ color: '#1E3A8A' }} />
+                  <h3 className="text-sm md:text-base font-black" style={{ color: '#0F172A' }}>
+                    เครื่องคำนวณและวิเคราะห์รายได้ (Revenue & Profit Calculator)
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  เลือกช่วงเวลาเพื่อคำนวณยอดขาย ต้นทุน กำไรสุทธิ และยอดเฉลี่ยต่อบิลได้แบบเรียลไทม์
+                </p>
+              </div>
+
+              {/* Preset buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { key: 'today', label: 'วันนี้' },
+                  { key: 'yesterday', label: 'เมื่อวาน' },
+                  { key: '7days', label: '7 วันล่าสุด' },
+                  { key: '30days', label: '30 วันล่าสุด' },
+                  { key: 'month', label: 'เดือนนี้' },
+                  { key: 'all', label: 'ทั้งหมด' },
+                  { key: 'custom', label: 'กำหนดเอง' },
+                ].map(p => (
+                  <button
+                    key={p.key}
+                    onClick={() => setCalcPreset(p.key as any)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border ${
+                      calcPreset === p.key
+                        ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Date Pickers (if custom selected) */}
+            {calcPreset === 'custom' && (
+              <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200 flex-wrap">
+                <span className="text-xs font-bold text-slate-600">เลือกช่วงวันที่:</span>
+                <input
+                  type="date"
+                  value={calcDateFrom}
+                  onChange={e => setCalcDateFrom(e.target.value)}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 bg-white"
+                />
+                <span className="text-xs font-bold text-slate-400">ถึง</span>
+                <input
+                  type="date"
+                  value={calcDateTo}
+                  onChange={e => setCalcDateTo(e.target.value)}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+            )}
+
+            {/* Calculator Results Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
+              {/* Total Revenue */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/70 to-indigo-50/50 border border-blue-200/60">
+                <div className="flex items-center justify-between text-blue-900 text-xs font-bold mb-1">
+                  <span>ยอดขายรวม (Revenue)</span>
+                  <Coins size={14} />
+                </div>
+                <div className="text-xl md:text-2xl font-black text-[#1E3A8A]">
+                  {formatCurrency(calcResults.revenue)}
+                </div>
+                <div className="text-[11px] text-blue-700 font-semibold mt-1">
+                  รายรับจากบิลที่สำเร็จ
+                </div>
+              </div>
+
+              {/* Total Cost */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100/60 border border-slate-200">
+                <div className="flex items-center justify-between text-slate-700 text-xs font-bold mb-1">
+                  <span>ต้นทุนสินค้ารวม (COGS)</span>
+                  <Package size={14} />
+                </div>
+                <div className="text-xl md:text-2xl font-black text-slate-800">
+                  {formatCurrency(calcResults.cost)}
+                </div>
+                <div className="text-[11px] text-slate-500 font-semibold mt-1">
+                  ต้นทุนของสินค้าที่จำหน่าย
+                </div>
+              </div>
+
+              {/* Gross Profit */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200/80">
+                <div className="flex items-center justify-between text-emerald-900 text-xs font-bold mb-1">
+                  <span>กำไรขั้นต้น (Profit)</span>
+                  <TrendingUp size={14} />
+                </div>
+                <div className="text-xl md:text-2xl font-black text-emerald-700">
+                  {formatCurrency(calcResults.profit)}
+                </div>
+                <div className="text-[11px] text-emerald-600 font-bold mt-1">
+                  รายได้หลังหักต้นทุนสินค้า
+                </div>
+              </div>
+
+              {/* Profit Margin % */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200/70">
+                <div className="flex items-center justify-between text-amber-900 text-xs font-bold mb-1">
+                  <span>อัตรากำไร (Margin)</span>
+                  <Percent size={14} />
+                </div>
+                <div className="text-xl md:text-2xl font-black text-amber-800">
+                  {calcResults.margin.toFixed(1)}%
+                </div>
+                <div className="text-[11px] text-amber-700 font-semibold mt-1">
+                  สัดส่วนกำไรต่อยอดขาย
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-Metrics Badges */}
+            <div className="flex items-center gap-3 md:gap-6 flex-wrap pt-2 text-xs font-bold text-slate-600">
+              <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
+                🧾 จำนวนบิลทั้งหมด: <strong className="text-slate-900 font-black">{calcResults.orders}</strong> บิล
+              </span>
+              <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
+                📊 ยอดเฉลี่ยต่อบิล: <strong className="text-blue-900 font-black">{formatCurrency(calcResults.avgTicket)}</strong>
+              </span>
+              <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
+                🏷️ รวมส่วนลดที่ให้ไป: <strong className="text-rose-700 font-black">{formatCurrency(calcResults.discounts)}</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Charts & Financial Breakdown Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 1. Dual Area Chart: Revenue vs Profit */}
+            <div className="glass-card p-4 md:p-6 lg:col-span-2">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                  <h3 className="text-xs md:text-sm font-black" style={{ color: '#0F172A' }}>
+                    📈 กราฟแนวโน้มยอดขายและกำไรขั้นต้น
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    เปรียบเทียบยอดขาย (Revenue) และกำไร (Profit) ตามช่วงเวลา
+                  </p>
+                </div>
+
+                {/* Range Toggle */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                  {[7, 14, 30].map(days => (
+                    <button
+                      key={days}
+                      onClick={() => setChartDaysRange(days as any)}
+                      className={`px-3 py-1 text-xs font-extrabold rounded-lg transition-all ${
+                        chartDaysRange === days
+                          ? 'bg-[#1E3A8A] text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {days} วัน
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ height: 260 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartDaysRange === 7 ? chartData7 : chartDaysRange === 14 ? chartData14 : chartData30}>
+                    <defs>
+                      <linearGradient id="salesGlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1E3A8A" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#1E3A8A" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="profitGlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#059669" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#059669" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                    <YAxis
+                      tick={{ fill: '#475569', fontSize: 10, fontWeight: 600 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={val => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: '#FFFFFF',
+                        border: '1.5px solid rgba(35,64,168,0.25)',
+                        color: '#0F172A',
+                        borderRadius: 12,
+                        fontWeight: 700,
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+                      }}
+                      formatter={(value: any, name: any) => [formatCurrency(Number(value) || 0), name]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12, fontWeight: 700, paddingTop: 8 }} />
+                    <Area type="monotone" dataKey="sales" name="ยอดขาย (Revenue)" stroke="#1E3A8A" fill="url(#salesGlow)" strokeWidth={2.5} />
+                    <Area type="monotone" dataKey="profit" name="กำไรขั้นต้น (Profit)" stroke="#059669" fill="url(#profitGlow)" strokeWidth={2.5} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* 2. Payment Method Breakdown */}
+            <div className="glass-card p-4 md:p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-xs md:text-sm font-black mb-1" style={{ color: '#0F172A' }}>
+                  💳 สัดส่วนช่องทางชำระเงิน
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mb-4">
+                  จำแนกตามช่องทางเงินเข้า ({calcPreset === 'today' ? 'วันนี้' : calcPreset === 'yesterday' ? 'เมื่อวาน' : calcPreset === '7days' ? '7 วันล่าสุด' : calcPreset === '30days' ? '30 วันล่าสุด' : calcPreset === 'month' ? 'เดือนนี้' : 'ตามช่วงเวลา'})
+                </p>
+
+                <div className="space-y-4">
+                  {/* Cash */}
+                  <div>
+                    <div className="flex justify-between items-center text-xs font-bold mb-1">
+                      <span className="flex items-center gap-1.5 text-slate-700">
+                        <Banknote size={14} className="text-emerald-600" /> เงินสด (Cash)
+                      </span>
+                      <span className="text-[#1E3A8A] font-black">
+                        {formatCurrency(calcResults.payMap.cash)}
+                        <span className="text-slate-400 font-normal ml-1">
+                          ({calcResults.revenue > 0 ? ((calcResults.payMap.cash / calcResults.revenue) * 100).toFixed(0) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                        style={{ width: `${calcResults.revenue > 0 ? (calcResults.payMap.cash / calcResults.revenue) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* QR / Transfer */}
+                  <div>
+                    <div className="flex justify-between items-center text-xs font-bold mb-1">
+                      <span className="flex items-center gap-1.5 text-slate-700">
+                        <QrCode size={14} className="text-blue-600" /> สแกน QR / โอนเงิน
+                      </span>
+                      <span className="text-[#1E3A8A] font-black">
+                        {formatCurrency(calcResults.payMap.qr + calcResults.payMap.transfer)}
+                        <span className="text-slate-400 font-normal ml-1">
+                          ({calcResults.revenue > 0 ? (((calcResults.payMap.qr + calcResults.payMap.transfer) / calcResults.revenue) * 100).toFixed(0) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                        style={{ width: `${calcResults.revenue > 0 ? ((calcResults.payMap.qr + calcResults.payMap.transfer) / calcResults.revenue) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Credit Card */}
+                  <div>
+                    <div className="flex justify-between items-center text-xs font-bold mb-1">
+                      <span className="flex items-center gap-1.5 text-slate-700">
+                        <CreditCard size={14} className="text-purple-600" /> บัตรเครดิต (Card)
+                      </span>
+                      <span className="text-[#1E3A8A] font-black">
+                        {formatCurrency(calcResults.payMap.card)}
+                        <span className="text-slate-400 font-normal ml-1">
+                          ({calcResults.revenue > 0 ? ((calcResults.payMap.card / calcResults.revenue) * 100).toFixed(0) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                        style={{ width: `${calcResults.revenue > 0 ? (calcResults.payMap.card / calcResults.revenue) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Summary Footer */}
+              <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between items-center text-xs font-black">
+                <span className="text-slate-600">ยอดเงินรวมทุกช่องทาง</span>
+                <span className="text-base text-[#1E3A8A]">{formatCurrency(calcResults.revenue)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Top 5 Products by Revenue */}
           <div className="glass-card p-4 md:p-6">
-            <h3 className="text-xs md:text-sm font-black mb-3 md:mb-4" style={{ color: '#0F172A' }}>กราฟแสดงยอดขายสะสมรายวัน (7 วัน)</h3>
-            <div style={{ height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="managerGlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1E3A8A" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#1E3A8A" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#FFFFFF', border: '1.5px solid rgba(35,64,168,0.25)', color: '#0F172A', borderRadius: 8, fontWeight: 700 }} />
-                  <Area type="monotone" dataKey="sales" name="ยอดขาย" stroke="#1E3A8A" fill="url(#managerGlow)" strokeWidth={2.5} />
-                </AreaChart>
-              </ResponsiveContainer>
+            <h3 className="text-xs md:text-sm font-black mb-3" style={{ color: '#0F172A' }}>
+              🏆 อันดับสินค้าสร้างรายได้สูงสุด 5 อันดับแรก (Top Revenue Generators)
+            </h3>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="w-full text-left" style={{ borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1.5px solid rgba(35,64,168,0.15)', background: 'rgba(35,64,168,0.04)' }}>
+                    {['อันดับ', 'ชื่อสินค้า', 'จำนวนที่ขายได้', 'ยอดขายสะสม'].map(h => (
+                      <th key={h} className="p-3 text-xs font-extrabold text-slate-700">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {topProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-6 text-center text-xs text-slate-400 font-bold">ยังไม่มีข้อมูลยอดขาย</td>
+                    </tr>
+                  ) : (
+                    topProducts.map((p, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid rgba(35,64,168,0.08)' }}>
+                        <td className="p-3 text-sm font-black text-[#1E3A8A]">#{idx + 1}</td>
+                        <td className="p-3 text-sm font-bold text-slate-900">{p.name}</td>
+                        <td className="p-3 text-sm font-semibold text-slate-600">{p.qty} ชิ้น</td>
+                        <td className="p-3 text-sm font-black text-[#1E3A8A]">{formatCurrency(p.revenue)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
